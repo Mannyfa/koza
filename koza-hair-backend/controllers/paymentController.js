@@ -1,5 +1,7 @@
 // controllers/paymentController.js
 const axios = require('axios');
+// Import the orders array and the function to get the next ID
+const { orders, getNextOrderId } = require('./orderController');
 
 exports.verifyPayment = async (req, res) => {
     const { reference } = req.body;
@@ -9,34 +11,36 @@ exports.verifyPayment = async (req, res) => {
     }
 
     try {
-        // Make a secure, server-to-server request to Paystack's verification endpoint
         const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-            headers: {
-                // Use the secret key from your environment variables
-                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
+            headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
         });
 
         const { status, data } = response.data;
 
-        // Check if the transaction was successful
         if (status === true && data.status === 'success') {
-            // Payment is verified successfully.
-            // At this point, you would typically:
-            // 1. Check if `data.amount` matches the order total in your database.
-            // 2. Check if you haven't already fulfilled an order for this reference.
-            // 3. Create the order in your database.
-            // 4. Send a success response to the frontend.
+            // --- CREATE THE ORDER ---
+            const newOrder = {
+                id: getNextOrderId(),
+                customer: {
+                    name: data.metadata.name,
+                    email: data.customer.email,
+                    phone: data.metadata.phone,
+                },
+                total: data.amount / 100, // Convert from kobo to Naira
+                status: 'Processing',
+                date: new Date().toISOString(),
+                items: data.metadata.cartItems || [],
+                transactionRef: reference,
+            };
 
-            console.log('Payment verified successfully:', data);
+            orders.push(newOrder);
+            console.log('New order created:', newOrder);
 
             res.status(200).json({
                 status: 'success',
-                message: 'Payment verified successfully.',
-                data: data,
+                message: 'Payment verified and order created.',
             });
         } else {
-            // If Paystack says the transaction was not successful
             res.status(400).json({ status: 'fail', message: 'Payment verification failed.', data });
         }
     } catch (error) {

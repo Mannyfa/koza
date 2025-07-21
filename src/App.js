@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PaystackButton } from 'react-paystack';
+import heroImage from './images/hero.jpg';
+import image1 from './images/image1.jpg';
+import image2 from './images/image2.jpg';
+import image3 from './images/image 3.jpg';
 
 // --- API Configuration ---
 const API_BASE_URL = 'http://localhost:5001';
@@ -13,7 +17,32 @@ const navLinks = [
   { name: 'Home', page: 'home' },
   { name: 'Shop', page: 'shop' },
   { name: 'Contact', page: 'contact' },
+  { name: 'Track Order', page: 'track' },
 ];
+
+const heroSlides = [
+    {
+        imageUrl: heroImage,
+        title: 'Luxury Hair, Unmatched Quality.',
+        subtitle: 'Discover flawless wigs and bundles that empower your style. Handcrafted for perfection, delivered to your doorstep.'
+    },
+    {
+        imageUrl: image3,
+        title: 'Define Your Curls.',
+        subtitle: 'Embrace volume and texture with our premium collection of curly wigs and extensions.'
+    },
+    {
+        imageUrl: image1,
+        title: 'Sleek, Straight, Stunning.',
+        subtitle: 'Achieve a timeless, sophisticated look with our bone-straight virgin hair.'
+    },
+    {
+        imageUrl: image2,
+        title: 'Confidence in Every Strand.',
+        subtitle: 'Invest in hair that not only looks good but feels incredible.'
+    }
+];
+
 
 const testimonials = [
     { id: 1, name: 'Amara K.', quote: "The best quality hair I've ever bought! The delivery was so fast, and the wig is flawless. Koza Hair Plug is the real deal!", avatar: 'https://placehold.co/100x100/EAD3C3/5C3A2F?text=A' },
@@ -75,15 +104,15 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch }) => {
 
     return (
         <header className="bg-white shadow-md sticky top-0 z-40">
-            <div className="bg-stone-800 text-white text-center p-2 text-sm">SAME DAY DELIVERY ON ALL ORDERS IN NIGERIA</div>
+           
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center"><button onClick={() => onNavigate('home')} className="text-2xl font-bold text-stone-800 tracking-wider">KOZA</button></div>
-                    <div className="hidden md:block"><div className="ml-10 flex items-baseline space-x-4">{navLinks.map((link) => (<button key={link.name} onClick={() => onNavigate(link.page)} className="text-gray-600 hover:text-stone-800 px-3 py-2 rounded-md text-sm font-medium transition-colors">{link.name}</button>))}</div></div>
+                    <div className="hidden md:block"><div className="ml-10 flex items-baseline space-x-4 bg-gray-300 rounded-full p-1">{navLinks.map((link) => (<button key={link.name} onClick={() => onNavigate(link.page)} className="text-gray-600 hover:text-stone-800 px-4 py-2 rounded-full text-sm font-medium transition-colors">{link.name}</button>))}</div></div>
                     <div className="flex items-center">
                         <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
-                            <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="p-2 rounded-md border border-gray-300"/>
-                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon/></button>
+                            <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="p-2 rounded-full border border-gray-300"/>
+                            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon/></button>
                         </form>
                         <button className="p-2 text-gray-600 hover:text-stone-800 sm:hidden" onClick={() => { /* Implement mobile search toggle */ }}><SearchIcon /></button>
                         <button className="p-2 text-gray-600 hover:text-stone-800"><UserIcon /></button>
@@ -121,31 +150,31 @@ const ProductCard = ({ product, onProductClick }) => {
     );
 };
 
-const Footer = () => (
+const Footer = ({ onNavigate }) => (
     <footer className="bg-black border-t border-gray-200">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div>
                     <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Shop</h3>
                     <ul className="mt-4 space-y-4">
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Wigs</a></li>
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Bundles</a></li>
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Closures & Frontals</a></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Wigs</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Bundles</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Closures & Frontals</button></li>
                     </ul>
                 </div>
                 <div>
                     <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">About</h3>
                     <ul className="mt-4 space-y-4">
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Our Story</a></li>
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Reviews</a></li>
+                        <li><a href="#!" className="text-base text-gray-500 hover:text-white">Our Story</a></li>
+                        <li><a href="#!" className="text-base text-gray-500 hover:text-white">Reviews</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
                     <ul className="mt-4 space-y-4">
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Contact Us</a></li>
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">FAQ</a></li>
-                        <li><a href="#" className="text-base text-gray-500 hover:text-white">Shipping & Returns</a></li>
+                        <li><button onClick={() => onNavigate('contact')} className="text-base text-gray-500 hover:text-white">Contact Us</button></li>
+                        <li><button onClick={() => onNavigate('faq')} className="text-base text-gray-500 hover:text-white">FAQ</button></li>
+                        <li><a href="#!" className="text-base text-gray-500 hover:text-white">Shipping & Returns</a></li>
                     </ul>
                 </div>
                  <div className="col-span-2 md:col-span-1">
@@ -153,7 +182,7 @@ const Footer = () => (
                     <p className="mt-4 text-base text-gray-500">Follow us on social media for the latest updates and styles.</p>
                     <div className="mt-4 flex space-x-6">
                         <a href="https://instagram.com/koza_hair_plug" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Instagram</span><InstagramIcon /></a>
-                        <a href="#" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Twitter</span><TwitterIcon /></a>
+                        <a href="#!" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Twitter</span><TwitterIcon /></a>
                         <a href="mailto:support@kozahair.com" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Email</span><MailIcon /></a>
                     </div>
                 </div>
@@ -167,39 +196,54 @@ const Footer = () => (
 
 // --- Standalone Page Section Components ---
 
-const HeroSection = ({ onNavigate }) => (
-    <div className="relative bg-gray-900">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-            <img
-                className="w-full h-full object-cover"
-                src="https://images.unsplash.com/photo-1596704017254-9b1210a83a2a?q=80&w=2070&auto=format&fit=crop" 
-                alt="Model with beautiful hair"
-                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/1920x1080/EAD3C3/FFFFFF?text=Koza+Hair'; }}
-            />
-            {/* Dark Overlay for text readability */}
-            <div className="absolute inset-0 bg-black opacity-50" aria-hidden="true"></div>
-        </div>
+const HeroSection = ({ onNavigate }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
 
-        {/* Content */}
-        <div className="relative max-w-4xl mx-auto py-24 px-4 text-center sm:py-32 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Luxury Hair, Unmatched Quality.
-            </h1>
-            <p className="mt-6 max-w-3xl mx-auto text-xl text-gray-300">
-                Discover flawless wigs and bundles that empower your style. Handcrafted for perfection, delivered to your doorstep.
-            </p>
-            <div className="mt-10">
-                <button
-                    onClick={() => onNavigate('shop')}
-                    className="inline-block bg-white border border-transparent rounded-md py-3 px-8 text-base font-medium text-stone-800 hover:bg-gray-200 transition-colors"
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % heroSlides.length);
+        }, 5000); // Change slide every 5 seconds
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="relative w-full h-screen bg-gray-900">
+            {/* Image Slides */}
+            {heroSlides.map((slide, index) => (
+                <div
+                    key={index}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
                 >
-                    Shop The Collection
-                </button>
+                    <img
+                        className="w-full h-full object-cover"
+                        src={slide.imageUrl}
+                        alt={`Slide ${index + 1}`}
+                        onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/1920x1080/000000/FFFFFF?text=Image+Not+Found'; }}
+                    />
+                    <div className="absolute inset-0 bg-black opacity-50" aria-hidden="true"></div>
+                </div>
+            ))}
+
+            {/* Content */}
+            <div className="relative h-full flex flex-col justify-center items-center max-w-4xl mx-auto px-4 text-center sm:px-6 lg:px-8">
+                <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                    {heroSlides[currentIndex].title}
+                </h1>
+                <p className="mt-6 max-w-3xl mx-auto text-xl text-gray-300">
+                    {heroSlides[currentIndex].subtitle}
+                </p>
+                <div className="mt-10">
+                    <button
+                        onClick={() => onNavigate('shop')}
+                        className="inline-block bg-white border border-transparent rounded-md py-3 px-8 text-base font-medium text-stone-800 hover:bg-gray-200 transition-colors"
+                    >
+                        Shop The Collection
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const FeaturedProducts = ({ allProducts, onProductClick, onNavigate, loading, error }) => (
     <div className="bg-white">
@@ -375,7 +419,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                     ) : (
                         <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
                             <section className="lg:col-span-7">
-                                <ul role="list" className="border-t border-b border-gray-200 divide-y divide-gray-200">
+                                <ul className="border-t border-b border-gray-200 divide-y divide-gray-200">
                                     {cart.map((item) => {
                                         const imageUrl = item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
                                         return (
@@ -465,7 +509,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                         <div className="mt-10 lg:mt-0">
                             <h2 className="text-lg font-medium text-gray-900">Order summary</h2>
                             <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <ul role="list" className="divide-y divide-gray-200">{cart.map((product) => (<li key={product.id} className="flex py-6 px-4 sm:px-6"><div className="flex-shrink-0"><img src={product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`} alt={product.name} className="w-20 rounded-md" /></div><div className="ml-6 flex-1 flex flex-col"><div className="flex"><div className="min-w-0 flex-1"><h4 className="text-sm"><a href="#" className="font-medium text-gray-700 hover:text-gray-800">{product.name}</a></h4><p className="mt-1 text-sm text-gray-500">Qty: {product.quantity}</p></div></div><div className="flex-1 pt-2 flex items-end justify-between"><p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(product.price * product.quantity)}</p></div></div></li>))}</ul>
+                                <ul className="divide-y divide-gray-200">{cart.map((product) => (<li key={product.id} className="flex py-6 px-4 sm:px-6"><div className="flex-shrink-0"><img src={product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`} alt={product.name} className="w-20 rounded-md" /></div><div className="ml-6 flex-1 flex flex-col"><div className="flex"><div className="min-w-0 flex-1"><h4 className="text-sm"><a href="#!" className="font-medium text-gray-700 hover:text-gray-800">{product.name}</a></h4><p className="mt-1 text-sm text-gray-500">Qty: {product.quantity}</p></div></div><div className="flex-1 pt-2 flex items-end justify-between"><p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(product.price * product.quantity)}</p></div></div></li>))}</ul>
                                 <dl className="border-t border-gray-200 py-6 px-4 space-y-6 sm:px-6"><div className="flex items-center justify-between"><dt className="text-sm">Subtotal</dt><dd className="text-sm font-medium text-gray-900">{formatPrice(subtotal)}</dd></div><div className="flex items-center justify-between"><dt className="text-sm">Shipping</dt><dd className="text-sm font-medium text-gray-900">{formatPrice(0)}</dd></div><div className="flex items-center justify-between border-t border-gray-200 pt-6"><dt className="text-base font-medium">Total</dt><dd className="text-base font-medium text-gray-900">{formatPrice(subtotal)}</dd></div></dl>
                                 <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                                     <PaystackButton
@@ -485,6 +529,58 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
         </div>
     );
 };
+
+const TrackOrderPage = () => {
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [status, setStatus] = useState(null);
+
+    const handleTrack = (e) => {
+        e.preventDefault();
+        // Placeholder logic
+        if (trackingNumber) {
+            setStatus(`Order ${trackingNumber} is currently in transit.`);
+        }
+    };
+
+    return (
+        <div className="max-w-2xl mx-auto py-16 px-4">
+            <h1 className="text-3xl font-extrabold text-center text-gray-900">Track Your Order</h1>
+            <p className="mt-4 text-center text-gray-500">Enter your tracking number below to see the status of your delivery.</p>
+            <form onSubmit={handleTrack} className="mt-8 flex flex-col items-center">
+                <input
+                    type="text"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder="Enter tracking number"
+                    className="w-full max-w-md p-3 border border-gray-300 rounded-md"
+                />
+                <button type="submit" className="mt-4 w-full max-w-md bg-stone-800 text-white py-3 rounded-md hover:bg-stone-700">
+                    Track
+                </button>
+            </form>
+            {status && (
+                <div className="mt-8 p-4 bg-gray-100 rounded-md text-center">
+                    <p>{status}</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const ContactPage = () => (
+    <div className="max-w-2xl mx-auto py-16 px-4">
+        <h1 className="text-3xl font-extrabold text-center text-gray-900">Contact Us</h1>
+        <p className="mt-4 text-center text-gray-500">Have a question? We'd love to hear from you. Fill out the form below or email us directly.</p>
+        <form className="mt-8 space-y-6">
+            <input type="text" placeholder="Your Name" className="w-full p-3 border border-gray-300 rounded-md" />
+            <input type="email" placeholder="Your Email" className="w-full p-3 border border-gray-300 rounded-md" />
+            <textarea placeholder="Your Message" rows="5" className="w-full p-3 border border-gray-300 rounded-md"></textarea>
+            <button type="submit" className="w-full bg-stone-800 text-white py-3 rounded-md hover:bg-stone-700">
+                Send Message
+            </button>
+        </form>
+    </div>
+);
 
 const OrderConfirmationPage = ({ onNavigate }) => (
     <div className="bg-white">
@@ -564,7 +660,10 @@ export default function App() {
             case 'cart': return <CartPage cart={cart} onUpdateCart={handleUpdateCart} onRemoveFromCart={handleRemoveFromCart} onNavigate={handleNavigate} />;
             case 'checkout': return <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} />;
             case 'orderConfirmation': return <OrderConfirmationPage onNavigate={handleNavigate} />;
-            default: return <HomePage {...pageProps} />;
+            case 'track': return <TrackOrderPage />;
+            case 'contact': return <ContactPage />;
+            case 'faq': return <FaqSection />;
+          default: return <HomePage {...pageProps} />;
         }
     };
 
@@ -574,7 +673,7 @@ export default function App() {
             <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} cartCount={cartCount} onSearch={handleSearch} />
             <MobileMenu mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} />
             <main>{renderPage()}</main>
-            <Footer />
+            <Footer onNavigate={handleNavigate} />
         </div>
     );
 }
