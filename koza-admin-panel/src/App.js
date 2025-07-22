@@ -5,6 +5,7 @@ const adminNavLinks = [
     { name: 'Dashboard', page: 'dashboard' },
     { name: 'Products', page: 'products' },
     { name: 'Orders', page: 'orders' },
+    { name: 'Blog', page: 'blog' },
     { name: 'Customers', page: 'customers' },
     { name: 'Settings', page: 'settings' },
 ];
@@ -14,9 +15,10 @@ const ProductsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const OrdersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
 const CustomersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197" /></svg>;
 const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const BlogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 
-const icons = { DashboardIcon, ProductsIcon, OrdersIcon, CustomersIcon, SettingsIcon };
+const icons = { DashboardIcon, ProductsIcon, OrdersIcon, BlogIcon, CustomersIcon, SettingsIcon };
 const API_URL = 'http://localhost:5001/api';
 
 // --- Reusable Components ---
@@ -343,6 +345,170 @@ const OrdersPage = () => {
     );
 };
 
+const BlogPage = () => {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingPost, setEditingPost] = useState(null);
+
+    const fetchPosts = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_URL}/blog`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            setPosts(data.data.posts);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+
+    const handleOpenModal = (post = null) => {
+        setEditingPost(post);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingPost(null);
+    };
+
+    const handleFormSubmit = async (formData, postId) => {
+        const url = postId ? `${API_URL}/blog/${postId}` : `${API_URL}/blog`;
+        const method = postId ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.message || 'Failed to save post.');
+            }
+            await fetchPosts(); // Refresh list
+            handleCloseModal();
+        } catch (err) {
+            console.error("Submission error:", err);
+            alert(`Failed to save post: ${err.message}`);
+        }
+    };
+
+    const handleDelete = async (postId) => {
+        if (window.confirm('Are you sure you want to delete this post?')) {
+            try {
+                const response = await fetch(`${API_URL}/blog/${postId}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Failed to delete post.');
+                fetchPosts(); // Refresh list
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+    };
+
+    if (loading) return <p>Loading posts...</p>;
+    if (error) return <p>Error: {error}. Is your backend server running?</p>;
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-800">Blog Posts</h1>
+                <button onClick={() => handleOpenModal()} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    + Add New Post
+                </button>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="p-4">Title</th>
+                            <th className="p-4">Summary</th>
+                            <th className="p-4">Date</th>
+                            <th className="p-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {posts.map(post => (
+                            <tr key={post.id} className="border-b hover:bg-gray-50">
+                                <td className="p-4 font-medium">{post.title}</td>
+                                <td className="p-4">{post.summary}</td>
+                                <td className="p-4">{new Date(post.createdAt).toLocaleDateString()}</td>
+                                <td className="p-4 space-x-2">
+                                    <button onClick={() => handleOpenModal(post)} className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">Edit</button>
+                                    <button onClick={() => handleDelete(post.id)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">Delete</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                <BlogPostForm post={editingPost} onSubmit={(formData) => handleFormSubmit(formData, editingPost?.id)} onClose={handleCloseModal} />
+            </Modal>
+        </div>
+    );
+};
+
+const BlogPostForm = ({ post, onSubmit, onClose }) => {
+    const [formData, setFormData] = useState({
+        title: post?.title || '',
+        summary: post?.summary || '',
+        imageUrl: post?.imageUrl || '',
+        content: post?.content || '',
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        await onSubmit(formData);
+        setIsSubmitting(false);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <h2 className="text-2xl font-bold text-gray-800">{post ? 'Edit Post' : 'Add New Post'}</h2>
+            <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">Post Title</label>
+                <input type="text" name="title" id="title" value={formData.title} onChange={handleChange} required className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
+            <div>
+                <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">Image URL</label>
+                <input type="text" name="imageUrl" id="imageUrl" value={formData.imageUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
+            <div>
+                <label htmlFor="summary" className="block text-sm font-medium text-gray-700">Summary</label>
+                <textarea name="summary" id="summary" value={formData.summary} onChange={handleChange} required rows="3" className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+            <div>
+                <label htmlFor="content" className="block text-sm font-medium text-gray-700">Full Content</label>
+                <textarea name="content" id="content" value={formData.content} onChange={handleChange} required rows="6" className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">{isSubmitting ? 'Saving...' : 'Save Post'}</button>
+            </div>
+        </form>
+    );
+};
+
+
+
+
+
 const CustomersPage = () => <h1 className="text-3xl font-bold text-gray-800">Customers (Coming Soon)</h1>;
 const SettingsPage = () => <h1 className="text-3xl font-bold text-gray-800">Settings (Coming Soon)</h1>;
 
@@ -356,6 +522,7 @@ export default function App() {
             case 'dashboard': return <DashboardPage />;
             case 'products': return <ProductsPage />;
             case 'orders': return <OrdersPage />;
+            case 'blog': return <BlogPage />;
             case 'customers': return <CustomersPage />;
             case 'settings': return <SettingsPage />;
             default: return <DashboardPage />;

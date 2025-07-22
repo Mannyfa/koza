@@ -16,6 +16,7 @@ const PAYSTACK_PUBLIC_KEY = "pk_test_bec9f5f9e180775e22c634dc005c55510f2a86ea";
 const navLinks = [
   { name: 'Home', page: 'home' },
   { name: 'Shop', page: 'shop' },
+  { name: 'Blog', page: 'blog' },
   { name: 'Contact', page: 'contact' },
   { name: 'Track Order', page: 'track' },
 ];
@@ -79,6 +80,7 @@ const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const ScissorsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a1 1 0 01-1.414 0L9 12m0 0l2.879-2.879a1 1 0 011.414 0L16 12M4 4v.01M4 8v.01M4 12v.01M4 16v.01M8 4v.01M12 4v.01M16 4v.01" /></svg>;
 const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8l2-2zM13 16l2 2h3.5a1 1 0 001-1.447l-2-4A1 1 0 0016.5 9H13v7z" /></svg>;
 const ChatBubbleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>;
+const HeartIcon = ({ className, isFilled }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill={isFilled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>);
 const InstagramIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" strokeWidth="2"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"></path></svg>;
 const TwitterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"></path></svg>;
 const MailIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>;
@@ -92,8 +94,9 @@ const Notification = ({ message, show }) => (
     </div>
 );
 
-const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch }) => {
+const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUser, onLogout }) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -104,7 +107,6 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch }) => {
 
     return (
         <header className="bg-white shadow-md sticky top-0 z-40">
-           
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center"><button onClick={() => onNavigate('home')} className="text-2xl font-bold text-stone-800 tracking-wider">KOZA</button></div>
@@ -115,7 +117,29 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch }) => {
                             <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon/></button>
                         </form>
                         <button className="p-2 text-gray-600 hover:text-stone-800 sm:hidden" onClick={() => { /* Implement mobile search toggle */ }}><SearchIcon /></button>
-                        <button className="p-2 text-gray-600 hover:text-stone-800"><UserIcon /></button>
+                        
+                        <div className="relative ml-3">
+                            <div>
+                                <button onClick={() => currentUser ? setUserMenuOpen(!userMenuOpen) : onNavigate('auth')} className="p-2 text-gray-600 hover:text-stone-800 flex items-center rounded-full focus:outline-none">
+                                    <UserIcon />
+                                </button>
+                            </div>
+                            {currentUser && userMenuOpen && (
+                                <div 
+                                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
+                                    onMouseLeave={() => setUserMenuOpen(false)}
+                                >
+                                    <div className="px-4 py-3">
+                                        <p className="text-sm">Signed in as</p>
+                                        <p className="text-sm font-medium text-gray-900 truncate">{currentUser.email}</p>
+                                    </div>
+                                    <div className="border-t border-gray-100"></div>
+                                    <button onClick={() => { onNavigate('wishlist'); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Wishlist</button>
+                                    <button onClick={() => { onLogout(); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                                </div>
+                            )}
+                        </div>
+
                         <button onClick={() => onNavigate('cart')} className="relative p-2 text-gray-600 hover:text-stone-800"><ShoppingBagIcon />{cartCount > 0 && <span className="absolute top-1 right-1 text-xs bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">{cartCount}</span>}</button>
                         <div className="md:hidden ml-2"><button onClick={() => setMobileMenuOpen(true)} className="p-2 rounded-md inline-flex items-center justify-center text-gray-600 hover:text-stone-800 focus:outline-none"><MenuIcon /></button></div>
                     </div>
@@ -135,13 +159,24 @@ const MobileMenu = ({ mobileMenuOpen, setMobileMenuOpen, onNavigate }) => (
     </div>
 );
 
-const ProductCard = ({ product, onProductClick }) => {
+const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }) => {
     const imageUrl = product.image && product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
+    
+    const handleWishlistClick = (e) => {
+        e.stopPropagation(); // Prevent card click when wishlist icon is clicked
+        onToggleWishlist(product.id);
+    };
+
     return (
         <div key={product.id} onClick={() => onProductClick(product)} className="group relative cursor-pointer">
             <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
                 <img src={imageUrl} alt={product.name} className="w-full h-full object-center object-cover lg:w-full lg:h-full" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x400/cccccc/333333?text=Image+Error'; }} />
             </div>
+            {onToggleWishlist && (
+                <button onClick={handleWishlistClick} className="absolute top-2 right-2 bg-white rounded-full p-2 text-gray-500 hover:text-red-500 z-10 transition-colors">
+                    <HeartIcon className="h-6 w-6 text-red-500" isFilled={isWishlisted} />
+                </button>
+            )}
             <div className="mt-4 flex justify-between">
                 <div><h3 className="text-sm text-gray-700"><span aria-hidden="true" className="absolute inset-0" />{product.name}</h3></div>
                 <p className="text-sm font-medium text-gray-900">{formatPrice(product.price)}</p>
@@ -245,7 +280,7 @@ const HeroSection = ({ onNavigate }) => {
     );
 };
 
-const FeaturedProducts = ({ allProducts, onProductClick, onNavigate, loading, error }) => (
+const FeaturedProducts = ({ allProducts, onProductClick, onNavigate, loading, error, onToggleWishlist, currentUser }) => (
     <div className="bg-white">
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 text-center">Featured Collection</h2>
@@ -254,7 +289,15 @@ const FeaturedProducts = ({ allProducts, onProductClick, onNavigate, loading, er
             {error && <p className="text-center mt-8 text-red-500">Could not load products. Please try again later.</p>}
             {!loading && !error && (
                 <div className="mt-8 grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-4 xl:gap-x-8">
-                    {allProducts.slice(0, 4).map((product) => <ProductCard key={product.id} product={product} onProductClick={onProductClick} />)}
+                    {allProducts.slice(0, 4).map((product) => (
+                        <ProductCard 
+                            key={product.id} 
+                            product={product} 
+                            onProductClick={onProductClick} 
+                            onToggleWishlist={onToggleWishlist}
+                            isWishlisted={currentUser?.wishlist.includes(product.id)}
+                        />
+                    ))}
                 </div>
             )}
             <div className="mt-12 text-center"><button onClick={() => onNavigate('shop')} className="inline-block bg-stone-800 text-white font-semibold py-3 px-8 rounded-md hover:bg-stone-700 transition-colors">Shop All Products</button></div>
@@ -337,11 +380,11 @@ const FaqSection = () => {
 
 // --- Page Components ---
 
-const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error }) => {
+const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onToggleWishlist, currentUser }) => {
     return (
         <>
             <HeroSection onNavigate={onNavigate} />
-            <FeaturedProducts allProducts={allProducts} onProductClick={onProductClick} onNavigate={onNavigate} loading={loading} error={error} />
+            <FeaturedProducts allProducts={allProducts} onProductClick={onProductClick} onNavigate={onNavigate} loading={loading} error={error} onToggleWishlist={onToggleWishlist} currentUser={currentUser} />
             <WhyUsSection />
             <Testimonials />
             <FaqSection />
@@ -349,7 +392,7 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error }) =
     );
 };
 
-const ShopPage = ({ allProducts, onProductClick, loading, error }) => {
+const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlist, currentUser }) => {
     if (loading) return <p className="text-center py-16">Loading products...</p>;
     if (error) return <p className="text-center py-16 text-red-500">Could not load products. Please try again later.</p>;
 
@@ -358,14 +401,22 @@ const ShopPage = ({ allProducts, onProductClick, loading, error }) => {
             <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">All Products</h1>
                 <div className="mt-8 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6">
-                    {allProducts.map(product => <ProductCard key={product.id} product={product} onProductClick={onProductClick} />)}
+                    {allProducts.map(product => (
+                        <ProductCard 
+                            key={product.id} 
+                            product={product} 
+                            onProductClick={onProductClick} 
+                            onToggleWishlist={onToggleWishlist}
+                            isWishlisted={currentUser?.wishlist.includes(product.id)}
+                        />
+                    ))}
                 </div>
             </div>
         </div>
     );
 };
 
-const SearchPage = ({ searchResults, onProductClick, loading, query }) => {
+const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWishlist, currentUser }) => {
     if (loading) return <p className="text-center py-16">Searching...</p>;
     
     return (
@@ -374,7 +425,15 @@ const SearchPage = ({ searchResults, onProductClick, loading, query }) => {
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Search Results for "{query}"</h1>
                 {searchResults.length > 0 ? (
                     <div className="mt-8 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6">
-                        {searchResults.map(product => <ProductCard key={product.id} product={product} onProductClick={onProductClick} />)}
+                        {searchResults.map(product => (
+                            <ProductCard 
+                                key={product.id} 
+                                product={product} 
+                                onProductClick={onProductClick} 
+                                onToggleWishlist={onToggleWishlist}
+                                isWishlisted={currentUser?.wishlist.includes(product.id)}
+                            />
+                        ))}
                     </div>
                 ) : (
                     <p className="mt-8 text-center text-gray-500">No products found matching your search.</p>
@@ -384,7 +443,63 @@ const SearchPage = ({ searchResults, onProductClick, loading, query }) => {
     );
 };
 
-const ProductDetailPage = ({ product, onAddToCart }) => {
+
+const BlogPage = ({ onPostClick }) => {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch(`${API_URL}/blog`);
+                const data = await response.json();
+                setPosts(data.data.posts);
+            } catch (error) {
+                console.error("Failed to fetch posts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPosts();
+    }, []);
+
+    if (loading) return <p className="text-center py-16">Loading articles...</p>;
+
+    return (
+        <div className="bg-white py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 className="text-3xl font-extrabold text-center text-gray-900">The Koza Blog</h1>
+                <div className="mt-12 max-w-lg mx-auto grid gap-8 lg:grid-cols-2 lg:max-w-none">
+                    {posts.map(post => (
+                        <div key={post.id} className="flex flex-col rounded-lg shadow-lg overflow-hidden">
+                            <div className="flex-shrink-0">
+                                <img className="h-48 w-full object-cover" src={post.imageUrl} alt={post.title} />
+                            </div>
+                            <div className="flex-1 bg-white p-6 flex flex-col justify-between">
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-stone-600">{post.author}</p>
+                                    <button onClick={() => onPostClick(post.slug)} className="block mt-2">
+                                        <p className="text-xl font-semibold text-gray-900 text-left">{post.title}</p>
+                                        <p className="mt-3 text-base text-gray-500 text-left">{post.summary}</p>
+                                    </button>
+                                </div>
+                                <div className="mt-6 flex items-center">
+                                    <div className="text-sm text-gray-500">
+                                        <time dateTime={post.date}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+
+const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted }) => {
     const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
     return (
         <div className="bg-white">
@@ -396,7 +511,16 @@ const ProductDetailPage = ({ product, onAddToCart }) => {
                         <div className="mt-3"><p className="text-3xl text-gray-900">{formatPrice(product.price)}</p></div>
                         <div className="mt-3"><div className="flex items-center"><div className="flex items-center">{[0, 1, 2, 3, 4].map((rating) => <StarIcon key={rating} className="text-yellow-400 h-5 w-5 flex-shrink-0" />)}</div></div></div>
                         <div className="mt-6"><div className="text-base text-gray-700 space-y-6"><p>{product.description || "No description available."}</p></div></div>
-                        <form className="mt-6"><button type="button" onClick={() => onAddToCart(product, 1)} className="mt-10 w-full bg-stone-800 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-stone-700">Add to bag</button></form>
+                        <form className="mt-6">
+                            <div className="mt-10 flex space-x-3">
+                                <button type="button" onClick={() => onAddToCart(product, 1)} className="flex-1 bg-stone-800 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-stone-700">Add to bag</button>
+                                {onToggleWishlist && (
+                                    <button type="button" onClick={() => onToggleWishlist(product.id)} className="p-3 border border-gray-300 rounded-md text-gray-500 hover:text-red-500 hover:bg-gray-50">
+                                        <HeartIcon className="h-6 w-6 text-red-500" isFilled={isWishlisted} />
+                                    </button>
+                                )}
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -448,6 +572,84 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                         </div>
                     )}
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const AuthPage = ({ onLogin, onNavigate }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        const endpoint = isLogin ? '/login' : '/register';
+        try {
+            const response = await fetch(`${API_URL}/users${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            
+            if (isLogin) {
+                onLogin(data.user);
+                onNavigate('home');
+            } else {
+                alert('Registration successful! Please log in.');
+                setIsLogin(true);
+            }
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return (
+        <div className="max-w-md mx-auto py-16 px-4">
+            <h1 className="text-3xl font-extrabold text-center text-gray-900">{isLogin ? 'Login' : 'Create Account'}</h1>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email Address" className="w-full p-3 border border-gray-300 rounded-md" required />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="w-full p-3 border border-gray-300 rounded-md" required />
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                <button type="submit" className="w-full bg-stone-800 text-white py-3 rounded-md hover:bg-stone-700">{isLogin ? 'Login' : 'Register'}</button>
+            </form>
+            <p className="mt-4 text-center">
+                <button onClick={() => setIsLogin(!isLogin)} className="text-stone-600 hover:underline">
+                    {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+                </button>
+            </p>
+        </div>
+    );
+};
+
+const WishlistPage = ({ allProducts, onProductClick, onToggleWishlist, currentUser }) => {
+    if (!currentUser) return <p className="text-center py-16">Please log in to see your wishlist.</p>;
+    
+    const wishlistedProducts = allProducts.filter(p => currentUser.wishlist.includes(p.id));
+
+    return (
+        <div className="bg-white">
+            <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">My Wishlist</h1>
+                {wishlistedProducts.length > 0 ? (
+                    <div className="mt-8 grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6">
+                        {wishlistedProducts.map(product => (
+                            <ProductCard 
+                                key={product.id} 
+                                product={product} 
+                                onProductClick={onProductClick} 
+                                onToggleWishlist={onToggleWishlist}
+                                isWishlisted={true} 
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <p className="mt-8 text-center text-gray-500">Your wishlist is empty.</p>
+                )}
             </div>
         </div>
     );
@@ -605,6 +807,8 @@ export default function App() {
     const [notification, setNotification] = useState({ message: '', show: false });
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentUser, setCurrentUser] = useState(null);
+
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -617,6 +821,43 @@ export default function App() {
         };
         fetchProducts();
     }, []);
+
+    const handleLogin = (user) => {
+        setCurrentUser(user);
+        showNotification('Welcome back!');
+    };
+    
+    const handleLogout = () => {
+        setCurrentUser(null);
+        showNotification('You have been logged out.');
+    };
+
+    const handleToggleWishlist = async (productId) => {
+        if (!currentUser) {
+            showNotification('Please log in to use the wishlist.');
+            return;
+        }
+        
+        const isWishlisted = currentUser.wishlist.includes(productId);
+        const endpoint = isWishlisted ? `/${currentUser.id}/wishlist/${productId}` : `/${currentUser.id}/wishlist`;
+        const method = isWishlisted ? 'DELETE' : 'POST';
+
+        try {
+            const response = await fetch(`${API_URL}/users${endpoint}`, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: isWishlisted ? null : JSON.stringify({ productId }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            
+            setCurrentUser(prev => ({ ...prev, wishlist: data.wishlist }));
+            showNotification(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
+        } catch (err) {
+            showNotification(`Error: ${err.message}`);
+        }
+    };
+
 
     const handlePaymentSuccess = async (reference) => {
         setLoading(true);
@@ -645,24 +886,52 @@ export default function App() {
     const showNotification = (message) => { setNotification({ message, show: true }); setTimeout(() => { setNotification({ message: '', show: false }); }, 3000); };
     const handleNavigate = (page) => { setCurrentPage(page); setSelectedProduct(null); window.scrollTo(0, 0); };
     const handleProductClick = (product) => { setSelectedProduct(product); setCurrentPage('product'); window.scrollTo(0, 0); };
+    const handlePostClick = async (slug) => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_URL}/blog/${slug}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            // setSelectedPost(data.data.post);
+            setCurrentPage('blogPost');
+            window.scrollTo(0, 0);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleAddToCart = (product, quantity) => { setCart(prevCart => { const existingItem = prevCart.find(item => item.id === product.id); if (existingItem) { return prevCart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item); } return [...prevCart, { ...product, quantity }]; }); showNotification(`${product.name} added to cart!`); };
     const handleUpdateCart = (productId, quantity) => { setCart(prevCart => prevCart.map(item => item.id === productId ? {...item, quantity: quantity} : item).filter(item => item.quantity > 0)); };
     const handleRemoveFromCart = (productId) => { setCart(prevCart => prevCart.filter(item => item.id !== productId)); };
     const cartCount = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
 
     const renderPage = () => {
-        const pageProps = { allProducts, onProductClick: handleProductClick, onNavigate: handleNavigate, loading, error };
-        if (currentPage === 'product' && selectedProduct) { return <ProductDetailPage product={selectedProduct} onAddToCart={handleAddToCart} />; }
+        const isWishlisted = (productId) => currentUser?.wishlist.includes(productId);
+        const pageProps = { allProducts, onProductClick: handleProductClick, onNavigate: handleNavigate, loading, error, onToggleWishlist: handleToggleWishlist, currentUser };
+        
+        if (currentPage === 'product' && selectedProduct) { 
+            return <ProductDetailPage 
+                product={selectedProduct} 
+                onAddToCart={handleAddToCart} 
+                onToggleWishlist={handleToggleWishlist}
+                isWishlisted={isWishlisted(selectedProduct.id)}
+            />; 
+        }
         switch (currentPage) {
             case 'home': return <HomePage {...pageProps} />;
             case 'shop': return <ShopPage {...pageProps} />;
-            case 'search': return <SearchPage searchResults={searchResults} onProductClick={handleProductClick} loading={loading} query={searchQuery} />;
+            case 'search': return <SearchPage searchResults={searchResults} onProductClick={handleProductClick} loading={loading} query={searchQuery} onToggleWishlist={handleToggleWishlist} currentUser={currentUser} />;
             case 'cart': return <CartPage cart={cart} onUpdateCart={handleUpdateCart} onRemoveFromCart={handleRemoveFromCart} onNavigate={handleNavigate} />;
             case 'checkout': return <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} />;
             case 'orderConfirmation': return <OrderConfirmationPage onNavigate={handleNavigate} />;
             case 'track': return <TrackOrderPage />;
             case 'contact': return <ContactPage />;
             case 'faq': return <FaqSection />;
+            case 'auth': return <AuthPage onLogin={handleLogin} onNavigate={handleNavigate} />;
+            case 'wishlist': return <WishlistPage allProducts={allProducts} onProductClick={handleProductClick} onToggleWishlist={handleToggleWishlist} currentUser={currentUser} />;
+            case 'blog': return <BlogPage onPostClick={handlePostClick} />;
           default: return <HomePage {...pageProps} />;
         }
     };
@@ -670,7 +939,7 @@ export default function App() {
     return (
         <div className="bg-white font-sans">
             <Notification message={notification.message} show={notification.show} />
-            <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} cartCount={cartCount} onSearch={handleSearch} />
+            <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} cartCount={cartCount} onSearch={handleSearch} currentUser={currentUser} onLogout={handleLogout} />
             <MobileMenu mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} />
             <main>{renderPage()}</main>
             <Footer onNavigate={handleNavigate} />

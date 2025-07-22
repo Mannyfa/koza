@@ -10,6 +10,8 @@ const orderRoutes = require('./routes/orderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const userRoutes = require('./routes/userRoutes'); // Import user routes
+const blogRoutes = require('./routes/blogRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -17,9 +19,6 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Make the 'uploads' folder publicly accessible
-// This line serves files from the 'uploads' directory at the '/uploads' URL path.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Main Routes
@@ -33,6 +32,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/users', userRoutes); // Add this line
+app.use('/api/blog', blogRoutes);
 
 // Start the server
 app.listen(PORT, () => {
