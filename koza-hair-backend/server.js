@@ -10,8 +10,10 @@ const orderRoutes = require('./routes/orderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
-const userRoutes = require('./routes/userRoutes'); // Import user routes
+const userRoutes = require('./routes/userRoutes'); 
 const blogRoutes = require('./routes/blogRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes'); 
+
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -32,8 +34,10 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/users', userRoutes); // Add this line
+app.use('/api/users', userRoutes); 
 app.use('/api/blog', blogRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
 
 // Start the server
 app.listen(PORT, () => {

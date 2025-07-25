@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // --- Helper Data & Icons ---
 const adminNavLinks = [
@@ -55,12 +56,81 @@ const Sidebar = ({ currentPage, onNavigate }) => (
 );
 
 // --- Page Components ---
-const DashboardPage = () => (
-    <div>
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Welcome back, Admin!</p>
-    </div>
-);
+const DashboardPage = () => {
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch(`${API_URL}/dashboard/stats`);
+                if (!response.ok) throw new Error('Failed to fetch stats');
+                const data = await response.json();
+                setStats(data.data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (loading) return <p className="text-center text-gray-500">Loading dashboard...</p>;
+    if (error) return <p className="text-center text-red-500">Error: {error}</p>;
+
+    return (
+        <div>
+            <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-gray-500">Total Revenue</h3>
+                    <p className="text-3xl font-bold text-gray-800">₦{stats.totalRevenue.toLocaleString()}</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-gray-500">Total Sales</h3>
+                    <p className="text-3xl font-bold text-gray-800">{stats.totalSales}</p>
+                </div>
+                 <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-gray-500">New Customers</h3>
+                    <p className="text-3xl font-bold text-gray-800">0</p>
+                </div>
+                 <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-gray-500">Pending Orders</h3>
+                    <p className="text-3xl font-bold text-gray-800">0</p>
+                </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="font-semibold mb-4">Weekly Sales</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={stats.salesData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => `₦${value.toLocaleString()}`} />
+                            <Legend />
+                            <Bar dataKey="sales" fill="#4a5568" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                     <h3 className="font-semibold mb-4">Best-Selling Products</h3>
+                     <ul className="space-y-2">
+                        {stats.bestSellers.map(item => (
+                            <li key={item.name} className="flex justify-between text-sm">
+                                <span>{item.name}</span>
+                                <span className="font-bold">{item.count} sold</span>
+                            </li>
+                        ))}
+                     </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const ProductForm = ({ product, onSubmit, onClose }) => {
     const [formData, setFormData] = useState({
@@ -252,6 +322,8 @@ const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchOrders = async () => {
         try {
@@ -270,6 +342,18 @@ const OrdersPage = () => {
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    const handleViewDetails = async (orderId) => {
+        try {
+            const response = await fetch(`${API_URL}/orders/${orderId}`);
+            if (!response.ok) throw new Error('Failed to fetch order details');
+            const data = await response.json();
+            setSelectedOrder(data.data.order);
+            setIsModalOpen(true);
+        } catch (err) {
+            alert(err.message);
+        }
+    };
 
     const handleStatusChange = async (orderId, newStatus) => {
         try {
@@ -325,20 +409,79 @@ const OrdersPage = () => {
                                     </span>
                                 </td>
                                 <td className="p-4">
-                                    <select 
-                                        value={order.status} 
-                                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                        className="p-1 border rounded-md"
-                                    >
-                                        <option value="Processing">Processing</option>
-                                        <option value="Shipped">Shipped</option>
-                                        <option value="Delivered">Delivered</option>
-                                        <option value="Cancelled">Cancelled</option>
-                                    </select>
+                                    <button onClick={() => handleViewDetails(order.id)} className="text-indigo-600 hover:underline">View Details</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
+                </table>
+            </div>
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="lg">
+                {selectedOrder && <OrderDetailModal order={selectedOrder} onStatusChange={handleStatusChange} />}
+            </Modal>
+        </div>
+    );
+};
+
+const OrderDetailModal = ({ order, onStatusChange }) => {
+    return (
+        <div>
+            <h2 className="text-2xl font-bold text-gray-800">Order Details #{order.id}</h2>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div>
+                    <h3 className="font-semibold text-gray-600">Customer Details</h3>
+                    <p>{order.customer.name}</p>
+                    <p>{order.customer.email}</p>
+                    <p>{order.customer.phone}</p>
+                </div>
+                <div>
+                    <h3 className="font-semibold text-gray-600">Shipping Address</h3>
+                    <p>{order.shippingAddress}</p>
+                </div>
+                <div>
+                    <h3 className="font-semibold text-gray-600">Order Info</h3>
+                    <p>Date: {new Date(order.date).toLocaleString()}</p>
+                    <p>Transaction Ref: {order.transactionRef}</p>
+                </div>
+                <div>
+                    <h3 className="font-semibold text-gray-600">Status</h3>
+                    <select 
+                        value={order.status} 
+                        onChange={(e) => onStatusChange(order.id, e.target.value)}
+                        className="p-2 border rounded-md w-full"
+                    >
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+            <div className="mt-6">
+                <h3 className="font-semibold text-gray-600">Items Ordered</h3>
+                <table className="w-full text-left mt-2">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="p-2">Product</th>
+                            <th className="p-2">Quantity</th>
+                            <th className="p-2 text-right">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {order.items.map(item => (
+                            <tr key={item.id} className="border-b">
+                                <td className="p-2">{item.name}</td>
+                                <td className="p-2">{item.quantity}</td>
+                                <td className="p-2 text-right">₦{item.price.toLocaleString()}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr className="font-bold">
+                            <td colSpan="2" className="p-2 text-right">Total</td>
+                            <td className="p-2 text-right">₦{order.total.toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -536,3 +679,5 @@ export default function App() {
         </div>
     );
 }
+
+

@@ -4,6 +4,7 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 
 router.get('/', orderController.getAllOrders);
-router.put('/:id/status', orderController.updateOrderStatus); // Add this line
+router.get('/:id', orderController.getOrderById); // Add this line
+router.put('/:id/status', orderController.updateOrderStatus);
 
 module.exports = router;
