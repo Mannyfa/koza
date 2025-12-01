@@ -1,14 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Add dark mode strategy
+  darkMode: 'class',
+
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // Scans all your React components in the src folder
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        // Sets a clean, modern font for the dashboard
         sans: ['"Inter"', 'sans-serif'],
       },
+      // Add a custom gold color, as requested
+      colors: {
+        gold: {
+          400: '#FCD34D', // A nice Tailwind-like gold
+          500: '#FBBF24',
+          600: '#F59E0B',
+        }
+      }
     },
   },
   plugins: [],

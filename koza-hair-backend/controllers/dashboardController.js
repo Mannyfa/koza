@@ -1,6 +1,6 @@
 // controllers/dashboardController.js
 const { orders } = require('./orderController');
-const { products } = require('./productController'); // Assuming products are exported from productController
+const { products } = require('./productController'); 
 
 exports.getDashboardStats = (req, res) => {
     // --- Calculate Total Revenue and Sales ---

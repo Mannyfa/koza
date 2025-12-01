@@ -1,4 +1,5 @@
 // controllers/userController.js
+const sendEmail = require('../utils/sendEmail');
 
 // Placeholder for users. In a real app, this would be a database table.
 // Passwords should be hashed in a real application.
@@ -9,7 +10,7 @@ let users = [
 let nextUserId = 3;
 
 // User Registration
-exports.registerUser = (req, res) => {
+exports.registerUser = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ message: 'Email and password are required.' });
@@ -20,6 +21,22 @@ exports.registerUser = (req, res) => {
     }
     const newUser = { id: nextUserId++, email, password, wishlist: [] };
     users.push(newUser);
+
+    // Send welcome email
+    try {
+        await sendEmail({
+            email: newUser.email,
+            subject: 'Welcome to Koza Hair Vendor!',
+            message: `<h1>Welcome!</h1>
+                      <p>Thank you for registering with Koza Hair Vendor. We are excited to have you!</p>
+                      <p>Your account has been successfully created.</p>`
+        });
+        console.log('Welcome email sent successfully to:', newUser.email);
+    } catch (error) {
+        console.error('Error sending welcome email:', error);
+        // Optionally, handle email sending failure without blocking user registration
+    }
+
     // In a real app, you'd return a JWT token here, not the full user object.
     res.status(201).json({ message: 'User registered successfully', user: { id: newUser.id, email: newUser.email } });
 };

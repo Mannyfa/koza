@@ -1,15 +1,42 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, createContext, useContext} from 'react';
 import { PaystackButton } from 'react-paystack';
-import heroImage from './images/hero.jpg';
-import image1 from './images/image1.jpg';
-import image2 from './images/image2.jpg';
-import image3 from './images/image 3.jpg';
+import heroImage from './images/hero.png';
+import image1 from './images/image1.png';
+import image2 from './images/image2.png';
+import image3 from './images/image 3.png';
 
 // --- API Configuration ---
 const API_BASE_URL = 'http://localhost:5001';
 const API_URL = `${API_BASE_URL}/api`;
 // IMPORTANT: Replace with your actual Paystack Test Public Key from your dashboard
 const PAYSTACK_PUBLIC_KEY = "pk_test_bec9f5f9e180775e22c634dc005c55510f2a86ea";
+
+const ThemeContext = createContext();
+
+const ThemeProvider = ({ children }) => {
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        if (theme === 'dark') {
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+    };
+
+    return (
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
+};
+
 
 
 // --- Static Data (can be moved to a separate file) ---
@@ -24,44 +51,44 @@ const navLinks = [
 const heroSlides = [
     {
         imageUrl: heroImage,
-        title: 'Luxury Hair, Unmatched Quality.',
+        title: 'Luxury Perfume, Unmatched Quality.',
         subtitle: 'Discover flawless wigs and bundles that empower your style. Handcrafted for perfection, delivered to your doorstep.'
     },
     {
         imageUrl: image3,
-        title: 'Define Your Curls.',
+        title: 'Define Your Fragrance.',
         subtitle: 'Embrace volume and texture with our premium collection of curly wigs and extensions.'
     },
     {
         imageUrl: image1,
-        title: 'Sleek, Straight, Stunning.',
-        subtitle: 'Achieve a timeless, sophisticated look with our bone-straight virgin hair.'
+        title: 'Sleek, Nice, Stunning.',
+        subtitle: 'Achieve a timeless, sophisticated fragrance with our longlasting perfumes.'
     },
     {
         imageUrl: image2,
-        title: 'Confidence in Every Strand.',
-        subtitle: 'Invest in hair that not only looks good but feels incredible.'
+        title: 'Confidence in Yourself.',
+        subtitle: 'Invest in perfume that not only smells good but feels incredible.'
     }
 ];
 
 
 const testimonials = [
-    { id: 1, name: 'Amara K.', quote: "The best quality hair I've ever bought! The delivery was so fast, and the wig is flawless. Koza Hair Plug is the real deal!", avatar: 'https://placehold.co/100x100/EAD3C3/5C3A2F?text=A' },
-    { id: 2, name: 'Funke A.', quote: "I was skeptical about buying wigs online, but I'm so glad I chose Koza. The customer service was amazing, and my wig is gorgeous.", avatar: 'https://placehold.co/100x100/D4BBAA/5C3A2F?text=F' },
-    { id: 3, name: 'Chioma E.', quote: "My wholesale orders always arrive on time, and the quality is consistent. My customers love the hair. Thank you, Koza!", avatar: 'https://placehold.co/100x100/C8A998/5C3A2F?text=C' },
+    { id: 1, name: 'Amara K.', quote: "The best quality Perfume I've ever bought! The delivery was so fast, and the perfume is flawless. OpevickyScents Plug is the real deal!", avatar: 'https://placehold.co/100x100/EAD3C3/5C3A2F?text=A' },
+    { id: 2, name: 'Funke A.', quote: "I was skeptical about buying perfumes online, but I'm so glad I chose OpevickyScents . The customer service was amazing, and my perfume smells very nice.", avatar: 'https://placehold.co/100x100/D4BBAA/5C3A2F?text=F' },
+    { id: 3, name: 'Chioma E.', quote: "My wholesale orders always arrive on time, and the quality is consistent. My customers love the perfume. Thank you, OpevickyScents!", avatar: 'https://placehold.co/100x100/C8A998/5C3A2F?text=C' },
 ];
 
 const whyUsData = [
-    { title: '100% Virgin Hair', description: 'We source only the highest quality, unprocessed virgin hair for all our products.', icon: 'SparklesIcon' },
-    { title: 'HD Lace Experts', description: 'Our high-definition lace provides the most natural-looking, undetectable hairline.', icon: 'ScissorsIcon' },
+    { title: '100% Quality Perfumes', description: 'We source only the highest quality, undiluted perfumes for all our products.', icon: 'SparklesIcon' },
+    { title: 'No Stains Experts', description: 'Our high-definition sprays provides the most natural-looking, undetectable perfume stains.', icon: 'ScissorsIcon' },
     { title: 'Fast, Secure Delivery', description: 'Your order is processed quickly and shipped securely to your doorstep.', icon: 'TruckIcon' },
     { title: 'Exceptional Support', description: 'Our dedicated team is here to help you with any questions or concerns.', icon: 'ChatBubbleIcon' }
 ];
 
 const faqData = [
-    { question: "What is your return policy?", answer: "We offer a 7-day return policy for items in their original, unworn condition with all tags and packaging intact." },
+    { question: "What is your return policy?", answer: "We offer a 7-day return policy for items in their original, unused condition with all tags and packaging intact." },
     { question: "How long does shipping take within Nigeria?", answer: "Standard shipping within Lagos takes 1-2 business days. For other states, it typically takes 2-4 business days." },
-    { question: "What's the difference between a frontal and a closure?", answer: "A closure covers a small portion of the head, ideal for a simple part. A frontal extends from ear to ear, offering more versatile styling options." },
+    { question: "What's the difference between a perfume and bodyspray?", answer: "Perfume has a higher concentration of fragrance oils, lasts longer, and is stronger. Body spray has more alcohol/water, is lighter, cheaper, and fades faster." },
 ];
 
 
@@ -94,6 +121,23 @@ const Notification = ({ message, show }) => (
     </div>
 );
 
+const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>;
+const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h1M3 12H2m15.325-4.775l-.707-.707M6.343 17.657l-.707.707M16.95 18.364l.707-.707M7.05 5.636l-.707-.707M12 18a6 6 0 100-12 6 6 0 000 12z" /></svg>;
+
+const ThemeToggle = () => {
+    const { theme, toggleTheme } = useContext(ThemeContext);
+    return (
+        <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-gray-600 hover:text-stone-800 dark:text-gray-300 dark:hover:text-gold-400"
+            aria-label="Toggle theme"
+        >
+            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+        </button>
+    );
+};
+
+
 const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUser, onLogout }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -109,7 +153,7 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
         <header className="bg-white shadow-md sticky top-0 z-40">
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center"><button onClick={() => onNavigate('home')} className="text-2xl font-bold text-stone-800 tracking-wider">KOZA</button></div>
+                    <div className="flex items-center"><button onClick={() => onNavigate('home')} className="text-2xl font-bold text-stone-800 tracking-wider">OpevickyScents</button></div>
                     <div className="hidden md:block"><div className="ml-10 flex items-baseline space-x-4 bg-gray-300 rounded-full p-1">{navLinks.map((link) => (<button key={link.name} onClick={() => onNavigate(link.page)} className="text-gray-600 hover:text-stone-800 px-4 py-2 rounded-full text-sm font-medium transition-colors">{link.name}</button>))}</div></div>
                     <div className="flex items-center">
                         <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
@@ -186,15 +230,15 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
 };
 
 const Footer = ({ onNavigate }) => (
-    <footer className="bg-black border-t border-gray-200">
+    <footer className="bg-gradient-to-r from-[#191970] via-slate-800 to-[#0047AB] text-white py-10 mt-10">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div>
                     <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Shop</h3>
                     <ul className="mt-4 space-y-4">
-                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Wigs</button></li>
-                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Bundles</button></li>
-                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Closures & Frontals</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Perfumes</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Deals</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-base text-gray-500 hover:text-white">Combo & Roomspray</button></li>
                     </ul>
                 </div>
                 <div>
@@ -216,14 +260,14 @@ const Footer = ({ onNavigate }) => (
                     <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Connect With Us</h3>
                     <p className="mt-4 text-base text-gray-500">Follow us on social media for the latest updates and styles.</p>
                     <div className="mt-4 flex space-x-6">
-                        <a href="https://instagram.com/koza_hair_plug" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Instagram</span><InstagramIcon /></a>
-                        <a href="#!" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Twitter</span><TwitterIcon /></a>
-                        <a href="mailto:support@kozahair.com" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Email</span><MailIcon /></a>
+                        <a href="https://instagram.com/opevicky_scents_collections" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Instagram</span><InstagramIcon /></a>
+                        <a href="https://x.com/opevicky_scents" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Twitter</span><TwitterIcon /></a>
+                        <a href="mailto:opevickyscents@gmail.com" className="text-gray-400 hover:text-gray-500"><span className="sr-only">Email</span><MailIcon /></a>
                     </div>
                 </div>
             </div>
             <div className="mt-8 border-t border-gray-200 pt-8 text-center">
-                <p className="text-base text-gray-400">&copy; {new Date().getFullYear()} Koza Hair Plug. All rights reserved.</p>
+                <p className="text-base text-gray-400">&copy; {new Date().getFullYear()} OpevickyScents. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -284,7 +328,7 @@ const FeaturedProducts = ({ allProducts, onProductClick, onNavigate, loading, er
     <div className="bg-white">
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 text-center">Featured Collection</h2>
-            <p className="text-center mt-2 text-gray-500">Our most loved styles, chosen by you.</p>
+            <p className="text-center mt-2 text-gray-500">Our most loved fragrances, chosen by you.</p>
             {loading && <p className="text-center mt-8">Loading products...</p>}
             {error && <p className="text-center mt-8 text-red-500">Could not load products. Please try again later.</p>}
             {!loading && !error && (
@@ -330,7 +374,7 @@ const WhyUsSection = () => (
     <div className="bg-white py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-                <h2 className="text-base font-semibold text-stone-600 tracking-wide uppercase">The Koza Difference</h2>
+                <h2 className="text-base font-semibold text-stone-600 tracking-wide uppercase">The OPS Difference</h2>
                 <p className="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Why Choose Us?</p>
             </div>
             <div className="mt-12">
@@ -468,7 +512,7 @@ const BlogPage = ({ onPostClick }) => {
     return (
         <div className="bg-white py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-extrabold text-center text-gray-900">The Koza Blog</h1>
+                <h1 className="text-3xl font-extrabold text-center text-gray-900">The OpevickyScents Blog</h1>
                 <div className="mt-12 max-w-lg mx-auto grid gap-8 lg:grid-cols-2 lg:max-w-none">
                     {posts.map(post => (
                         <div key={post.id} className="flex flex-col rounded-lg shadow-lg overflow-hidden">
@@ -803,6 +847,7 @@ export default function App() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedPost, setSelectedPost] = useState(null); 
     const [cart, setCart] = useState([]);
     const [notification, setNotification] = useState({ message: '', show: false });
     const [searchResults, setSearchResults] = useState([]);
