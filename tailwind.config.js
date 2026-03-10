@@ -4,7 +4,8 @@ module.exports = {
   darkMode: 'class',
 
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // This path includes all your React components
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./koza-admin-panel/src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {

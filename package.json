@@ -2,6 +2,10 @@
   "name": "koza-hairvendor",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "koza-admin-panel",
+    "koza-hair-backend"
+  ],
   "dependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.10",
@@ -11,11 +15,16 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.21",
+    "express-async-handler": "^1.2.0",
+    "framer-motion": "^12.35.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^7.1.0",
     "nodemailer": "^7.0.10",
     "postcss": "^8.5.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-paystack": "^6.0.0",
+    "react-router-dom": "^7.10.0",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.4.17",
     "web-vitals": "^2.1.4"
