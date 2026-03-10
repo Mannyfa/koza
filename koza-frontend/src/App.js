@@ -2,16 +2,17 @@ import React, { useState, useMemo, useEffect, createContext, useContext } from '
 import { motion, AnimatePresence } from 'framer-motion';
 
 
-import heroImage1 from './images/hero.png';
-import heroImage2 from './images/image 3.png';
+ import heroImage1 from './images/hero.png';
+ import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
 import heroImage4 from './images/image2.png';
-// import myLogo from './images/logo.png';
-// 2. Replace the URLs in the `heroSlides` array with the variables (e.g., `imageUrl: heroImage1,`)
+//import myLogo from './images/logo.png';
 
 // --- API Configuration ---
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
+
+const PAYSTACK_PUBLIC_KEY = "pk_test_0a8e910db01683e5cfdd555f787f78481b3d5963";
 
 // --- Theme Context ---
 const ThemeContext = createContext();
@@ -855,19 +856,135 @@ const AuthPage = ({ onLogin, onNavigate }) => {
     );
 };
 
-const CheckoutPage = ({ cart, onPlaceOrder }) => {
-    const handleSubmit = (e) => { e.preventDefault(); onPlaceOrder(); };
+const CheckoutPage = ({ cart, onPaymentSuccess }) => {
+    const [customerInfo, setCustomerInfo] = useState({ name: '', email: '', phone: '', address: '', city: '', state: '' });
+    const [isPaying, setIsPaying] = useState(false);
+    const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setCustomerInfo(prev => ({ ...prev, [name]: value }));
+    };
+    
+    // This function handles the Paystack integration dynamically
+    const handlePaystackPayment = () => {
+        setIsPaying(true);
+        
+        const triggerPaystack = () => {
+            const handler = window.PaystackPop.setup({
+                key: PAYSTACK_PUBLIC_KEY,
+                email: customerInfo.email,
+                amount: subtotal * 100, // Paystack requires amount in kobo
+                ref: (new Date()).getTime().toString(),
+                metadata: {
+                    name: customerInfo.name,
+                    phone: customerInfo.phone,
+                    address: `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state}`,
+                    cartItems: JSON.stringify(cart.map(item => ({id: item.id, name: item.name, quantity: item.quantity})))
+                },
+                onClose: () => {
+                    console.log('Payment popup closed by user.');
+                    setIsPaying(false); // Re-enable button
+                },
+                callback: (reference) => {
+                    // Pass reference back to App for backend verification
+                    onPaymentSuccess(reference.reference, customerInfo);
+                }
+            });
+            handler.openIframe();
+        };
+
+        // Load Paystack Script if not already loaded
+        if (typeof window.PaystackPop === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://js.paystack.co/v1/inline.js';
+            script.async = true;
+            script.onload = triggerPaystack;
+            script.onerror = () => {
+                alert('Could not load payment gateway. Please check your connection.');
+                setIsPaying(false);
+            };
+            document.body.appendChild(script);
+        } else {
+            triggerPaystack();
+        }
+    };
+
+    const isFormValid = customerInfo.email && customerInfo.name && customerInfo.phone && customerInfo.address && customerInfo.city && customerInfo.state && cart.length > 0;
+
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-3xl mx-auto px-4 bg-white dark:bg-gray-900 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
-                <h1 className="text-3xl font-black text-[#191970] dark:text-white mb-6">Complete Your Order</h1>
-                <form onSubmit={handleSubmit}>
-                    <button type="submit" className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl mt-8 shadow-lg hover:scale-[1.02] transition-transform">Simulate Payment</button>
-                </form>
-            </div>
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-2xl mx-auto lg:max-w-none">
+                    <h1 className="text-3xl font-black text-[#191970] dark:text-white mb-10">Complete Your Order</h1>
+                    <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+                        
+                        {/* Form Section */}
+                        <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
+                            <div>
+                                <h2 className="text-xl font-bold text-[#191970] dark:text-white">Contact Information</h2>
+                                <div className="mt-6 space-y-4">
+                                    <input type="text" name="name" placeholder="Full Name" onChange={handleInputChange} value={customerInfo.name} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required />
+                                    <input type="email" name="email" placeholder="Email Address" onChange={handleInputChange} value={customerInfo.email} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required />
+                                    <input type="tel" name="phone" placeholder="Phone Number" onChange={handleInputChange} value={customerInfo.phone} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required />
+                                </div>
+                            </div>
+                            <div className="mt-10 border-t border-gray-100 dark:border-gray-800 pt-10">
+                                <h2 className="text-xl font-bold text-[#191970] dark:text-white">Shipping Information</h2>
+                                <div className="mt-6 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+                                    <div className="sm:col-span-2"><input type="text" name="address" placeholder="Street Address" onChange={handleInputChange} value={customerInfo.address} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required /></div>
+                                    <div><input type="text" name="city" placeholder="City" onChange={handleInputChange} value={customerInfo.city} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required /></div>
+                                    <div><input type="text" name="state" placeholder="State / Province" onChange={handleInputChange} value={customerInfo.state} className="block w-full p-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white transition-all" required /></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Order Summary Section */}
+                        <div className="mt-10 lg:mt-0">
+                            <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 sticky top-28">
+                                <h2 className="text-xl font-bold text-[#191970] dark:text-white mb-6">Order Summary</h2>
+                                <ul className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[40vh] overflow-y-auto pr-2">
+                                    {cart.map((product) => (
+                                        <li key={product.id} className="flex py-6">
+                                            <div className="flex-shrink-0 w-20 h-20 bg-gray-50 dark:bg-black rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
+                                                <img src={product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`} alt={product.name} className="w-full h-full object-center object-cover" />
+                                            </div>
+                                            <div className="ml-4 flex-1 flex flex-col justify-center">
+                                                <div className="flex justify-between text-base font-bold text-[#191970] dark:text-white">
+                                                    <h3>{product.name}</h3>
+                                                    <p className="ml-4 text-[#D4AF37]">{formatPrice(product.price * product.quantity)}</p>
+                                                </div>
+                                                <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">Qty: {product.quantity}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <dl className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6 space-y-4">
+                                    <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Subtotal</dt><dd className="text-sm font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
+                                    <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Shipping</dt><dd className="text-sm font-bold text-green-600">Free</dd></div>
+                                    <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-6">
+                                        <dt className="text-lg font-black text-[#191970] dark:text-white">Total</dt>
+                                        <dd className="text-2xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd>
+                                    </div>
+                                </dl>
+                                <div className="mt-8">
+                                    <button
+                                        type="button"
+                                        onClick={handlePaystackPayment}
+                                        className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] disabled:from-gray-300 disabled:to-gray-400 disabled:text-gray-500 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        disabled={!isFormValid || isPaying}
+                                    >
+                                        {isPaying ? 'Processing...' : 'Pay Now Securely'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </motion.div>
-    )
-}
+    );
+};
 
 const OrderConfirmationPage = ({ onNavigate }) => ( 
     <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] flex items-center justify-center py-12 px-4"> 
@@ -943,6 +1060,32 @@ export default function App() {
         showNotification(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
     }
 
+    // Connects Paystack checkout back to the server
+    const handlePaymentSuccess = async (reference, customerDetails) => {
+        try {
+            const response = await fetch(`${API_URL}/payments/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reference: reference,
+                    cart: cart,
+                    customer: customerDetails
+                }),
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                setCart([]); // Clear the cart
+                handleNavigate('orderConfirmation');
+            } else {
+                throw new Error(result.message || 'Payment verification failed.');
+            }
+        } catch (err) {
+            console.error("Verification failed:", err);
+            alert(`An error occurred: ${err.message}`);
+        }
+    };
+
     const renderPage = () => {
         const pageProps = { allProducts, onProductClick: handleProductClick, onNavigate: handleNavigate, loading, error, onToggleWishlist: handleToggleWishlist, currentUser };
         
@@ -960,7 +1103,7 @@ export default function App() {
                     ) : currentPage === 'cart' ? (
                         <CartPage cart={cart} onUpdateCart={handleUpdateCart} onRemoveFromCart={handleRemoveFromCart} onNavigate={handleNavigate} />
                     ) : currentPage === 'checkout' ? (
-                        <CheckoutPage cart={cart} onPlaceOrder={handlePlaceOrder} />
+                        <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} />
                     ) : currentPage === 'orderConfirmation' ? (
                         <OrderConfirmationPage onNavigate={handleNavigate} />
                     ) : currentPage === 'auth' ? (
