@@ -6,13 +6,14 @@ import heroImage1 from './images/hero.png';
 import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
 import heroImage4 from './images/image2.png';
-// import myLogo from './images/logo.png';
-
+//import myLogo from './images/logo.png';
+import ownerImage from './images/owner.jpg';
+// 2. Replace the URLs in the arrays/components with the variables.
 
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
-
+// IMPORTANT: Replace with your actual Paystack Test Public Key from your dashboard
 const PAYSTACK_PUBLIC_KEY = "pk_test_bec9f5f9e180775e22c634dc005c55510f2a86ea";
 
 // --- Theme Context ---
@@ -46,9 +47,9 @@ const ThemeProvider = ({ children }) => {
 const navLinks = [
   { name: 'Home', page: 'home' },
   { name: 'Shop', page: 'shop' },
+  { name: 'About', page: 'about' },
   { name: 'Blog', page: 'blog' },
   { name: 'Contact', page: 'contact' },
-  { name: 'Track Order', page: 'track' },
 ];
 
 const heroSlides = [
@@ -73,6 +74,9 @@ const heroSlides = [
         subtitle: 'Invest in perfume that not only smells good but makes you feel incredible.'
     }
 ];
+
+
+
 const whyUsData = [
     { title: '100% Quality Perfumes', description: 'We source only the highest quality, undiluted perfumes for all our products.', icon: 'SparklesIcon' },
     { title: 'No Stains Experts', description: 'Our high-definition sprays provides the most natural-looking, undetectable perfume stains.', icon: 'ScissorsIcon' },
@@ -140,6 +144,34 @@ const Notification = ({ message, show }) => (
             </motion.div>
         )}
     </AnimatePresence>
+);
+
+const BrandLoader = () => (
+    <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
+        <div className="flex space-x-2 text-2xl sm:text-4xl md:text-5xl font-black tracking-[0.2em] uppercase">
+            <motion.span 
+                animate={{ opacity: [0.3, 1, 0.3] }} 
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+                className="text-[#191970] dark:text-white"
+            >
+                Ope
+            </motion.span>
+            <motion.span 
+                animate={{ opacity: [0.3, 1, 0.3] }} 
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                className="text-[#D4AF37]"
+            >
+                Vicky
+            </motion.span>
+            <motion.span 
+                animate={{ opacity: [0.3, 1, 0.3] }} 
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                className="text-[#191970] dark:text-white"
+            >
+                Scents
+            </motion.span>
+        </div>
+    </div>
 );
 
 const ThemeToggle = () => {
@@ -403,7 +435,7 @@ const Footer = ({ onNavigate }) => (
                     <h3 className="text-sm font-bold text-[#D4AF37] tracking-wider uppercase mb-6">Support</h3>
                     <ul className="space-y-4">
                         <li><button onClick={() => onNavigate('contact')} className="text-sm hover:text-white transition-colors">Contact Us</button></li>
-                        <li><button onClick={() => onNavigate('faq')} className="text-sm hover:text-white transition-colors">FAQ</button></li>
+                        <li><button onClick={() => onNavigate('about')} className="text-sm hover:text-white transition-colors">About Us</button></li>
                         <li><button onClick={() => onNavigate('track')} className="text-sm hover:text-white transition-colors">Track Order</button></li>
                     </ul>
                 </div>
@@ -507,7 +539,7 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
                     </div>
                     
                     {loading ? (
-                        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#191970] dark:border-[#D4AF37]"></div></div>
+                        <BrandLoader />
                     ) : error ? (
                         <p className="text-center text-red-500 font-bold">{error}</p>
                     ) : (
@@ -541,8 +573,61 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
                 </div>
             </div>
 
+            {/* Meet the Founder Teaser Section */}
+            <div className="bg-white dark:bg-gray-900 py-24 sm:py-32 overflow-hidden border-t border-gray-100 dark:border-gray-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+                        <motion.div 
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="mb-12 lg:mb-0"
+                        >
+                            {/* 👉 OWNER IMAGE PLACEHOLDER: Swap the URL below with your 'ownerImage' variable like src={ownerImage} */}
+                            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                                <img 
+                                    src={ownerImage} 
+                                    alt="Founder of OpevickyScents" 
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#191970]/60 to-transparent"></div>
+                                <div className="absolute bottom-8 left-8 text-white">
+                                    <p className="font-extrabold text-2xl">Opeyemi Victoria</p>
+                                    <p className="text-[#D4AF37] font-semibold tracking-wider text-sm uppercase mt-1">Founder & CEO</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                        
+                        <motion.div 
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="flex flex-col justify-center"
+                        >
+                            <h2 className="text-sm font-bold text-[#D4AF37] tracking-widest uppercase mb-3">The Face Behind The Brand</h2>
+                            <h3 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white leading-tight mb-6">
+                                Crafting Confidence Through Scent
+                            </h3>
+                            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                                "Perfume is more than just a fragrance; it's a statement. It is the invisible accessory that leaves a lasting impression long after you've left the room. I started OpevickyScents to bring world-class, undeniable elegance to everyone."
+                            </p>
+                            <div>
+                                <button 
+                                    onClick={() => onNavigate('about')}
+                                    className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-8 py-4 rounded-full font-extrabold text-lg hover:scale-105 transition-transform shadow-lg inline-flex items-center gap-2"
+                                >
+                                    Read Our Story <span>→</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+
             {/* Features/Why Us */}
-            <div className="bg-white dark:bg-[#0a0a1a] py-24 border-y border-gray-100 dark:border-gray-900">
+            <div className="bg-gray-50 dark:bg-[#0a0a1a] py-24 border-t border-gray-100 dark:border-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         initial={{ opacity: 0, y: 40 }}
@@ -570,6 +655,66 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
     );
 };
 
+const AboutPage = () => {
+    return (
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen">
+            {/* About Hero */}
+            <div className="relative py-24 bg-[#191970] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#191970]/80 to-[#191970] z-10"></div>
+                <img src="https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80" alt="Perfume background" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+                        className="text-4xl sm:text-6xl font-black text-white tracking-tight mb-4"
+                    >
+                        Our <span className="text-[#D4AF37]">Story</span>
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+                        className="text-xl text-gray-300 max-w-2xl mx-auto font-light"
+                    >
+                        Redefining elegance, one fragrance at a time.
+                    </motion.p>
+                </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                <div className="prose prose-lg md:prose-xl dark:prose-invert text-gray-700 dark:text-gray-300 mx-auto">
+                    <p className="lead text-2xl font-semibold text-[#191970] dark:text-[#D4AF37] mb-10 text-center">
+                        Welcome to OpevickyScents, where passion for luxury meets the art of perfumery.
+                    </p>
+                    
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6">The Genesis</h2>
+                    <p className="mb-6">
+                        Founded by Opeyemi Victoria, OpevickyScents was born out of a deeply rooted love for exquisite fragrances and the profound impact they have on our daily lives. Opeyemi believed that a scent is the most intense form of memory, capable of transforming a brief encounter into a lasting legacy. 
+                    </p>
+                    <p className="mb-10">
+                        What started as a personal quest to find the perfect, long-lasting signature scent soon blossomed into a business dedicated to curating and creating premium fragrances for men and women who refuse to compromise on quality.
+                    </p>
+
+                    <div className="my-16 pl-6 border-l-4 border-[#D4AF37] italic text-2xl text-[#191970] dark:text-white font-medium">
+                        "I wanted to build a brand that doesn't just sell perfume, but sells confidence, elegance, and an unforgettable aura."
+                    </div>
+
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6">Our Philosophy</h2>
+                    <p className="mb-6">
+                        At OpevickyScents, we operate on three core principles: <strong>Quality, Authenticity, and Longevity.</strong> We painstakingly source the finest undiluted oils and ingredients from around the world. Every bottle in our collection is a testament to superior craftsmanship.
+                    </p>
+                    <p className="mb-6">
+                        We understand that our clients are bold, ambitious, and sophisticated. That is why we ensure our high-definition sprays deliver a flawless, stain-free application that stays with you from the boardroom to the evening gala.
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6">Join the Family</h2>
+                    <p className="mb-10">
+                        Today, OpevickyScents is more than a store; it is a growing community of fragrance lovers who appreciate the finer things in life. We invite you to explore our collection, discover your signature scent, and step into every room with undeniable confidence.
+                    </p>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlist, currentUser }) => {
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
@@ -582,7 +727,7 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center py-32"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#191970] dark:border-[#D4AF37]"></div></div>
+                    <BrandLoader />
                 ) : error ? (
                     <div className="bg-red-50 text-red-500 p-6 rounded-xl text-center border border-red-200">Could not load products. Please ensure backend is running.</div>
                 ) : (
@@ -615,7 +760,7 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                 <h1 className="text-3xl font-black tracking-tight text-[#191970] dark:text-white mb-12">Search Results for "<span className="text-[#D4AF37]">{query}</span>"</h1>
                 
                 {loading ? (
-                    <div className="flex justify-center py-32"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#191970] dark:border-[#D4AF37]"></div></div>
+                    <BrandLoader />
                 ) : searchResults.length > 0 ? (
                     <motion.div 
                         variants={staggerContainer}
@@ -865,7 +1010,6 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
         setCustomerInfo(prev => ({ ...prev, [name]: value }));
     };
     
-    // Handles the dynamic Paystack integration
     const handlePaystackPayment = () => {
         setIsPaying(true);
         
@@ -873,7 +1017,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
             const handler = window.PaystackPop.setup({
                 key: PAYSTACK_PUBLIC_KEY,
                 email: customerInfo.email,
-                amount: subtotal * 100, // Paystack requires amount in kobo
+                amount: subtotal * 100, 
                 ref: (new Date()).getTime().toString(),
                 metadata: {
                     name: customerInfo.name,
@@ -886,14 +1030,12 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                     setIsPaying(false); 
                 },
                 callback: (reference) => {
-                    // Pass reference back to App for backend verification
                     onPaymentSuccess(reference.reference, customerInfo);
                 }
             });
             handler.openIframe();
         };
 
-        // Load Paystack Script if not already loaded dynamically
         if (typeof window.PaystackPop === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://js.paystack.co/v1/inline.js';
@@ -918,7 +1060,6 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                     <h1 className="text-3xl font-black text-[#191970] dark:text-white mb-10">Complete Your Order</h1>
                     <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
                         
-                        {/* Form Section */}
                         <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
                             <div>
                                 <h2 className="text-xl font-bold text-[#191970] dark:text-white">Contact Information</h2>
@@ -938,7 +1079,6 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                             </div>
                         </div>
 
-                        {/* Order Summary Section */}
                         <div className="mt-10 lg:mt-0">
                             <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 sticky top-28">
                                 <h2 className="text-xl font-bold text-[#191970] dark:text-white mb-6">Order Summary</h2>
@@ -1061,7 +1201,6 @@ export default function App() {
         showNotification(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
     }
 
-    // Connects Paystack checkout back to the server
     const handlePaymentSuccess = async (reference, customerDetails) => {
         try {
             const response = await fetch(`${API_URL}/payments/verify`, {
@@ -1097,6 +1236,8 @@ export default function App() {
                         <ProductDetailPage product={selectedProduct} onAddToCart={handleAddToCart} onBack={() => handleNavigate('shop')} onToggleWishlist={handleToggleWishlist} isWishlisted={currentUser?.wishlist.includes(selectedProduct.id)} />
                     ) : currentPage === 'home' ? (
                         <HomePage {...pageProps} />
+                    ) : currentPage === 'about' ? (
+                        <AboutPage />
                     ) : currentPage === 'shop' ? (
                         <ShopPage {...pageProps} />
                     ) : currentPage === 'search' ? (
