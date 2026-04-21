@@ -14,7 +14,7 @@ import ownerImage from './images/owner.jpg';
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
 // IMPORTANT: Replace with your actual Paystack Test Public Key from your dashboard
-const PAYSTACK_PUBLIC_KEY = "pk_test_bec9f5f9e180775e22c634dc005c55510f2a86ea";
+const PAYSTACK_PUBLIC_KEY = "pk_live_0656fb181e5469d49bf27ae2852ec9a830386d8b";
 
 // --- Theme Context ---
 const ThemeContext = createContext();
@@ -112,7 +112,7 @@ const pageVariants = {
     in: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
     out: { opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeIn" } }
 };
-
+ 
 const staggerContainer = {
     hidden: { opacity: 0 },
     show: {
