@@ -6,7 +6,7 @@ import heroImage1 from './images/hero.png';
 import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
 import heroImage4 from './images/image2.png';
-//import myLogo from './images/logo.png';
+import myLogo from './images/opvlogo.png';
 import ownerImage from './images/owner.jpg';
 // 2. Replace the URLs in the arrays/components with the variables.
 
@@ -200,10 +200,7 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
 
     return (
         <header className="sticky top-0 z-40 flex flex-col shadow-sm">
-            {/* Solid Announcement Bar */}
-            <div className="bg-gradient-to-r from-[#191970] to-[#0047AB] text-[#D4AF37] text-center p-2 text-xs font-semibold tracking-widest uppercase relative z-50">
-                Free Delivery On All Orders In Nigeria
-            </div>
+           
             
             {/* Glassmorphism Navbar */}
             <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
@@ -211,10 +208,10 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center">
                             <button onClick={() => onNavigate('home')} className="flex items-center gap-3 group">
-                                {/* 👉 LOGO PLACEHOLDER: Swap 'https://placehold.co/...' with your imported 'myLogo' variable like src={myLogo}  */}
+                               
                                 <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-[#D4AF37] shadow-sm">
                                     <img 
-                                        src="https://placehold.co/100x100/191970/D4AF37?text=OS" 
+                                        src={myLogo} 
                                         alt="OpevickyScents Logo" 
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
                                     />
