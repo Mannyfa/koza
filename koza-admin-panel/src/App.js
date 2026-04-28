@@ -33,7 +33,6 @@ const Modal = ({ children, isOpen, onClose }) => {
 
 const Sidebar = ({ current, setPage, isOpen, setIsOpen }) => (
     <>
-        {/* Mobile backdrop overlay */}
         {isOpen && (
             <div 
                 className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden" 
@@ -41,7 +40,6 @@ const Sidebar = ({ current, setPage, isOpen, setIsOpen }) => (
             />
         )}
         
-        {/* Sidebar Panel */}
         <div className={`w-64 bg-slate-900 text-white h-full fixed left-0 top-0 p-4 z-40 transform transition-transform duration-300 ease-in-out md:translate-x-0 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
                 <h2 className="text-xl font-bold text-center w-full">OPS ADMIN</h2>
@@ -131,7 +129,14 @@ const ProductsPage = ({ onLogout }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     
-    const [formData, setFormData] = useState({ name: '', price: '', description: '' });
+    // Added bottleSize and stockAmount to form state
+    const [formData, setFormData] = useState({ 
+        name: '', 
+        price: '', 
+        description: '',
+        bottleSize: '',
+        stockAmount: ''
+    });
     const [imageFile, setImageFile] = useState(null); 
 
     const fetchProducts = async () => {
@@ -152,10 +157,18 @@ const ProductsPage = ({ onLogout }) => {
     const handleOpenModal = (product = null) => {
         if (product) {
             setEditingProduct(product);
-            setFormData({ name: product.name, price: product.price, description: product.description || '' });
+            // Populate form with existing product data including new fields
+            setFormData({ 
+                name: product.name, 
+                price: product.price, 
+                description: product.description || '',
+                bottleSize: product.bottleSize || '',
+                stockAmount: product.stockAmount !== undefined ? product.stockAmount : ''
+            });
         } else {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', description: '' });
+            // Reset form completely
+            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '' });
         }
         setImageFile(null);
         setIsModalOpen(true);
@@ -171,6 +184,10 @@ const ProductsPage = ({ onLogout }) => {
             formDataToSend.append('name', formData.name);
             formDataToSend.append('price', formData.price);
             formDataToSend.append('description', formData.description);
+            // Append new fields to form data
+            formDataToSend.append('bottleSize', formData.bottleSize);
+            formDataToSend.append('stockAmount', formData.stockAmount);
+            
             if (imageFile) formDataToSend.append('image', imageFile);
 
             const response = await fetch(url, {
@@ -223,12 +240,14 @@ const ProductsPage = ({ onLogout }) => {
             
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[600px]">
+                    <table className="w-full text-left min-w-[750px]">
                         <thead className="bg-slate-50 border-b">
                             <tr>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Image</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Product Name</th>
+                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Size</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Price</th>
+                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Stock</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base text-right">Actions</th>
                             </tr>
                         </thead>
@@ -237,7 +256,13 @@ const ProductsPage = ({ onLogout }) => {
                                 <tr key={product._id} className="hover:bg-slate-50 transition">
                                     <td className="p-3 sm:p-4"><img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
                                     <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">{product.name}</td>
+                                    <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
                                     <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
+                                    <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {product.stockAmount !== undefined ? product.stockAmount : 0} left
+                                        </span>
+                                    </td>
                                     <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
                                         <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
                                         <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
@@ -256,10 +281,25 @@ const ProductsPage = ({ onLogout }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                         <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded-md" required />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₦)</label>
-                        <input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full p-2 border rounded-md" required />
+                    
+                    {/* New Bottle Size and Price Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bottle Size</label>
+                            <input type="text" value={formData.bottleSize} onChange={(e) => setFormData({...formData, bottleSize: e.target.value})} placeholder="e.g. 500ml, 1L" className="w-full p-2 border rounded-md" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Price (₦)</label>
+                            <input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full p-2 border rounded-md" required />
+                        </div>
                     </div>
+
+                    {/* New Stock Input */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Available</label>
+                        <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
                         <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} className="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm" required={!editingProduct} />
@@ -385,7 +425,6 @@ export default function App() {
                 setIsOpen={setIsSidebarOpen} 
             />
             
-            {/* Main Content Wrapper - margins adjust automatically */}
             <div className="flex-1 flex flex-col min-w-0 md:ml-64 w-full">
                 <header className="bg-white border-b h-16 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20">
                     <div className="flex items-center gap-3">

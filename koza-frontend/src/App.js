@@ -200,7 +200,7 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
 
     return (
         <header className="sticky top-0 z-40 flex flex-col shadow-sm">
-           
+            
             
             {/* Glassmorphism Navbar */}
             <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
@@ -1100,7 +1100,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                                 </ul>
                                 <dl className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6 space-y-4">
                                     <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Subtotal</dt><dd className="text-sm font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
-                                    <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Shipping</dt><dd className="text-sm font-bold text-green-600">Free</dd></div>
+                                    <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Shipping</dt><dd className="text-sm font-bold text-green-600">Calculated after order</dd></div>
                                     <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-6">
                                         <dt className="text-lg font-black text-[#191970] dark:text-white">Total</dt>
                                         <dd className="text-2xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd>

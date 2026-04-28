@@ -32,9 +32,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Expose the "uploads" folder so the frontend can display the images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 // ==========================================
 // 2. MONGODB CONNECTION
@@ -47,7 +45,6 @@ if (!process.env.MONGODB_URI) {
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ Successfully connected to MongoDB Atlas!'))
     .catch((err) => console.error('❌ MongoDB connection error:', err));
-
 
 // ==========================================
 // 3. MAILING SERVICE SETUP (NODEMAILER)
@@ -63,7 +60,6 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-
 // ==========================================
 // 4. DATABASE SCHEMAS & MODELS
 // ==========================================
@@ -72,7 +68,9 @@ const productSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     image: { type: String, required: true },
     description: String,
-    stock: { type: Number, default: 10 }
+    // Added new fields to support frontend updates
+    bottleSize: { type: String, default: '' },
+    stockAmount: { type: Number, default: 0 }
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -87,7 +85,6 @@ const orderSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 const Order = mongoose.model('Order', orderSchema);
-
 
 // ==========================================
 // 5. MAILING SERVICE LOGIC
@@ -139,7 +136,6 @@ const sendStatusEmail = async (order, status) => {
     }
 };
 
-
 // ==========================================
 // 6. SECURITY MIDDLEWARE (JWT)
 // ==========================================
@@ -158,7 +154,6 @@ const verifyAdmin = (req, res, next) => {
         return res.status(401).json({ message: "Invalid or expired token." });
     }
 };
-
 
 // ==========================================
 // 7. API ROUTES
@@ -191,9 +186,18 @@ app.get('/api/products', async (req, res) => {
 // PROTECTED: Create product (Admin only)
 app.post('/api/products', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description } = req.body;
+        const { name, price, description, bottleSize, stockAmount } = req.body;
         const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : '';
-        const newProduct = new Product({ name, price, description, image: imagePath });
+        
+        const newProduct = new Product({ 
+            name, 
+            price, 
+            description, 
+            bottleSize: bottleSize || '',
+            stockAmount: parseInt(stockAmount) || 0,
+            image: imagePath 
+        });
+        
         await newProduct.save();
         res.status(201).json({ status: 'success', data: { product: newProduct } });
     } catch (error) { 
@@ -204,9 +208,18 @@ app.post('/api/products', verifyAdmin, upload.single('image'), async (req, res) 
 // PROTECTED: Update product (Admin only)
 app.put('/api/products/:id', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description } = req.body;
-        let updateData = { name, price, description };
+        const { name, price, description, bottleSize, stockAmount } = req.body;
+        
+        let updateData = { 
+            name, 
+            price, 
+            description,
+            bottleSize,
+            stockAmount: parseInt(stockAmount) || 0
+        };
+        
         if (req.file) updateData.image = req.file.path.replace(/\\/g, "/");
+        
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.status(200).json({ status: 'success', data: { product: updatedProduct } });
     } catch (error) { 
@@ -223,7 +236,6 @@ app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
         res.status(400).json({ message: "Failed to delete product", error: error.message }); 
     }
 });
-
 
 // --- Order Routes ---
 // PROTECTED: Get all orders (Admin only)
@@ -270,7 +282,6 @@ app.post('/api/payments/verify', async (req, res) => {
         res.status(500).json({ status: 'fail', message: 'Failed to save order.' });
     }
 });
-
 
 app.listen(PORT, async () => {
     console.log(`\n--- OpevickyScents Backend ---`);
