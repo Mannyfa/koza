@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-
-import heroImage1 from './images/hero.png';
-import heroImage2 from './images/image 3.png';
-import heroImage3 from './images/image1.png';
-import heroImage4 from './images/image2.png';
-import myLogo from './images/opvlogo.png';
-import ownerImage from './images/owner.jpg';
-// 2. Replace the URLs in the arrays/components with the variables.
+const heroImage1 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Luxury+Perfume';
+const heroImage2 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Define+Your+Fragrance';
+const heroImage3 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Sleek+Nice+Stunning';
+const heroImage4 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Confidence';
+const myLogo = 'https://placehold.co/150x150/D4AF37/191970?text=Logo';
+const ownerImage = 'https://placehold.co/800x1000/191970/D4AF37?text=Founder';
 
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
@@ -74,8 +72,6 @@ const heroSlides = [
         subtitle: 'Invest in perfume that not only smells good but makes you feel incredible.'
     }
 ];
-
-
 
 const whyUsData = [
     { title: '100% Quality Perfumes', description: 'We source only the highest quality, undiluted perfumes for all our products.', icon: 'SparklesIcon' },
@@ -200,15 +196,12 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
 
     return (
         <header className="sticky top-0 z-40 flex flex-col shadow-sm">
-            
-            
             {/* Glassmorphism Navbar */}
             <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
                 <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center">
                             <button onClick={() => onNavigate('home')} className="flex items-center gap-3 group">
-                               
                                 <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-[#D4AF37] shadow-sm">
                                     <img 
                                         src={myLogo} 
@@ -394,7 +387,21 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
             
             <div className="p-6 flex flex-col flex-grow justify-between">
                 <div>
-                    <p className="text-xs text-[#D4AF37] uppercase tracking-wider font-bold mb-1">Fragrance</p>
+                    <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs text-[#D4AF37] uppercase tracking-wider font-bold">
+                            {product.bottleSize ? product.bottleSize : 'Fragrance'}
+                        </p>
+                        {/* New Stock Indicator Badge */}
+                        {product.stockAmount !== undefined && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                product.stockAmount > 0 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>
+                                {product.stockAmount > 0 ? `${product.stockAmount} In Stock` : 'Out of Stock'}
+                            </span>
+                        )}
+                    </div>
                     <h3 className="text-lg font-extrabold text-[#191970] dark:text-white leading-tight mb-2 group-hover:text-[#D4AF37] transition-colors">
                         {product.name}
                     </h3>
@@ -581,7 +588,7 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
                             transition={{ duration: 0.6 }}
                             className="mb-12 lg:mb-0"
                         >
-                            {/* 👉 OWNER IMAGE PLACEHOLDER: Swap the URL below with your 'ownerImage' variable like src={ownerImage} */}
+                            {/* 👉 OWNER IMAGE PLACEHOLDER */}
                             <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                                 <img 
                                     src={ownerImage} 
@@ -788,6 +795,9 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
 const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onBack }) => {
     const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
     const [quantity, setQuantity] = useState(1);
+    
+    // Check if the product is out of stock entirely
+    const isOutOfStock = product.stockAmount === 0;
 
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen py-12">
@@ -817,9 +827,25 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                         initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
                         className="mt-10 lg:mt-0 flex flex-col justify-center"
                     >
-                        <p className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-3">Premium Fragrance</p>
+                        <p className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-3">
+                            {product.bottleSize ? `Premium Fragrance • ${product.bottleSize}` : 'Premium Fragrance'}
+                        </p>
                         <h1 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white mb-4">{product.name}</h1>
-                        <p className="text-3xl font-bold text-[#191970] dark:text-[#D4AF37] mb-6">{formatPrice(product.price)}</p>
+                        
+                        <div className="flex items-center gap-4 mb-6">
+                            <p className="text-3xl font-bold text-[#191970] dark:text-[#D4AF37]">{formatPrice(product.price)}</p>
+                            
+                            {/* Updated Stock Badge inside Detail Page */}
+                            {product.stockAmount !== undefined && (
+                                <span className={`px-3 py-1 text-sm font-bold rounded-full ${
+                                    !isOutOfStock 
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                    {!isOutOfStock ? `${product.stockAmount} Available in Stock` : 'Out of Stock'}
+                                </span>
+                            )}
+                        </div>
                         
                         <div className="flex items-center mb-8">
                             <div className="flex text-[#D4AF37]"><StarIcon className="h-5 w-5"/><StarIcon className="h-5 w-5"/><StarIcon className="h-5 w-5"/><StarIcon className="h-5 w-5"/><StarIcon className="h-5 w-5"/></div>
@@ -832,18 +858,31 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                         
                         <div className="flex items-center gap-4 mt-auto">
                             <div className="flex items-center border-2 border-gray-200 dark:border-gray-800 rounded-xl h-14 w-32 bg-white dark:bg-black">
-                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold">-</button>
+                                <button 
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                                    className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold"
+                                >
+                                    -
+                                </button>
                                 <span className="flex-1 text-center font-bold text-[#191970] dark:text-white">{quantity}</span>
-                                <button onClick={() => setQuantity(quantity + 1)} className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold">+</button>
+                                <button 
+                                    // Prevent adding more quantity than stock available
+                                    onClick={() => setQuantity(Math.min(product.stockAmount || 1, quantity + 1))} 
+                                    disabled={quantity >= (product.stockAmount || 0)}
+                                    className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    +
+                                </button>
                             </div>
                             
                             <motion.button 
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                                whileHover={{ scale: isOutOfStock ? 1 : 1.02 }}
+                                whileTap={{ scale: isOutOfStock ? 1 : 0.98 }}
                                 onClick={() => onAddToCart(product, quantity)} 
-                                className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] h-14 rounded-xl font-extrabold text-lg shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center gap-2"
+                                disabled={isOutOfStock}
+                                className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] h-14 rounded-xl font-extrabold text-lg shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center gap-2 disabled:from-gray-300 disabled:to-gray-400 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
                             >
-                                <ShoppingBagIcon /> Add to Bag
+                                <ShoppingBagIcon /> {isOutOfStock ? 'Currently Out of Stock' : 'Add to Bag'}
                             </motion.button>
                         </div>
                     </motion.div>
@@ -905,7 +944,14 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                                         <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg h-10 bg-gray-50 dark:bg-black">
                                                             <button onClick={() => onUpdateCart(item.id, Math.max(1, item.quantity - 1))} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold">-</button>
                                                             <span className="px-2 font-bold text-[#191970] dark:text-white">{item.quantity}</span>
-                                                            <button onClick={() => onUpdateCart(item.id, item.quantity + 1)} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold">+</button>
+                                                            <button 
+                                                                // Prevent increasing beyond available stock
+                                                                onClick={() => onUpdateCart(item.id, Math.min(item.stockAmount || 1, item.quantity + 1))} 
+                                                                disabled={item.quantity >= (item.stockAmount || 0)}
+                                                                className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                +
+                                                            </button>
                                                         </div>
                                                         <p className="font-extrabold text-lg text-[#191970] dark:text-white">{formatPrice(item.price * item.quantity)}</p>
                                                     </div>
