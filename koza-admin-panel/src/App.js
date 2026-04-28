@@ -282,7 +282,7 @@ const ProductsPage = ({ onLogout }) => {
                         <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded-md" required />
                     </div>
                     
-                    {/* New Bottle Size and Price Grid */}
+                
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Bottle Size</label>
@@ -294,9 +294,9 @@ const ProductsPage = ({ onLogout }) => {
                         </div>
                     </div>
 
-                    {/* New Stock Input */}
+        
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Available</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Count</label>
                         <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
                     </div>
 
