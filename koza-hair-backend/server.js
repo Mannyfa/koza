@@ -8,6 +8,10 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken'); // JWT for Admin Authentication
 require('dotenv').config();
 
+// 👇 ADDED: Cloudinary Imports 👇
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
@@ -15,23 +19,28 @@ app.use(cors());
 app.use(express.json());
 
 // ==========================================
-// 1. FILE UPLOAD CONFIGURATION (MULTER)
+// 1. FILE UPLOAD CONFIGURATION (CLOUDINARY)
 // ==========================================
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) { 
-        cb(null, 'uploads/'); 
-    },
-    filename: function (req, file, cb) { 
-        cb(null, Date.now() + path.extname(file.originalname)); 
-    }
+// Configure Cloudinary with your credentials from .env
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Set up Multer to use Cloudinary for storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'opevickyscents_products', // The folder name in your Cloudinary account
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'], // Allowed image formats
+    },
+});
+
 const upload = multer({ storage: storage });
 
+// We keep this just in case old images still point to the local server
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==========================================
@@ -187,7 +196,9 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount } = req.body;
-        const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : '';
+        
+        // 👇 UPDATED: Cloudinary automatically provides a secure URL in req.file.path
+        const imagePath = req.file ? req.file.path : '';
         
         const newProduct = new Product({ 
             name, 
@@ -218,7 +229,8 @@ app.put('/api/products/:id', verifyAdmin, upload.single('image'), async (req, re
             stockAmount: parseInt(stockAmount) || 0
         };
         
-        if (req.file) updateData.image = req.file.path.replace(/\\/g, "/");
+        // 👇 UPDATED: If a new image was uploaded, attach the new Cloudinary URL
+        if (req.file) updateData.image = req.file.path;
         
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.status(200).json({ status: 'success', data: { product: updatedProduct } });

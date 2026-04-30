@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const heroImage1 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Luxury+Perfume';
-const heroImage2 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Define+Your+Fragrance';
-const heroImage3 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Sleek+Nice+Stunning';
-const heroImage4 = 'https://placehold.co/1920x1080/191970/D4AF37?text=Confidence';
-const myLogo = 'https://placehold.co/150x150/D4AF37/191970?text=Logo';
-const ownerImage = 'https://placehold.co/800x1000/191970/D4AF37?text=Founder';
+import heroImage1 from './images/hero.png';
+import heroImage2 from './images/image 3.png';
+import heroImage3 from './images/image1.png';
+import heroImage4 from './images/image2.png';
+import myLogo from './images/opvlogo.png';
+import ownerImage from './images/owner.jpg';
 
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
@@ -968,7 +968,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 <h2 className="text-2xl font-black text-[#191970] dark:text-white mb-6">Order Summary</h2>
                                 <dl className="space-y-4 text-base text-gray-600 dark:text-gray-300">
                                     <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
-                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-green-600 font-bold">Free</dd></div>
+                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-green-600 font-bold">calculated after order</dd></div>
                                     <div className="flex justify-between"><dt>Taxes</dt><dd className="font-medium text-gray-500">Calculated at checkout</dd></div>
                                     <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
                                         <dt className="text-lg font-black text-[#191970] dark:text-white">Estimated Total</dt>
