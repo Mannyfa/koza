@@ -6,9 +6,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken'); // JWT for Admin Authentication
+const bcrypt = require('bcryptjs'); // 👇 ADDED: For securely hashing admin passwords
 require('dotenv').config();
 
-// 👇 ADDED: Cloudinary Imports 👇
+// Cloudinary Imports
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
@@ -44,40 +45,27 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==========================================
-// 2. MONGODB CONNECTION
+// 2. DATABASE SCHEMAS & MODELS
 // ==========================================
-if (!process.env.MONGODB_URI) {
-    console.error("FATAL ERROR: MONGODB_URI is not defined in .env file.");
-    process.exit(1); 
-}
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ Successfully connected to MongoDB Atlas!'))
-    .catch((err) => console.error('❌ MongoDB connection error:', err));
+// 👇 ADDED: Admin Schema for Role-Based Auth
+const adminSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { 
+        type: String, 
+        enum: ['superadmin', 'manager', 'editor'], 
+        default: 'editor' 
+    }
+}, { timestamps: true });
+const Admin = mongoose.model('Admin', adminSchema);
 
-// ==========================================
-// 3. MAILING SERVICE SETUP (NODEMAILER)
-// ==========================================
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false, 
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
-
-// ==========================================
-// 4. DATABASE SCHEMAS & MODELS
-// ==========================================
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     image: { type: String, required: true },
     description: String,
-    // Added new fields to support frontend updates
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 }
 });
@@ -96,8 +84,55 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model('Order', orderSchema);
 
 // ==========================================
-// 5. MAILING SERVICE LOGIC
+// 3. MONGODB CONNECTION & INITIALIZATION
 // ==========================================
+if (!process.env.MONGODB_URI) {
+    console.error("FATAL ERROR: MONGODB_URI is not defined in .env file.");
+    process.exit(1); 
+}
+
+// 👇 ADDED: Setup initial Superadmin if database is empty
+const initializeAdmin = async () => {
+    try {
+        const count = await Admin.countDocuments();
+        if (count === 0 && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
+            await Admin.create({
+                name: 'Master Admin',
+                email: process.env.ADMIN_EMAIL,
+                password: hashedPassword,
+                role: 'superadmin'
+            });
+            console.log('✅ Default Superadmin created from .env credentials');
+        }
+    } catch (error) {
+        console.error('❌ Error initializing default admin:', error);
+    }
+};
+
+mongoose.connect(process.env.MONGODB_URI)
+    .then(async () => {
+        console.log('✅ Successfully connected to MongoDB Atlas!');
+        await initializeAdmin(); // Run initialization after successful connection
+    })
+    .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+
+// ==========================================
+// 4. MAILING SERVICE SETUP & LOGIC
+// ==========================================
+const transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false, 
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
 const sendStatusEmail = async (order, status) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.log("Skipping email: Credentials missing in .env");
@@ -146,7 +181,7 @@ const sendStatusEmail = async (order, status) => {
 };
 
 // ==========================================
-// 6. SECURITY MIDDLEWARE (JWT)
+// 5. SECURITY & ROLE MIDDLEWARES (JWT)
 // ==========================================
 const verifyAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -157,27 +192,72 @@ const verifyAdmin = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.admin = decoded; // Attach admin details to request
-        next(); // Allow them to proceed to the route
+        req.admin = decoded; // Contains id, email, and role
+        next(); 
     } catch (error) {
         return res.status(401).json({ message: "Invalid or expired token." });
     }
 };
 
+// 👇 ADDED: Middleware to check required roles
+const authorizeRoles = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.admin || !allowedRoles.includes(req.admin.role)) {
+            return res.status(403).json({ 
+                message: `Forbidden: Your role (${req.admin.role}) does not have permission to perform this action.` 
+            });
+        }
+        next();
+    };
+};
+
 // ==========================================
-// 7. API ROUTES
+// 6. API ROUTES
 // ==========================================
 
-// --- Admin Auth Route ---
-app.post('/api/admin/login', (req, res) => {
-    const { email, password } = req.body;
-    
-    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-        // Generate a token valid for 24 hours
-        const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.status(200).json({ status: 'success', token: token });
-    } else {
-        res.status(401).json({ message: "Invalid email or password" });
+// --- Admin Auth & Management Routes ---
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Find admin in DB
+        const admin = await Admin.findOne({ email });
+        if (!admin) return res.status(401).json({ message: "Invalid email or password" });
+
+        // Verify password
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
+
+        // Generate token including the user's role
+        const token = jwt.sign(
+            { id: admin._id, email: admin.email, role: admin.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '24h' }
+        );
+        
+        res.status(200).json({ status: 'success', token: token, role: admin.role, name: admin.name });
+    } catch (error) {
+        res.status(500).json({ message: "Server error during login" });
+    }
+});
+
+// Create new Admin (Only superadmins can do this)
+app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+        
+        const existingAdmin = await Admin.findOne({ email });
+        if (existingAdmin) return res.status(400).json({ message: "Email already in use." });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newAdmin = new Admin({ name, email, password: hashedPassword, role });
+        await newAdmin.save();
+
+        res.status(201).json({ status: 'success', message: 'Admin registered successfully!' });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to register admin", error: error.message });
     }
 });
 
@@ -192,12 +272,10 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// PROTECTED: Create product (Admin only)
-app.post('/api/products', verifyAdmin, upload.single('image'), async (req, res) => {
+// PROTECTED: Create product (Superadmin and Manager only)
+app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount } = req.body;
-        
-        // 👇 UPDATED: Cloudinary automatically provides a secure URL in req.file.path
         const imagePath = req.file ? req.file.path : '';
         
         const newProduct = new Product({ 
@@ -216,8 +294,8 @@ app.post('/api/products', verifyAdmin, upload.single('image'), async (req, res) 
     }
 });
 
-// PROTECTED: Update product (Admin only)
-app.put('/api/products/:id', verifyAdmin, upload.single('image'), async (req, res) => {
+// PROTECTED: Update product (Superadmin and Manager only)
+app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount } = req.body;
         
@@ -229,7 +307,6 @@ app.put('/api/products/:id', verifyAdmin, upload.single('image'), async (req, re
             stockAmount: parseInt(stockAmount) || 0
         };
         
-        // 👇 UPDATED: If a new image was uploaded, attach the new Cloudinary URL
         if (req.file) updateData.image = req.file.path;
         
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
@@ -239,8 +316,8 @@ app.put('/api/products/:id', verifyAdmin, upload.single('image'), async (req, re
     }
 });
 
-// PROTECTED: Delete product (Admin only)
-app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
+// PROTECTED: Delete product (Superadmin ONLY)
+app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
         res.status(204).json({ status: 'success', data: null });
@@ -250,12 +327,18 @@ app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
 });
 
 // --- Order Routes ---
-// PROTECTED: Get all orders (Admin only)
+// PROTECTED: Get all orders (All Admins can view)
 app.get('/api/orders', verifyAdmin, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ date: -1 });
         const formattedOrders = orders.map(o => ({
-            id: o._id, customer: o.customer, total: o.total, status: o.status, date: o.date
+            id: o._id, 
+            reference: o.reference, // Added reference
+            customer: o.customer, 
+            cart: o.cart,           // 👇 ADDED: Now sending the ordered items to the frontend
+            total: o.total, 
+            status: o.status, 
+            date: o.date
         }));
         res.status(200).json({ data: { orders: formattedOrders } });
     } catch (error) { 
@@ -263,8 +346,8 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
     }
 });
 
-// PROTECTED: Update order status & send email (Admin only)
-app.patch('/api/orders/:id/status', verifyAdmin, async (req, res) => {
+// PROTECTED: Update order status & send email (Superadmin and Manager only)
+app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;

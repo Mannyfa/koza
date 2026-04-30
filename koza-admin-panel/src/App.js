@@ -15,6 +15,7 @@ const ProductsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
+const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>;
 
 // --- Components ---
 const Modal = ({ children, isOpen, onClose }) => {
@@ -321,6 +322,7 @@ const ProductsPage = ({ onLogout }) => {
 const OrdersPage = ({ onLogout }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null); // Track the order clicked for details
 
     const fetchOrders = async () => {
         try {
@@ -361,14 +363,15 @@ const OrdersPage = ({ onLogout }) => {
             
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[650px]">
+                    <table className="w-full text-left min-w-[800px]">
                         <thead className="bg-slate-50 border-b">
                             <tr>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Order ID</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Customer</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Total</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Status</th>
-                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Update</th>
+                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Details</th>
+                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Update Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -379,11 +382,19 @@ const OrdersPage = ({ onLogout }) => {
                                         <div className="font-medium text-sm sm:text-base">{order.customer.name}</div>
                                         <div className="text-xs text-slate-500">{order.customer.email}</div>
                                     </td>
-                                    <td className="p-3 sm:p-4 text-sm sm:text-base">₦{order.total.toLocaleString()}</td>
+                                    <td className="p-3 sm:p-4 text-sm sm:text-base font-medium">₦{order.total.toLocaleString()}</td>
                                     <td className="p-3 sm:p-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                                             {order.status}
                                         </span>
+                                    </td>
+                                    <td className="p-3 sm:p-4">
+                                        <button 
+                                            onClick={() => setSelectedOrder(order)} 
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center bg-blue-50 px-2 py-1 rounded-md transition"
+                                        >
+                                            <EyeIcon /> View
+                                        </button>
                                     </td>
                                     <td className="p-3 sm:p-4">
                                         <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="border rounded p-1 sm:p-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
@@ -398,6 +409,70 @@ const OrdersPage = ({ onLogout }) => {
                     </table>
                 </div>
             </div>
+
+            {/* View Details Modal */}
+            <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)}>
+                {selectedOrder && (
+                    <div className="text-left">
+                        <h2 className="text-lg sm:text-xl font-bold mb-4 pb-3 border-b text-slate-800 flex justify-between items-center">
+                            Order Details
+                            <span className="text-sm font-normal text-slate-500">#{selectedOrder.id ? selectedOrder.id.slice(-6).toUpperCase() : ''}</span>
+                        </h2>
+                        
+                        <div className="space-y-5">
+                            {/* Customer Info Section */}
+                            <div className="bg-slate-50 p-3 rounded-lg border">
+                                <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Customer Info</h3>
+                                <div className="text-sm space-y-1 text-slate-600">
+                                    <p><strong className="text-slate-800">Name:</strong> {selectedOrder.customer.name}</p>
+                                    <p><strong className="text-slate-800">Email:</strong> <a href={`mailto:${selectedOrder.customer.email}`} className="text-blue-600 hover:underline">{selectedOrder.customer.email}</a></p>
+                                    <p><strong className="text-slate-800">Phone:</strong> <a href={`tel:${selectedOrder.customer.phone}`} className="text-blue-600 hover:underline">{selectedOrder.customer.phone}</a></p>
+                                </div>
+                            </div>
+
+                            {/* Delivery Address Section */}
+                            <div className="bg-slate-50 p-3 rounded-lg border">
+                                <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Delivery Address</h3>
+                                <div className="text-sm text-slate-600">
+                                    <p>{selectedOrder.customer.address}</p>
+                                    <p>{selectedOrder.customer.city}, {selectedOrder.customer.state}</p>
+                                </div>
+                            </div>
+
+                            {/* Cart Items Section */}
+                            <div>
+                                <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Items Ordered</h3>
+                                <ul className="divide-y border rounded-lg bg-white overflow-hidden">
+                                    {selectedOrder.cart && selectedOrder.cart.length > 0 ? (
+                                        selectedOrder.cart.map((item, index) => (
+                                            <li key={index} className="p-3 flex justify-between items-center text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs">x{item.quantity}</span>
+                                                    <span className="font-medium text-slate-700">
+                                                        {item.name} {item.bottleSize ? <span className="text-slate-400 font-normal">({item.bottleSize})</span> : ''}
+                                                    </span>
+                                                </div>
+                                                <span className="font-semibold text-slate-800">
+                                                    ₦{(item.price * item.quantity).toLocaleString()}
+                                                </span>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li className="p-3 text-sm text-gray-500 italic text-center">
+                                            No items details found for this older order.
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-6 pt-4 border-t flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">Grand Total</span>
+                            <span className="text-xl font-bold text-slate-900">₦{selectedOrder.total.toLocaleString()}</span>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
