@@ -48,7 +48,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 2. DATABASE SCHEMAS & MODELS
 // ==========================================
 
-// 👇 ADDED: Admin Schema for Role-Based Auth
+// Admin Schema for Role-Based Auth
 const adminSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -61,13 +61,15 @@ const adminSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Admin = mongoose.model('Admin', adminSchema);
 
+// 👇 ADDED: isActive to productSchema
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     image: { type: String, required: true },
     description: String,
     bottleSize: { type: String, default: '' },
-    stockAmount: { type: Number, default: 0 }
+    stockAmount: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true } // Controls visibility on main site
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -91,7 +93,7 @@ if (!process.env.MONGODB_URI) {
     process.exit(1); 
 }
 
-// 👇 ADDED: Setup initial Superadmin if database is empty
+// Setup initial Superadmin if database is empty
 const initializeAdmin = async () => {
     try {
         const count = await Admin.countDocuments();
@@ -199,7 +201,7 @@ const verifyAdmin = (req, res, next) => {
     }
 };
 
-// 👇 ADDED: Middleware to check required roles
+// Middleware to check required roles
 const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.admin || !allowedRoles.includes(req.admin.role)) {
@@ -275,16 +277,18 @@ app.get('/api/products', async (req, res) => {
 // PROTECTED: Create product (Superadmin and Manager only)
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         const imagePath = req.file ? req.file.path : '';
         
+        // 👇 UPDATED: Added isActive handling
         const newProduct = new Product({ 
             name, 
             price, 
             description, 
             bottleSize: bottleSize || '',
             stockAmount: parseInt(stockAmount) || 0,
-            image: imagePath 
+            image: imagePath,
+            isActive: isActive === 'false' || isActive === false ? false : true
         });
         
         await newProduct.save();
@@ -297,14 +301,16 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
 // PROTECTED: Update product (Superadmin and Manager only)
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         
+        // 👇 UPDATED: Added isActive handling
         let updateData = { 
             name, 
             price, 
             description,
             bottleSize,
-            stockAmount: parseInt(stockAmount) || 0
+            stockAmount: parseInt(stockAmount) || 0,
+            isActive: isActive === 'false' || isActive === false ? false : true
         };
         
         if (req.file) updateData.image = req.file.path;
@@ -333,9 +339,9 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
         const orders = await Order.find({}).sort({ date: -1 });
         const formattedOrders = orders.map(o => ({
             id: o._id, 
-            reference: o.reference, // Added reference
+            reference: o.reference,
             customer: o.customer, 
-            cart: o.cart,           // 👇 ADDED: Now sending the ordered items to the frontend
+            cart: o.cart,
             total: o.total, 
             status: o.status, 
             date: o.date
@@ -354,7 +360,9 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
         const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { new: true });
         if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
         
-        await sendStatusEmail(updatedOrder, status);
+        // 👇 UPDATED: Removed await so the UI updates instantly while the email sends in the background
+        sendStatusEmail(updatedOrder, status);
+        
         res.json({ status: 'success', order: { ...updatedOrder.toObject(), id: updatedOrder._id } });
     } catch (error) { 
         res.status(500).json({ message: "Failed to update order status", error: error.message }); 
@@ -369,7 +377,8 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
-        await sendStatusEmail(savedOrder, 'Processing');
+        // 👇 UPDATED: Removed await here too for faster checkout responses
+        sendStatusEmail(savedOrder, 'Processing');
         
         res.status(200).json({ status: 'success', message: 'Order saved successfully!' });
     } catch (error) {

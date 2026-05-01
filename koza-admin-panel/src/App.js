@@ -130,13 +130,14 @@ const ProductsPage = ({ onLogout }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     
-    // Added bottleSize and stockAmount to form state
+    // Added isActive to form state
     const [formData, setFormData] = useState({ 
         name: '', 
         price: '', 
         description: '',
         bottleSize: '',
-        stockAmount: ''
+        stockAmount: '',
+        isActive: true
     });
     const [imageFile, setImageFile] = useState(null); 
 
@@ -164,12 +165,13 @@ const ProductsPage = ({ onLogout }) => {
                 price: product.price, 
                 description: product.description || '',
                 bottleSize: product.bottleSize || '',
-                stockAmount: product.stockAmount !== undefined ? product.stockAmount : ''
+                stockAmount: product.stockAmount !== undefined ? product.stockAmount : '',
+                isActive: product.isActive !== undefined ? product.isActive : true
             });
         } else {
             setEditingProduct(null);
             // Reset form completely
-            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '' });
+            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true });
         }
         setImageFile(null);
         setIsModalOpen(true);
@@ -188,6 +190,7 @@ const ProductsPage = ({ onLogout }) => {
             // Append new fields to form data
             formDataToSend.append('bottleSize', formData.bottleSize);
             formDataToSend.append('stockAmount', formData.stockAmount);
+            formDataToSend.append('isActive', formData.isActive);
             
             if (imageFile) formDataToSend.append('image', imageFile);
 
@@ -241,7 +244,7 @@ const ProductsPage = ({ onLogout }) => {
             
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[750px]">
+                    <table className="w-full text-left min-w-[850px]">
                         <thead className="bg-slate-50 border-b">
                             <tr>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Image</th>
@@ -249,6 +252,7 @@ const ProductsPage = ({ onLogout }) => {
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Size</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Price</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Stock</th>
+                                <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base">Status</th>
                                 <th className="p-3 sm:p-4 font-semibold text-sm sm:text-base text-right">Actions</th>
                             </tr>
                         </thead>
@@ -262,6 +266,11 @@ const ProductsPage = ({ onLogout }) => {
                                     <td className="p-3 sm:p-4 text-sm sm:text-base">
                                         <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                             {product.stockAmount !== undefined ? product.stockAmount : 0} left
+                                        </span>
+                                    </td>
+                                    <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {product.isActive !== false ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
@@ -278,12 +287,29 @@ const ProductsPage = ({ onLogout }) => {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <h2 className="text-lg sm:text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
                 <form onSubmit={handleFormSubmit} className="space-y-4">
+                    
+                    {/* Active Toggle */}
+                    <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50 mb-2">
+                        <div>
+                            <span className="block text-sm font-medium text-gray-900">Active Status</span>
+                            <span className="block text-xs text-gray-500">Toggle off to hide from the main store</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setFormData({...formData, isActive: !formData.isActive})}
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${formData.isActive ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            role="switch"
+                            aria-checked={formData.isActive}
+                        >
+                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                         <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded-md" required />
                     </div>
                     
-                
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Bottle Size</label>
@@ -295,7 +321,6 @@ const ProductsPage = ({ onLogout }) => {
                         </div>
                     </div>
 
-        
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Stock Count</label>
                         <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
