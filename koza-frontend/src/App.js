@@ -13,6 +13,7 @@ import ownerImage from './images/owner.jpg';
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
+// IMPORTANT: Replace with your actual Paystack Test Public Key from your dashboard
 const PAYSTACK_PUBLIC_KEY = "pk_live_0656fb181e5469d49bf27ae2852ec9a830386d8b";
 
 // --- Theme Context ---
@@ -1206,8 +1207,11 @@ export default function App() {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 
-                // 👇 FILTER OUT INACTIVE PRODUCTS HERE
-                const activeProducts = data.data.products.filter(product => product.isActive !== false);
+                // 👇 FILTER OUT INACTIVE PRODUCTS HERE AND MAP MONGODB _id TO id
+                const activeProducts = data.data.products
+                    .filter(product => product.isActive !== false)
+                    .map(product => ({ ...product, id: product._id || product.id }));
+                
                 setAllProducts(activeProducts);
                 
             } catch (e) { setError(e.message); } finally { setLoading(false); }
