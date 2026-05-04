@@ -88,8 +88,11 @@ const LoginPage = ({ onLoginSuccess }) => {
             const data = await response.json();
 
             if (response.ok) {
+                // 👇 Save token AND role AND name
                 localStorage.setItem('adminToken', data.token);
-                onLoginSuccess();
+                localStorage.setItem('adminRole', data.role);
+                localStorage.setItem('adminName', data.name);
+                onLoginSuccess(data.role, data.name);
             } else {
                 setError(data.message || 'Invalid credentials');
             }
@@ -124,20 +127,14 @@ const LoginPage = ({ onLoginSuccess }) => {
 };
 
 // --- Pages ---
-const ProductsPage = ({ onLogout }) => {
+const ProductsPage = ({ onLogout, adminRole }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     
-    // Added isActive to form state
     const [formData, setFormData] = useState({ 
-        name: '', 
-        price: '', 
-        description: '',
-        bottleSize: '',
-        stockAmount: '',
-        isActive: true
+        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true
     });
     const [imageFile, setImageFile] = useState(null); 
 
@@ -159,7 +156,6 @@ const ProductsPage = ({ onLogout }) => {
     const handleOpenModal = (product = null) => {
         if (product) {
             setEditingProduct(product);
-            // Populate form with existing product data including new fields
             setFormData({ 
                 name: product.name, 
                 price: product.price, 
@@ -170,7 +166,6 @@ const ProductsPage = ({ onLogout }) => {
             });
         } else {
             setEditingProduct(null);
-            // Reset form completely
             setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true });
         }
         setImageFile(null);
@@ -187,7 +182,6 @@ const ProductsPage = ({ onLogout }) => {
             formDataToSend.append('name', formData.name);
             formDataToSend.append('price', formData.price);
             formDataToSend.append('description', formData.description);
-            // Append new fields to form data
             formDataToSend.append('bottleSize', formData.bottleSize);
             formDataToSend.append('stockAmount', formData.stockAmount);
             formDataToSend.append('isActive', formData.isActive);
@@ -200,7 +194,7 @@ const ProductsPage = ({ onLogout }) => {
                 body: formDataToSend
             });
 
-            if (response.status === 401) return onLogout();
+            if (response.status === 401 || response.status === 403) return onLogout();
 
             if (response.ok) {
                 fetchProducts();
@@ -222,7 +216,10 @@ const ProductsPage = ({ onLogout }) => {
                     method: 'DELETE',
                     headers: getAuthHeaders()
                 });
-                if (res.status === 401) return onLogout();
+                if (res.status === 401 || res.status === 403) {
+                    alert("Forbidden: You do not have permission to delete products.");
+                    return;
+                }
                 if (res.ok) fetchProducts();
             } catch (err) { alert(err.message); }
         }
@@ -239,7 +236,10 @@ const ProductsPage = ({ onLogout }) => {
         <div className="p-4 sm:p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-xl sm:text-2xl font-bold">Manage Products</h1>
-                <button onClick={() => handleOpenModal()} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto transition">+ Add New Product</button>
+                {/* 👇 Hide Add button for editors */}
+                {(adminRole === 'superadmin' || adminRole === 'manager') && (
+                    <button onClick={() => handleOpenModal()} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto transition">+ Add New Product</button>
+                )}
             </div>
             
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -274,8 +274,17 @@ const ProductsPage = ({ onLogout }) => {
                                         </span>
                                     </td>
                                     <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
-                                        <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
-                                        <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
+                                        {/* 👇 Hide Edit button for editors */}
+                                        {(adminRole === 'superadmin' || adminRole === 'manager') && (
+                                            <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
+                                        )}
+                                        {/* 👇 Hide Delete button for managers and editors */}
+                                        {adminRole === 'superadmin' && (
+                                            <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
+                                        )}
+                                        {adminRole === 'editor' && (
+                                            <span className="text-gray-400 italic text-xs">View Only</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -287,8 +296,6 @@ const ProductsPage = ({ onLogout }) => {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <h2 className="text-lg sm:text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
                 <form onSubmit={handleFormSubmit} className="space-y-4">
-                    
-                    {/* Active Toggle */}
                     <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50 mb-2">
                         <div>
                             <span className="block text-sm font-medium text-gray-900">Active Status</span>
@@ -344,10 +351,10 @@ const ProductsPage = ({ onLogout }) => {
     );
 };
 
-const OrdersPage = ({ onLogout }) => {
+const OrdersPage = ({ onLogout, adminRole }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null); // Track the order clicked for details
+    const [selectedOrder, setSelectedOrder] = useState(null); 
 
     const fetchOrders = async () => {
         try {
@@ -370,7 +377,10 @@ const OrdersPage = ({ onLogout }) => {
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
-            if (res.status === 401) return onLogout();
+            if (res.status === 401 || res.status === 403) {
+                alert("Forbidden: You do not have permission to update orders.");
+                return;
+            }
             if (res.ok) {
                 fetchOrders();
                 alert(`Status updated to ${status}. Email sent to customer.`);
@@ -422,11 +432,16 @@ const OrdersPage = ({ onLogout }) => {
                                         </button>
                                     </td>
                                     <td className="p-3 sm:p-4">
-                                        <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="border rounded p-1 sm:p-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
-                                            <option value="Processing">Processing</option>
-                                            <option value="Shipped">Shipped</option>
-                                            <option value="Delivered">Delivered</option>
-                                        </select>
+                                        {/* 👇 Hide select dropdown for editors */}
+                                        {(adminRole === 'superadmin' || adminRole === 'manager') ? (
+                                            <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="border rounded p-1 sm:p-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
+                                                <option value="Processing">Processing</option>
+                                                <option value="Shipped">Shipped</option>
+                                                <option value="Delivered">Delivered</option>
+                                            </select>
+                                        ) : (
+                                            <span className="text-gray-400 text-sm italic">View Only</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -504,16 +519,27 @@ const OrdersPage = ({ onLogout }) => {
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('adminToken'));
+    // 👇 Fetch stored role and name
+    const [adminRole, setAdminRole] = useState(localStorage.getItem('adminRole') || '');
+    const [adminName, setAdminName] = useState(localStorage.getItem('adminName') || '');
     const [page, setPage] = useState('orders');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
+        localStorage.removeItem('adminName');
         setIsAuthenticated(false);
+        setAdminRole('');
+        setAdminName('');
     };
 
     if (!isAuthenticated) {
-        return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
+        return <LoginPage onLoginSuccess={(role, name) => {
+            setAdminRole(role);
+            setAdminName(name);
+            setIsAuthenticated(true);
+        }} />;
     }
 
     return (
@@ -537,14 +563,21 @@ export default function App() {
                         <span className="font-semibold text-slate-700 hidden sm:block">Administrator Panel</span>
                         <span className="font-semibold text-slate-700 block sm:hidden">Admin</span>
                     </div>
-                    <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 transition flex items-center space-x-1 sm:space-x-2">
-                        <LogoutIcon />
-                        <span className="hidden sm:inline text-sm sm:text-base">Logout</span>
-                    </button>
+                    <div className="flex items-center space-x-4 sm:space-x-6">
+                        {/* 👇 Show current user info */}
+                        <div className="hidden sm:flex flex-col items-end">
+                            <span className="text-sm font-bold text-slate-800">{adminName}</span>
+                            <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{adminRole}</span>
+                        </div>
+                        <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 transition flex items-center space-x-1 sm:space-x-2 border-l pl-4 sm:pl-6">
+                            <LogoutIcon />
+                            <span className="hidden sm:inline text-sm sm:text-base">Logout</span>
+                        </button>
+                    </div>
                 </header>
                 <main className="flex-1 overflow-x-hidden">
-                    {page === 'orders' ? <OrdersPage onLogout={handleLogout} /> : null}
-                    {page === 'products' ? <ProductsPage onLogout={handleLogout} /> : null}
+                    {page === 'orders' ? <OrdersPage onLogout={handleLogout} adminRole={adminRole} /> : null}
+                    {page === 'products' ? <ProductsPage onLogout={handleLogout} adminRole={adminRole} /> : null}
                 </main>
             </div>
         </div>
