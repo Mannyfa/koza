@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken'); // JWT for Admin Authentication
-const bcrypt = require('bcryptjs'); // 👇 ADDED: For securely hashing admin passwords
+const bcrypt = require('bcryptjs'); // For securely hashing admin passwords
 require('dotenv').config();
 
 // Cloudinary Imports
@@ -61,7 +61,7 @@ const adminSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Admin = mongoose.model('Admin', adminSchema);
 
-// 👇 ADDED: isActive to productSchema
+// isActive to productSchema
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
@@ -274,13 +274,13 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// PROTECTED: Create product (Superadmin and Manager only)
+
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         const imagePath = req.file ? req.file.path : '';
         
-        // 👇 UPDATED: Added isActive handling
+        
         const newProduct = new Product({ 
             name, 
             price, 
@@ -298,12 +298,12 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
     }
 });
 
-// PROTECTED: Update product (Superadmin and Manager only)
+
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         
-        // 👇 UPDATED: Added isActive handling
+        
         let updateData = { 
             name, 
             price, 
@@ -352,7 +352,7 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
     }
 });
 
-// PROTECTED: Update order status & send email (Superadmin and Manager only)
+
 app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
         const { id } = req.params;
@@ -360,7 +360,7 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
         const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { new: true });
         if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
         
-        // 👇 UPDATED: Removed await so the UI updates instantly while the email sends in the background
+        
         sendStatusEmail(updatedOrder, status);
         
         res.json({ status: 'success', order: { ...updatedOrder.toObject(), id: updatedOrder._id } });
@@ -369,7 +369,7 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
     }
 });
 
-// PUBLIC: Customer checkout saves an order
+
 app.post('/api/payments/verify', async (req, res) => {
     try {
         const { reference, cart, customer } = req.body;
@@ -377,8 +377,43 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
-        // 👇 UPDATED: Removed await here too for faster checkout responses
+        
         sendStatusEmail(savedOrder, 'Processing');
+        
+        
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            const adminMailOptions = {
+                from: `"OpevickyScents System" <${process.env.EMAIL_USER}>`,
+                to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+                subject: `🚨 New Order Alert! from ${customer.name}`,
+                html: `
+                    <div style="font-family: sans-serif; color: #191970;">
+                        <h2 style="color: #D4AF37;">New Order Received!</h2>
+                        <p>You just received a new order on OpevickyScents.</p>
+                        
+                        <h3>Customer Details:</h3>
+                        <p><strong>Name:</strong> ${customer.name}</p>
+                        <p><strong>Email:</strong> ${customer.email}</p>
+                        <p><strong>Phone:</strong> ${customer.phone}</p>
+                        <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.state}</p>
+                        
+                        <h3>Order Items:</h3>
+                        <ul>
+                            ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${item.name}</li>`).join('')}
+                        </ul>
+                        <p><strong>Total:</strong> ${total}</p>
+                        
+                        <hr style="border: 1px solid #eee; margin: 20px 0;" />
+                        <p>Log in to your Admin Panel to view full details and process the shipment.</p>
+                    </div>
+                `
+            };
+
+            // Send the admin email silently
+            transporter.sendMail(adminMailOptions)
+                .then(() => console.log("✅ Admin notification email sent successfully!"))
+                .catch((error) => console.error("❌ Failed to send admin notification email:", error));
+        }
         
         res.status(200).json({ status: 'success', message: 'Order saved successfully!' });
     } catch (error) {
