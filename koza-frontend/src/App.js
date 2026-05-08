@@ -868,7 +868,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                                 </button>
                                 <span className="flex-1 text-center font-bold text-[#191970] dark:text-white">{quantity}</span>
                                 <button 
-                                    // Prevent adding more quantity than stock available
+                                    
                                     onClick={() => setQuantity(Math.min(product.stockAmount || 1, quantity + 1))} 
                                     disabled={quantity >= (product.stockAmount || 0)}
                                     className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -983,7 +983,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 <motion.button 
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => setShowDisclaimer(true)} // 👇 UPDATED: Now triggers the modal instead of navigating immediately
+                                    onClick={() => setShowDisclaimer(true)} 
                                     className="w-full mt-8 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl shadow-lg transition-all"
                                 >
                                     Proceed to Checkout
@@ -1031,7 +1031,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 <button 
                                     onClick={() => {
                                         setShowDisclaimer(false);
-                                        onNavigate('checkout'); // Proceeds to checkout form
+                                        onNavigate('checkout'); 
                                     }} 
                                     className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-3 px-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform"
                                 >
@@ -1054,7 +1054,7 @@ const AuthPage = ({ onLogin, onNavigate }) => {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-        onLogin({ id: 1, email, wishlist: [] }); // Mock login
+        onLogin({ id: 1, email, wishlist: [] });
         onNavigate('home');
     };
 
@@ -1199,7 +1199,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                                     <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Subtotal</dt><dd className="text-sm font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
                                     <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Shipping</dt><dd className="text-sm font-bold text-green-600">Calculated after order</dd></div>
                                     <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-6">
-                                        <dt className="text-lg font-black text-[#191970] dark:text-white">Total</dt>
+                                        <dt className="text-lg font-black text-[#191970] dark:text-white">Your Total</dt>
                                         <dd className="text-2xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd>
                                     </div>
                                 </dl>
