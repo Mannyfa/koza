@@ -1019,7 +1019,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                             </div>
                             <h3 className="text-2xl font-black text-[#191970] dark:text-white mb-4 text-center">Delivery Information</h3>
                             <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-center mb-8">
-                                Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 business days. Delivery or dispatch prices can vary between locations, so a member of our team will reach out to you to communicate the exactdelivery prices. Thank you for your understanding.
+                                Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 business days. Delivery or dispatch prices can vary between locations, so a member of our team will reach out to you to communicate the exact delivery prices. Thank you for your understanding.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button 
