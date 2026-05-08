@@ -1229,7 +1229,7 @@ const OrderConfirmationPage = ({ onNavigate }) => (
                 <CheckCircleIcon /> 
             </motion.div>
             <h1 className="mt-8 text-4xl font-black text-[#191970] dark:text-white">Order Confirmed!</h1> 
-            <p className="mt-4 text-lg text-gray-500 dark:text-gray-400 font-medium">Thank you for your purchase. You will receive an email confirmation shortly.</p> 
+            <p className="mt-4 text-lg text-gray-500 dark:text-gray-400 font-medium">Thank you for your purchase, You will receive an email confirmation shortly.</p> 
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => onNavigate('home')} className="mt-10 px-10 py-4 font-bold text-[#191970] bg-gradient-to-r from-[#D4AF37] to-[#B58B22] rounded-full shadow-lg">Continue Shopping</motion.button> 
         </div> 
     </motion.div> 
