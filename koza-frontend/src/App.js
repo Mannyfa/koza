@@ -1199,7 +1199,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess }) => {
                                     <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Subtotal</dt><dd className="text-sm font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
                                     <div className="flex items-center justify-between"><dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Shipping</dt><dd className="text-sm font-bold text-green-600">Calculated after order</dd></div>
                                     <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-6">
-                                        <dt className="text-lg font-black text-[#191970] dark:text-white">Your Total</dt>
+                                        <dt className="text-lg font-black text-[#191970] dark:text-white">Total</dt>
                                         <dd className="text-2xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd>
                                     </div>
                                 </dl>
