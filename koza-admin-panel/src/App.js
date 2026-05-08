@@ -9,6 +9,12 @@ const getAuthHeaders = () => {
     return { 'Authorization': `Bearer ${token}` };
 };
 
+// 👇 MOVED: Image helper moved to the top so both Pages can use it!
+const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://placehold.co/400x400/cccccc/333333?text=No+Image';
+    return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`;
+};
+
 // --- Icons ---
 const OrdersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
 const ProductsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
@@ -88,7 +94,6 @@ const LoginPage = ({ onLoginSuccess }) => {
             const data = await response.json();
 
             if (response.ok) {
-                // 👇 Save token AND role AND name
                 localStorage.setItem('adminToken', data.token);
                 localStorage.setItem('adminRole', data.role);
                 localStorage.setItem('adminName', data.name);
@@ -225,18 +230,12 @@ const ProductsPage = ({ onLogout, adminRole }) => {
         }
     };
 
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return 'https://placehold.co/400x400/cccccc/333333?text=No+Image';
-        return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`;
-    };
-
     if (loading) return <div className="p-4 sm:p-8 text-center mt-10">Loading Products...</div>;
 
     return (
         <div className="p-4 sm:p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-xl sm:text-2xl font-bold">Manage Products</h1>
-                {/* 👇 Hide Add button for editors */}
                 {(adminRole === 'superadmin' || adminRole === 'manager') && (
                     <button onClick={() => handleOpenModal()} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto transition">+ Add New Product</button>
                 )}
@@ -274,11 +273,9 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                                         </span>
                                     </td>
                                     <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
-                                        {/* 👇 Hide Edit button for editors */}
                                         {(adminRole === 'superadmin' || adminRole === 'manager') && (
                                             <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
                                         )}
-                                        {/* 👇 Hide Delete button for managers and editors */}
                                         {adminRole === 'superadmin' && (
                                             <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
                                         )}
@@ -432,7 +429,6 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                         </button>
                                     </td>
                                     <td className="p-3 sm:p-4">
-                                        {/* 👇 Hide select dropdown for editors */}
                                         {(adminRole === 'superadmin' || adminRole === 'manager') ? (
                                             <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="border rounded p-1 sm:p-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
                                                 <option value="Processing">Processing</option>
@@ -486,13 +482,21 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                     {selectedOrder.cart && selectedOrder.cart.length > 0 ? (
                                         selectedOrder.cart.map((item, index) => (
                                             <li key={index} className="p-3 flex justify-between items-center text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs">x{item.quantity}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs shrink-0">x{item.quantity}</span>
+                                                    
+                                                    {/* 👇 NEW: Product Image Thumbnail rendered dynamically */}
+                                                    <img 
+                                                        src={getImageUrl(item.image)} 
+                                                        alt={item.name} 
+                                                        className="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0" 
+                                                    />
+                                                    
                                                     <span className="font-medium text-slate-700">
                                                         {item.name} {item.bottleSize ? <span className="text-slate-400 font-normal">({item.bottleSize})</span> : ''}
                                                     </span>
                                                 </div>
-                                                <span className="font-semibold text-slate-800">
+                                                <span className="font-semibold text-slate-800 shrink-0 ml-2">
                                                     ₦{(item.price * item.quantity).toLocaleString()}
                                                 </span>
                                             </li>
@@ -519,7 +523,6 @@ const OrdersPage = ({ onLogout, adminRole }) => {
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('adminToken'));
-    // 👇 Fetch stored role and name
     const [adminRole, setAdminRole] = useState(localStorage.getItem('adminRole') || '');
     const [adminName, setAdminName] = useState(localStorage.getItem('adminName') || '');
     const [page, setPage] = useState('orders');
@@ -564,7 +567,6 @@ export default function App() {
                         <span className="font-semibold text-slate-700 block sm:hidden">Admin</span>
                     </div>
                     <div className="flex items-center space-x-4 sm:space-x-6">
-                        {/* 👇 Show current user info */}
                         <div className="hidden sm:flex flex-col items-end">
                             <span className="text-sm font-bold text-slate-800">{adminName}</span>
                             <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{adminRole}</span>
