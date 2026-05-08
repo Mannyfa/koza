@@ -897,8 +897,11 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
     const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
     
+    // 👇 NEW: State to control the visibility of the disclaimer modal
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
+    
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16 relative">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h1 className="text-4xl font-black text-[#191970] dark:text-white mb-10">Your Shopping Bag</h1>
                 
@@ -947,7 +950,6 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                                             <button onClick={() => onUpdateCart(item.id, Math.max(1, item.quantity - 1))} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold">-</button>
                                                             <span className="px-2 font-bold text-[#191970] dark:text-white">{item.quantity}</span>
                                                             <button 
-                                                                // Prevent increasing beyond available stock
                                                                 onClick={() => onUpdateCart(item.id, Math.min(item.stockAmount || 1, item.quantity + 1))} 
                                                                 disabled={item.quantity >= (item.stockAmount || 0)}
                                                                 className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -970,21 +972,23 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 <h2 className="text-2xl font-black text-[#191970] dark:text-white mb-6">Order Summary</h2>
                                 <dl className="space-y-4 text-base text-gray-600 dark:text-gray-300">
                                     <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
-                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-green-600 font-bold">calculated after order</dd></div>
+                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-green-600 font-bold">Calculated after order</dd></div>
                                     <div className="flex justify-between"><dt>Taxes</dt><dd className="font-medium text-gray-500">Calculated at checkout</dd></div>
                                     <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
                                         <dt className="text-lg font-black text-[#191970] dark:text-white">Estimated Total</dt>
                                         <dd className="text-3xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd>
                                     </div>
                                 </dl>
+                                
                                 <motion.button 
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => onNavigate('checkout')} 
+                                    onClick={() => setShowDisclaimer(true)} // 👇 UPDATED: Now triggers the modal instead of navigating immediately
                                     className="w-full mt-8 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl shadow-lg transition-all"
                                 >
                                     Proceed to Checkout
                                 </motion.button>
+                                
                                 <div className="mt-6 flex justify-center items-center space-x-2 text-xs font-medium text-gray-400">
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                                     <span>Secure Encrypted Checkout</span>
@@ -994,9 +998,54 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                     </div>
                 )}
             </div>
+
+            {/* 👇 NEW: Disclaimer Modal */}
+            <AnimatePresence>
+                {showDisclaimer && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191970]/60 dark:bg-black/80 backdrop-blur-sm"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-gray-100 dark:border-gray-800"
+                        >
+                            <div className="mx-auto w-16 h-16 bg-[#191970]/10 dark:bg-[#D4AF37]/10 text-[#191970] dark:text-[#D4AF37] rounded-full flex items-center justify-center mb-6">
+                                <TruckIcon />
+                            </div>
+                            <h3 className="text-2xl font-black text-[#191970] dark:text-white mb-4 text-center">Delivery Information</h3>
+                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-center mb-8">
+                                Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 days. Delivery or dispatch prices can vary between locations, so a member of our team will reach out to you to communicate the delivery prices. Thank you for your understanding.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button 
+                                    onClick={() => setShowDisclaimer(false)} 
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setShowDisclaimer(false);
+                                        onNavigate('checkout'); // Proceeds to checkout form
+                                    }} 
+                                    className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-3 px-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform"
+                                >
+                                    I Agree, Proceed
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
+
 
 const AuthPage = ({ onLogin, onNavigate }) => {
     const [isLogin, setIsLogin] = useState(true);
