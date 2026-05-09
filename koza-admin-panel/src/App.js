@@ -9,7 +9,6 @@ const getAuthHeaders = () => {
     return { 'Authorization': `Bearer ${token}` };
 };
 
-// 👇 MOVED: Image helper moved to the top so both Pages can use it!
 const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://placehold.co/400x400/cccccc/333333?text=No+Image';
     return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`;
@@ -22,6 +21,10 @@ const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
 const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>;
+// 👇 NEW Icons for Search and Pagination
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
 
 // --- Components ---
 const Modal = ({ children, isOpen, onClose }) => {
@@ -138,6 +141,11 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     
+    // 👇 NEW: Search and Pagination State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 10;
+    
     const [formData, setFormData] = useState({ 
         name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true
     });
@@ -157,6 +165,11 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     };
 
     useEffect(() => { fetchProducts(); }, []);
+
+    // 👇 NEW: Reset to page 1 whenever the search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const handleOpenModal = (product = null) => {
         if (product) {
@@ -230,18 +243,44 @@ const ProductsPage = ({ onLogout, adminRole }) => {
         }
     };
 
+    // 👇 NEW: Filter and Paginate Logic
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
     if (loading) return <div className="p-4 sm:p-8 text-center mt-10">Loading Products...</div>;
 
     return (
         <div className="p-4 sm:p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-xl sm:text-2xl font-bold">Manage Products</h1>
-                {(adminRole === 'superadmin' || adminRole === 'manager') && (
-                    <button onClick={() => handleOpenModal()} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto transition">+ Add New Product</button>
-                )}
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    {/* 👇 NEW: Search Bar Input */}
+                    <div className="relative w-full sm:w-64">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+                        />
+                    </div>
+                    
+                    {(adminRole === 'superadmin' || adminRole === 'manager') && (
+                        <button onClick={() => handleOpenModal()} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 whitespace-nowrap transition">+ Add New Product</button>
+                    )}
+                </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[850px]">
                         <thead className="bg-slate-50 border-b">
@@ -256,40 +295,117 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {products.map(product => (
-                                <tr key={product._id} className="hover:bg-slate-50 transition">
-                                    <td className="p-3 sm:p-4"><img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
-                                    <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">{product.name}</td>
-                                    <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
-                                    <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
-                                    <td className="p-3 sm:p-4 text-sm sm:text-base">
-                                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {product.stockAmount !== undefined ? product.stockAmount : 0} left
-                                        </span>
-                                    </td>
-                                    <td className="p-3 sm:p-4 text-sm sm:text-base">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                                            {product.isActive !== false ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                    <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
-                                        {(adminRole === 'superadmin' || adminRole === 'manager') && (
-                                            <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
-                                        )}
-                                        {adminRole === 'superadmin' && (
-                                            <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
-                                        )}
-                                        {adminRole === 'editor' && (
-                                            <span className="text-gray-400 italic text-xs">View Only</span>
-                                        )}
+                            {currentProducts.length > 0 ? (
+                                currentProducts.map(product => (
+                                    <tr key={product._id} className="hover:bg-slate-50 transition">
+                                        <td className="p-3 sm:p-4"><img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
+                                        <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">{product.name}</td>
+                                        <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
+                                        <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
+                                        <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                            <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {product.stockAmount !== undefined ? product.stockAmount : 0} left
+                                            </span>
+                                        </td>
+                                        <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                {product.isActive !== false ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
+                                            {(adminRole === 'superadmin' || adminRole === 'manager') && (
+                                                <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
+                                            )}
+                                            {adminRole === 'superadmin' && (
+                                                <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
+                                            )}
+                                            {adminRole === 'editor' && (
+                                                <span className="text-gray-400 italic text-xs">View Only</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="p-8 text-center text-gray-500">
+                                        No products found matching "{searchTerm}".
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
+                
+                {/* 👇 NEW: Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="bg-slate-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{indexOfFirstProduct + 1}</span> to <span className="font-medium">{Math.min(indexOfLastProduct, filteredProducts.length)}</span> of <span className="font-medium">{filteredProducts.length}</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <span className="sr-only">Previous</span>
+                                        <ChevronLeftIcon />
+                                    </button>
+                                    
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i + 1}
+                                            onClick={() => setCurrentPage(i + 1)}
+                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                currentPage === i + 1 
+                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' 
+                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <span className="sr-only">Next</span>
+                                        <ChevronRightIcon />
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                        {/* Mobile Pagination */}
+                        <div className="flex items-center justify-between w-full sm:hidden">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-sm text-gray-700">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
+            {/* Product Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <h2 className="text-lg sm:text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
                 <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -484,14 +600,11 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                             <li key={index} className="p-3 flex justify-between items-center text-sm">
                                                 <div className="flex items-center gap-3">
                                                     <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs shrink-0">x{item.quantity}</span>
-                                                    
-                                                    {/* 👇 NEW: Product Image Thumbnail rendered dynamically */}
                                                     <img 
                                                         src={getImageUrl(item.image)} 
                                                         alt={item.name} 
                                                         className="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0" 
                                                     />
-                                                    
                                                     <span className="font-medium text-slate-700">
                                                         {item.name} {item.bottleSize ? <span className="text-slate-400 font-normal">({item.bottleSize})</span> : ''}
                                                     </span>
