@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-
 import heroImage1 from './images/hero.png';
 import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
 import heroImage4 from './images/image2.png';
 import myLogo from './images/opvlogo.png';
 import ownerImage from './images/owner.jpg';
-
-
 
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
@@ -774,40 +771,66 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
                             ))}
                         </motion.div>
 
-                        {/* Storefront Pagination UI */}
+                        {/* NEW MOBILE-RESPONSIVE PAGINATION */}
                         {totalPages > 1 && (
-                            <div className="mt-16 flex justify-center items-center space-x-4">
-                                <button 
-                                    onClick={() => paginate(Math.max(currentPage - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
-                                >
-                                    <ChevronLeftIcon />
-                                </button>
+                            <div className="mt-16 w-full flex flex-col items-center">
                                 
-                                <div className="flex space-x-2">
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <button
-                                            key={i + 1}
-                                            onClick={() => paginate(i + 1)}
-                                            className={`w-12 h-12 rounded-full font-black text-sm transition-all ${
-                                                currentPage === i + 1
-                                                ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
-                                                : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
-                                            }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
+                                {/* 📱 MOBILE VIEW: Simple Previous / Next (Hidden on larger screens) */}
+                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden px-4">
+                                    <button 
+                                        onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95"
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <button 
+                                        onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95"
+                                    >
+                                        Next
+                                    </button>
                                 </div>
 
-                                <button 
-                                    onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
-                                >
-                                    <ChevronRightIcon />
-                                </button>
+                                {/* 💻 DESKTOP & TABLET VIEW: Numbered Circles (Hidden on mobile) */}
+                                <div className="hidden sm:flex justify-center items-center space-x-4">
+                                    <button 
+                                        onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                    >
+                                        <ChevronLeftIcon />
+                                    </button>
+                                    
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i + 1}
+                                                onClick={() => paginate(i + 1)}
+                                                className={`w-12 h-12 rounded-full font-black text-sm transition-all flex items-center justify-center ${
+                                                    currentPage === i + 1
+                                                    ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
+                                                    : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                                }`}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                    >
+                                        <ChevronRightIcon />
+                                    </button>
+                                </div>
+                                
                             </div>
                         )}
                     </>
@@ -859,39 +882,66 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                             ))}
                         </motion.div>
 
+                        {/* NEW MOBILE-RESPONSIVE PAGINATION */}
                         {totalPages > 1 && (
-                            <div className="mt-16 flex justify-center items-center space-x-4">
-                                <button 
-                                    onClick={() => paginate(Math.max(currentPage - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
-                                >
-                                    <ChevronLeftIcon />
-                                </button>
+                            <div className="mt-16 w-full flex flex-col items-center">
                                 
-                                <div className="flex space-x-2">
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <button
-                                            key={i + 1}
-                                            onClick={() => paginate(i + 1)}
-                                            className={`w-12 h-12 rounded-full font-black text-sm transition-all ${
-                                                currentPage === i + 1
-                                                ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
-                                                : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
-                                            }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
+                                {/* 📱 MOBILE VIEW: Simple Previous / Next (Hidden on larger screens) */}
+                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden px-4">
+                                    <button 
+                                        onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95"
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <button 
+                                        onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30 disabled:border-gray-100 transition-all active:scale-95"
+                                    >
+                                        Next
+                                    </button>
                                 </div>
 
-                                <button 
-                                    onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
-                                >
-                                    <ChevronRightIcon />
-                                </button>
+                                {/* 💻 DESKTOP & TABLET VIEW: Numbered Circles (Hidden on mobile) */}
+                                <div className="hidden sm:flex justify-center items-center space-x-4">
+                                    <button 
+                                        onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                    >
+                                        <ChevronLeftIcon />
+                                    </button>
+                                    
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i + 1}
+                                                onClick={() => paginate(i + 1)}
+                                                className={`w-12 h-12 rounded-full font-black text-sm transition-all flex items-center justify-center ${
+                                                    currentPage === i + 1
+                                                    ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
+                                                    : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                                }`}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                    >
+                                        <ChevronRightIcon />
+                                    </button>
+                                </div>
+                                
                             </div>
                         )}
                     </>
