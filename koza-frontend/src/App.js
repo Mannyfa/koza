@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
+
 import heroImage1 from './images/hero.png';
 import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
@@ -13,10 +16,10 @@ import ownerImage from './images/owner.jpg';
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
-// IMPORTANT: Replace with your actual Paystack Test Public Key from your dashboard
+
 const PAYSTACK_PUBLIC_KEY = "pk_live_0656fb181e5469d49bf27ae2852ec9a830386d8b";
 
-// --- Theme Context ---
+
 const ThemeContext = createContext();
 
 const ThemeProvider = ({ children }) => {
@@ -722,6 +725,22 @@ const AboutPage = () => {
 }
 
 const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlist, currentUser }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 12; // Shows 3 rows of 4 products
+
+    // Reset to page 1 if the products list changes
+    useEffect(() => { setCurrentPage(1); }, [allProducts]);
+
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = allProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(allProducts.length / productsPerPage);
+
+    const paginate = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to top of grid
+    };
+
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -737,22 +756,61 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
                 ) : error ? (
                     <div className="bg-red-50 text-red-500 p-6 rounded-xl text-center border border-red-200">Could not load products. Please ensure backend is running.</div>
                 ) : (
-                    <motion.div 
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="show"
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                    >
-                        {allProducts.map(product => (
-                            <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                onProductClick={onProductClick} 
-                                onToggleWishlist={onToggleWishlist}
-                                isWishlisted={currentUser?.wishlist.includes(product.id)}
-                            />
-                        ))}
-                    </motion.div>
+                    <>
+                        <motion.div 
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="show"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                        >
+                            {currentProducts.map(product => (
+                                <ProductCard 
+                                    key={product.id} 
+                                    product={product} 
+                                    onProductClick={onProductClick} 
+                                    onToggleWishlist={onToggleWishlist}
+                                    isWishlisted={currentUser?.wishlist.includes(product.id)}
+                                />
+                            ))}
+                        </motion.div>
+
+                        {/* Storefront Pagination UI */}
+                        {totalPages > 1 && (
+                            <div className="mt-16 flex justify-center items-center space-x-4">
+                                <button 
+                                    onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                >
+                                    <ChevronLeftIcon />
+                                </button>
+                                
+                                <div className="flex space-x-2">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i + 1}
+                                            onClick={() => paginate(i + 1)}
+                                            className={`w-12 h-12 rounded-full font-black text-sm transition-all ${
+                                                currentPage === i + 1
+                                                ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
+                                                : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button 
+                                    onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                >
+                                    <ChevronRightIcon />
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </motion.div>
@@ -760,6 +818,21 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
 };
 
 const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWishlist, currentUser }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 12;
+
+    useEffect(() => { setCurrentPage(1); }, [searchResults]);
+
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = searchResults.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(searchResults.length / productsPerPage);
+
+    const paginate = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -768,22 +841,60 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                 {loading ? (
                     <BrandLoader />
                 ) : searchResults.length > 0 ? (
-                    <motion.div 
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="show"
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                    >
-                        {searchResults.map(product => (
-                            <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                onProductClick={onProductClick} 
-                                onToggleWishlist={onToggleWishlist}
-                                isWishlisted={currentUser?.wishlist.includes(product.id)}
-                            />
-                        ))}
-                    </motion.div>
+                    <>
+                        <motion.div 
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="show"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                        >
+                            {currentProducts.map(product => (
+                                <ProductCard 
+                                    key={product.id} 
+                                    product={product} 
+                                    onProductClick={onProductClick} 
+                                    onToggleWishlist={onToggleWishlist}
+                                    isWishlisted={currentUser?.wishlist.includes(product.id)}
+                                />
+                            ))}
+                        </motion.div>
+
+                        {totalPages > 1 && (
+                            <div className="mt-16 flex justify-center items-center space-x-4">
+                                <button 
+                                    onClick={() => paginate(Math.max(currentPage - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                >
+                                    <ChevronLeftIcon />
+                                </button>
+                                
+                                <div className="flex space-x-2">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i + 1}
+                                            onClick={() => paginate(i + 1)}
+                                            className={`w-12 h-12 rounded-full font-black text-sm transition-all ${
+                                                currentPage === i + 1
+                                                ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110'
+                                                : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button 
+                                    onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] hover:text-[#D4AF37] disabled:opacity-30 disabled:hover:border-gray-200 transition-all"
+                                >
+                                    <ChevronRightIcon />
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800 mt-8">
                         <p className="text-xl font-medium text-gray-500 dark:text-gray-400">No products found matching your search.</p>
@@ -793,6 +904,7 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
         </motion.div>
     );
 };
+
 
 const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onBack }) => {
     const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
