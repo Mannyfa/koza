@@ -5,8 +5,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const jwt = require('jsonwebtoken'); // JWT for Admin Authentication
-const bcrypt = require('bcryptjs'); // For securely hashing admin passwords
+const jwt = require('jsonwebtoken'); // JWT for Authentication
+const bcrypt = require('bcryptjs'); // For securely hashing passwords
 require('dotenv').config();
 
 // Cloudinary Imports
@@ -48,7 +48,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 2. DATABASE SCHEMAS & MODELS
 // ==========================================
 
-// Admin Schema for Role-Based Auth
+// --- Admin Schema ---
 const adminSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -61,7 +61,15 @@ const adminSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Admin = mongoose.model('Admin', adminSchema);
 
-// isActive to productSchema
+// --- Customer User Schema (NEW) ---
+const userSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    wishlist: { type: Array, default: [] } // Stores liked product IDs
+}, { timestamps: true });
+const User = mongoose.model('User', userSchema);
+
+// --- Product Schema ---
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
@@ -69,10 +77,12 @@ const productSchema = new mongoose.Schema({
     description: String,
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true } // Controls visibility on main site
+    isActive: { type: Boolean, default: true }, // Controls visibility on main site
+    reviews: { type: Array, default: [] } // Stores customer reviews (NEW)
 });
 const Product = mongoose.model('Product', productSchema);
 
+// --- Order Schema ---
 const orderSchema = new mongoose.Schema({
     reference: { type: String, required: true, unique: true }, 
     customer: { 
@@ -185,6 +195,8 @@ const sendStatusEmail = async (order, status) => {
 // ==========================================
 // 5. SECURITY & ROLE MIDDLEWARES (JWT)
 // ==========================================
+
+// Middleware for Admins
 const verifyAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -201,7 +213,24 @@ const verifyAdmin = (req, res, next) => {
     }
 };
 
-// Middleware to check required roles
+// Middleware for Regular Customers (NEW)
+const verifyUser = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Access denied. No token provided." });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // Contains id and email
+        next(); 
+    } catch (error) {
+        return res.status(401).json({ message: "Invalid or expired token." });
+    }
+};
+
+// Middleware to check required Admin roles
 const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.admin || !allowedRoles.includes(req.admin.role)) {
@@ -221,33 +250,26 @@ const authorizeRoles = (...allowedRoles) => {
 app.post('/api/admin/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
-        // Find admin in DB
         const admin = await Admin.findOne({ email });
         if (!admin) return res.status(401).json({ message: "Invalid email or password" });
 
-        // Verify password
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
 
-        // Generate token including the user's role
         const token = jwt.sign(
             { id: admin._id, email: admin.email, role: admin.role }, 
             process.env.JWT_SECRET, 
             { expiresIn: '24h' }
         );
-        
         res.status(200).json({ status: 'success', token: token, role: admin.role, name: admin.name });
     } catch (error) {
         res.status(500).json({ message: "Server error during login" });
     }
 });
 
-// Create new Admin (Only superadmins can do this)
 app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
-        
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) return res.status(400).json({ message: "Email already in use." });
 
@@ -263,6 +285,48 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
+
+// --- Customer Auth Routes (NEW - FIXES THE 404 ERROR) ---
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ message: "Email already in use." });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newUser = new User({ email, password: hashedPassword });
+        await newUser.save();
+
+        const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        
+        res.status(201).json({ token, email: newUser.email, wishlist: newUser.wishlist });
+    } catch (error) {
+        res.status(500).json({ message: "Server error during registration", error: error.message });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ message: "Invalid email or password" });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
+
+        const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        
+        res.status(200).json({ token, email: user.email, wishlist: user.wishlist });
+    } catch (error) {
+        res.status(500).json({ message: "Server error during login", error: error.message });
+    }
+});
+
+
 // --- Product Routes ---
 // PUBLIC: Get all products
 app.get('/api/products', async (req, res) => { 
@@ -274,12 +338,10 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         const imagePath = req.file ? req.file.path : '';
-        
         
         const newProduct = new Product({ 
             name, 
@@ -298,11 +360,9 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
     }
 });
 
-
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
-        
         
         let updateData = { 
             name, 
@@ -332,7 +392,43 @@ app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
+// CUSTOMER: Leave a review for a product (NEW)
+app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
+    try {
+        const { rating, text } = req.body;
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        const review = {
+            userName: req.user.email.split('@')[0], // Creates a display name from email
+            rating: Number(rating),
+            text,
+            date: new Date()
+        };
+
+        product.reviews.push(review);
+        await product.save();
+
+        res.status(201).json({ message: 'Review added', reviews: product.reviews });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to add review", error: error.message });
+    }
+});
+
+
 // --- Order Routes ---
+
+// CUSTOMER: Get their own specific orders (NEW)
+app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
+    try {
+        // Find orders where the customer.email matches the logged-in user's email
+        const orders = await Order.find({ "customer.email": req.user.email }).sort({ date: -1 });
+        res.status(200).json(orders);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch your orders" });
+    }
+});
+
 // PROTECTED: Get all orders (All Admins can view)
 app.get('/api/orders', verifyAdmin, async (req, res) => {
     try {
@@ -352,14 +448,12 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
     }
 });
 
-
 app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
         const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { new: true });
         if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
-        
         
         sendStatusEmail(updatedOrder, status);
         
@@ -369,7 +463,6 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
     }
 });
 
-
 app.post('/api/payments/verify', async (req, res) => {
     try {
         const { reference, cart, customer } = req.body;
@@ -377,9 +470,7 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
-        
         sendStatusEmail(savedOrder, 'Processing');
-        
         
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             const adminMailOptions = {
@@ -415,7 +506,7 @@ app.post('/api/payments/verify', async (req, res) => {
                 .catch((error) => console.error("❌ Failed to send admin notification email:", error));
         }
         
-        res.status(200).json({ status: 'success', message: 'Order saved successfully!' });
+        res.status(200).json({ status: 'success', message: 'Order saved successfully!', order: savedOrder });
     } catch (error) {
         if (error.code === 11000) return res.status(400).json({ status: 'fail', message: 'Order already processed.' });
         res.status(500).json({ status: 'fail', message: 'Failed to save order.' });
