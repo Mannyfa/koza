@@ -1030,17 +1030,90 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
     );
 };
 
+const WishlistPage = ({ allProducts, currentUser, onNavigate, onProductClick, onToggleWishlist }) => {
+    // If not logged in, prompt them
+    if (!currentUser) {
+        return (
+            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[60vh] flex items-center justify-center py-16 px-4">
+                <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl p-10 shadow-xl border border-gray-100 dark:border-gray-800 text-center">
+                    <HeartIcon className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-6" />
+                    <h2 className="text-2xl font-black text-[#191970] dark:text-white mb-4">Sign in to view your Wishlist</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8">Save your favorite fragrances and keep track of what you want to buy next.</p>
+                    <button onClick={() => onNavigate('auth')} className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
+                        Sign In / Register
+                    </button>
+                </div>
+            </motion.div>
+        );
+    }
+
+    const wishlistedItems = allProducts.filter(product => currentUser.wishlist?.includes(product.id));
+
+    return (
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-gray-200 dark:border-gray-800 pb-6">
+                    <div>
+                        <h1 className="text-4xl font-black text-[#191970] dark:text-white">My Wishlist</h1>
+                        <p className="mt-2 text-lg text-[#D4AF37] font-semibold">Your curated collection of favorites.</p>
+                    </div>
+                </div>
+
+                {wishlistedItems.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800 mt-8">
+                        <div className="mx-auto w-20 h-20 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-gray-400">
+                            <HeartIcon className="w-10 h-10" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">Your wishlist is empty</h2>
+                        <p className="text-gray-500 dark:text-gray-400 mb-8">Find something you love? Tap the heart icon to save it here.</p>
+                        <button onClick={() => onNavigate('shop')} className="bg-[#D4AF37] text-[#191970] px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">Explore Fragrances</button>
+                    </div>
+                ) : (
+                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {wishlistedItems.map(product => (
+                            <ProductCard 
+                                key={product.id} 
+                                product={product} 
+                                onProductClick={onProductClick} 
+                                onToggleWishlist={onToggleWishlist} 
+                                isWishlisted={true} 
+                            />
+                        ))}
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
+
 const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     const [customerInfo, setCustomerInfo] = useState({ name: '', email: currentUser?.email || '', phone: '', address: '', city: '', state: '' });
     const [isPaying, setIsPaying] = useState(false);
+    const [isGuestCheckout, setIsGuestCheckout] = useState(false); // NEW STATE
+    
     const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
 
-    if (!currentUser) {
+    // NEW: Elegant Guest Checkout Intercept Screen
+    if (!currentUser && !isGuestCheckout) {
         return (
-            <div className="min-h-[50vh] flex flex-col items-center justify-center">
-                <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-4">Please log in to checkout</h2>
-                <button onClick={() => onNavigate('auth')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-8 py-3 rounded-full font-bold">Go to Login</button>
-            </div>
+            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] py-16 flex items-center justify-center px-4">
+                <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl p-10 shadow-2xl border border-gray-100 dark:border-gray-800 text-center">
+                    <div className="mx-auto w-16 h-16 bg-[#191970]/10 dark:bg-[#D4AF37]/10 text-[#191970] dark:text-[#D4AF37] rounded-full flex items-center justify-center mb-6">
+                        <ShoppingBagIcon />
+                    </div>
+                    <h2 className="text-3xl font-black text-[#191970] dark:text-white mb-4">Almost there!</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">Create an account to track your orders and save your wishlist, or checkout instantly as a guest.</p>
+                    
+                    <div className="space-y-4">
+                        <button onClick={() => onNavigate('auth')} className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
+                            Sign In / Register
+                        </button>
+                        <button onClick={() => setIsGuestCheckout(true)} className="w-full bg-transparent text-[#191970] dark:text-gray-300 font-bold py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] transition-colors">
+                            Continue as Guest
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
         );
     }
 
@@ -1071,7 +1144,14 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="max-w-2xl mx-auto lg:max-w-none">
-                    <h1 className="text-3xl font-black text-[#191970] dark:text-white mb-10">Complete Your Order</h1>
+                    <div className="flex items-center justify-between mb-10">
+                        <h1 className="text-3xl font-black text-[#191970] dark:text-white">Complete Your Order</h1>
+                        {!currentUser && (
+                            <span className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                                Guest Checkout
+                            </span>
+                        )}
+                    </div>
                     <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
                         <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
                             <div>
@@ -1124,6 +1204,7 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
         </motion.div>
     );
 };
+
 
 const OrderConfirmationPage = ({ onNavigate }) => ( 
     <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] flex items-center justify-center py-12 px-4"> 
@@ -1307,6 +1388,7 @@ export default function App() {
                     ) : currentPage === 'checkout' ? ( <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} currentUser={currentUser} onNavigate={handleNavigate} />
                     ) : currentPage === 'orderConfirmation' ? ( <OrderConfirmationPage onNavigate={handleNavigate} />
                     ) : currentPage === 'orders' ? ( <OrdersPage orders={orders} onNavigate={handleNavigate} />
+                    ) : currentPage === 'wishlist' ? ( <WishlistPage allProducts={allProducts} currentUser={currentUser} onNavigate={handleNavigate} onProductClick={handleProductClick} onToggleWishlist={handleToggleWishlist} />
                     ) : currentPage === 'auth' ? ( <AuthPage onLogin={setCurrentUser} onNavigate={handleNavigate} />
                     ) : ( <HomePage {...pageProps} /> )}
                 </React.Fragment>
