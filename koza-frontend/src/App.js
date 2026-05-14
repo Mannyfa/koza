@@ -106,7 +106,6 @@ const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6
 
 const icons = { SparklesIcon, ScissorsIcon, TruckIcon, ChatBubbleIcon };
 
-// --- Animation Variants ---
 const pageVariants = {
     initial: { opacity: 0, y: 20 },
     in: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
@@ -124,7 +123,7 @@ const itemVariant = {
 };
 
 
-// --- UI Components ---
+
 const Notification = ({ message, show }) => (
     <AnimatePresence>
         {show && (
