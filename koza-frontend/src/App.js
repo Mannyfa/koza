@@ -684,9 +684,10 @@ const OrdersPage = ({ orders, onNavigate }) => {
                                     </div>
                                 </div>
                                 
+                                {/* FIX: Maps through order.cart instead of order.items */}
                                 <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
-                                    {order.items.map((item, i) => {
-                                        const imageUrl = item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
+                                    {(order.cart || []).map((item, i) => {
+                                        const imageUrl = item.image && item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
                                         return (
                                             <li key={i} className="py-4 flex items-center">
                                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-black border border-gray-100 dark:border-gray-800 flex-shrink-0">
@@ -699,7 +700,7 @@ const OrdersPage = ({ orders, onNavigate }) => {
                                                 <button 
                                                     onClick={() => {
                                                         // Fallback structure to ensure navigation works correctly
-                                                        onNavigate('product', { ...item, id: item.product || item.id });
+                                                        onNavigate('product', { ...item, id: item.product || item.id || item._id });
                                                     }}
                                                     className="ml-4 text-sm font-bold text-[#D4AF37] hover:text-[#B58B22] border border-[#D4AF37] rounded-full px-4 py-2 transition-colors"
                                                 >
@@ -730,9 +731,9 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
     // Use reviews embedded in the product object fetched from the backend
     const productReviews = product.reviews || [];
 
-    // Check if user has purchased this exact item by scanning their fetched orders
+    // FIX: Checks through order.cart to see if the user bought this product
     const hasPurchased = orders?.some(order => 
-        order.items.some(item => item.product === product.id || item.id === product.id || item.product === product._id)
+        (order.cart || []).some(item => item.product === product.id || item.id === product.id || item.product === product._id || item._id === product.id)
     );
 
     const handleReviewSubmit = (e) => {
