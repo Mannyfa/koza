@@ -911,17 +911,23 @@ const AuthPage = ({ onLogin, onNavigate }) => {
             
             if (!response.ok) throw new Error(data.message);
             
-            // Save token and user details to localStorage securely
+            // Save token securely
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data));
             
-            onLogin(data);
+            // FIX: Extract the actual user object so the wishlist isn't buried
+            const userData = data.user ? data.user : data;
+            if (!userData.wishlist) userData.wishlist = []; // Ensure wishlist array exists
+            
+            localStorage.setItem('user', JSON.stringify(userData));
+            
+            onLogin(userData);
             onNavigate('home');
         } catch (error) {
             alert(error.message);
         }
     };
 
+    
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="min-h-[70vh] flex items-center justify-center bg-gray-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-10 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800">
@@ -1226,7 +1232,6 @@ export default function App() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [cart, setCart] = useState([]);
     const [notification, setNotification] = useState({ message: '', show: false });
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1237,6 +1242,17 @@ export default function App() {
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [orders, setOrders] = useState([]);
+
+    // --- FIX: Cart Persistence initialized from LocalStorage ---
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem('cart');
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
+
+    // --- FIX: Cart automatically saves to LocalStorage on change ---
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }, [cart]);
 
     // Fetch products initially
     useEffect(() => {
@@ -1254,7 +1270,7 @@ export default function App() {
         fetchProducts();
     }, []);
 
-    // Fetch User's Real Orders from Backend whenever currentUser changes
+    // --- FIX: Fetch User's Real Orders safely checking object properties ---
     useEffect(() => {
         if (currentUser) {
             const fetchOrders = async () => {
@@ -1266,7 +1282,9 @@ export default function App() {
                     });
                     if (res.ok) {
                         const data = await res.json();
-                        setOrders(data);
+                        // Safely extract the array so OrdersPage doesn't think it's empty
+                        const fetchedOrders = Array.isArray(data) ? data : (data.orders || data.data || []);
+                        setOrders(fetchedOrders);
                     }
                 } catch(e) { console.error("Error fetching orders:", e); }
             };
@@ -1297,14 +1315,21 @@ export default function App() {
     const handleRemoveFromCart = (productId) => { setCart(prevCart => prevCart.filter(item => item.id !== productId)); };
     const cartCount = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
 
-    // Handle Local Wishlist state update
+    // --- FIX: Safely fallback to empty array if wishlist is missing ---
     const handleToggleWishlist = (id) => {
         if(!currentUser) { handleNavigate('auth'); return; }
-        const isWishlisted = currentUser.wishlist.includes(id);
-        const newWishlist = isWishlisted ? currentUser.wishlist.filter(wId => wId !== id) : [...(currentUser.wishlist || []), id];
+        
+        const currentWishlist = currentUser.wishlist || []; 
+        const isWishlisted = currentWishlist.includes(id);
+        
+        const newWishlist = isWishlisted 
+            ? currentWishlist.filter(wId => wId !== id) 
+            : [...currentWishlist, id];
+            
         const updatedUser = { ...currentUser, wishlist: newWishlist };
         setCurrentUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser)); // Persist locally for user context
+        localStorage.setItem('user', JSON.stringify(updatedUser)); 
+        
         showNotification(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
     }
 
