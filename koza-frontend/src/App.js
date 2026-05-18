@@ -1042,7 +1042,7 @@ Thank you for your understanding.</p>
 };
 
 const WishlistPage = ({ allProducts, currentUser, onNavigate, onProductClick, onToggleWishlist }) => {
-    // If not logged in, prompt them
+    
     if (!currentUser) {
         return (
             <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[60vh] flex items-center justify-center py-16 px-4">
@@ -1320,7 +1320,8 @@ export default function App() {
     const cartCount = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
 
     // --- FIX: Safely fallback to empty array if wishlist is missing ---
-    const handleToggleWishlist = (id) => {
+    // Handle Local & Database Wishlist state update
+    const handleToggleWishlist = async (id) => {
         if(!currentUser) { handleNavigate('auth'); return; }
         
         const currentWishlist = currentUser.wishlist || []; 
@@ -1330,13 +1331,29 @@ export default function App() {
             ? currentWishlist.filter(wId => wId !== id) 
             : [...currentWishlist, id];
             
+        // 1. Instantly update the UI and Local Browser Storage
         const updatedUser = { ...currentUser, wishlist: newWishlist };
         setCurrentUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser)); 
         
         showNotification(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
-    }
 
+        // 2. Secretly send the new wishlist to MongoDB in the background
+        try {
+            const token = localStorage.getItem('token');
+            await fetch(`${API_URL}/users/wishlist`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ wishlist: newWishlist })
+            });
+        } catch (error) {
+            console.error("Failed to sync wishlist with database:", error);
+        }
+    }
+    
     // Handles securely posting the review directly to the backend
     const handleSubmitReview = async (productId, reviewData) => {
         const token = localStorage.getItem('token');

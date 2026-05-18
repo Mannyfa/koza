@@ -326,6 +326,28 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// CUSTOMER: Update their Wishlist in the database (NEW)
+app.put('/api/users/wishlist', verifyUser, async (req, res) => {
+    try {
+        const { wishlist } = req.body;
+        
+        // req.user comes from your verifyUser middleware
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id, 
+            { wishlist: wishlist }, 
+            { new: true } 
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "Wishlist saved successfully", wishlist: updatedUser.wishlist });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update wishlist", error: error.message });
+    }
+});
+
 
 // --- Product Routes ---
 // PUBLIC: Get all products
