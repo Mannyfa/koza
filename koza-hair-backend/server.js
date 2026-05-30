@@ -3,9 +3,9 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-const jwt = require('jsonwebtoken'); // JWT for Authentication
-const bcrypt = require('bcryptjs'); // For securely hashing passwords
+const https = require('https'); // Native module to guarantee API calls work on any server
+const jwt = require('jsonwebtoken'); 
+const bcrypt = require('bcryptjs'); 
 require('dotenv').config();
 
 // Cloudinary Imports
@@ -22,32 +22,27 @@ app.use(express.json());
 // 1. FILE UPLOAD CONFIGURATION (CLOUDINARY)
 // ==========================================
 
-// Configure Cloudinary with your credentials from .env
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Set up Multer to use Cloudinary for storage
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'opevickyscents_products', // The folder name in your Cloudinary account
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'], // Allowed image formats
+        folder: 'opevickyscents_products', 
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'], 
     },
 });
 
 const upload = multer({ storage: storage });
-
-// We keep this just in case old images still point to the local server
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==========================================
 // 2. DATABASE SCHEMAS & MODELS
 // ==========================================
 
-// --- Admin Schema ---
 const adminSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -60,15 +55,13 @@ const adminSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Admin = mongoose.model('Admin', adminSchema);
 
-// --- Customer User Schema (NEW) ---
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    wishlist: { type: Array, default: [] } // Stores liked product IDs
+    wishlist: { type: Array, default: [] } 
 }, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
-// --- Product Schema ---
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
@@ -76,12 +69,11 @@ const productSchema = new mongoose.Schema({
     description: String,
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true }, // Controls visibility on main site
-    reviews: { type: Array, default: [] } // Stores customer reviews (NEW)
+    isActive: { type: Boolean, default: true }, 
+    reviews: { type: Array, default: [] } 
 });
 const Product = mongoose.model('Product', productSchema);
 
-// --- Order Schema ---
 const orderSchema = new mongoose.Schema({
     reference: { type: String, required: true, unique: true }, 
     customer: { 
@@ -102,7 +94,6 @@ if (!process.env.MONGODB_URI) {
     process.exit(1); 
 }
 
-// Setup initial Superadmin if database is empty
 const initializeAdmin = async () => {
     try {
         const count = await Admin.countDocuments();
@@ -125,48 +116,65 @@ const initializeAdmin = async () => {
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log('✅ Successfully connected to MongoDB Atlas!');
-        await initializeAdmin(); // Run initialization after successful connection
+        await initializeAdmin(); 
     })
     .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 
 // ==========================================
-// 4. EMAILJS SERVICE LOGIC (NEW)
+// 4. EMAILJS SERVICE LOGIC (BULLETPROOF VERSION)
 // ==========================================
 
-const sendEmailJS = async (templateParams) => {
-    // Check if EmailJS keys exist in environment
-    if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY || !process.env.EMAILJS_PRIVATE_KEY) {
-        console.log("⚠️ Skipping EmailJS: Missing environment variables.");
-        return;
-    }
+const sendEmailJS = (templateParams) => {
+    return new Promise((resolve) => {
+        if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY || !process.env.EMAILJS_PRIVATE_KEY) {
+            console.log("⚠️ Skipping EmailJS: Missing environment variables in Render.");
+            return resolve(); // Resolve so the API doesn't hang
+        }
 
-    try {
-        const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                service_id: process.env.EMAILJS_SERVICE_ID,
-                template_id: process.env.EMAILJS_TEMPLATE_ID,
-                user_id: process.env.EMAILJS_PUBLIC_KEY,
-                accessToken: process.env.EMAILJS_PRIVATE_KEY,
-                template_params: templateParams
-            })
+        const payload = JSON.stringify({
+            service_id: process.env.EMAILJS_SERVICE_ID,
+            template_id: process.env.EMAILJS_TEMPLATE_ID,
+            user_id: process.env.EMAILJS_PUBLIC_KEY,
+            accessToken: process.env.EMAILJS_PRIVATE_KEY,
+            template_params: templateParams
         });
 
-        if (response.ok) {
-            console.log(`✅ EmailJS sent successfully to ${templateParams.to_email}`);
-        } else {
-            const errorText = await response.text();
-            console.error('❌ EmailJS API Error:', errorText);
-        }
-    } catch (error) {
-        console.error('❌ Failed to trigger EmailJS API:', error);
-    }
+        const options = {
+            hostname: 'api.emailjs.com',
+            path: '/api/v1.0/email/send',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(payload)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    console.log(`✅ EmailJS sent successfully to ${templateParams.to_email}`);
+                } else {
+                    console.error(`❌ EmailJS API Error (${res.statusCode}):`, data);
+                }
+                resolve();
+            });
+        });
+
+        req.on('error', (e) => {
+            console.error('❌ Failed to trigger EmailJS API:', e.message);
+            resolve();
+        });
+
+        req.write(payload);
+        req.end();
+    });
 };
 
 const sendStatusEmail = async (order, status) => {
-    const shortOrderId = order._id.toString().slice(-6).toUpperCase();
+    const shortOrderId = (order._id || order.id || 'ORDER').toString().slice(-6).toUpperCase();
     const subjects = {
         'Processing': `Your OpevickyScents Order #${shortOrderId} is being processed`,
         'Shipped': `Great news! Your OpevickyScents Order #${shortOrderId} has shipped`,
@@ -192,7 +200,7 @@ const sendStatusEmail = async (order, status) => {
         </div>
     `;
 
-    // Trigger EmailJS
+    // Trigger EmailJS and wait for it to finish
     await sendEmailJS({
         to_email: order.customer.email,
         subject: subjects[status] || `Update on your Order`,
@@ -203,8 +211,6 @@ const sendStatusEmail = async (order, status) => {
 // ==========================================
 // 5. SECURITY & ROLE MIDDLEWARES (JWT)
 // ==========================================
-
-// Middleware for Admins
 const verifyAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -214,14 +220,13 @@ const verifyAdmin = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.admin = decoded; // Contains id, email, and role
+        req.admin = decoded; 
         next(); 
     } catch (error) {
         return res.status(401).json({ message: "Invalid or expired token." });
     }
 };
 
-// Middleware for Regular Customers
 const verifyUser = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -231,14 +236,13 @@ const verifyUser = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Contains id and email
+        req.user = decoded; 
         next(); 
     } catch (error) {
         return res.status(401).json({ message: "Invalid or expired token." });
     }
 };
 
-// Middleware to check required Admin roles
 const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.admin || !allowedRoles.includes(req.admin.role)) {
@@ -297,7 +301,6 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "Email already in use." });
 
@@ -309,7 +312,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
-        res.status(201).json({ token, user: { id: newUser._id, email: newUser.email, wishlist: newUser.wishlist } });
+        res.status(201).json({ token, email: newUser.email, wishlist: newUser.wishlist });
     } catch (error) {
         res.status(500).json({ message: "Server error during registration", error: error.message });
     }
@@ -318,7 +321,6 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
         const user = await User.findOne({ email });
         if (!user) return res.status(401).json({ message: "Invalid email or password" });
 
@@ -327,21 +329,19 @@ app.post('/api/auth/login', async (req, res) => {
 
         const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
-        res.status(200).json({ token, user: { id: user._id, email: user.email, wishlist: user.wishlist } });
+        res.status(200).json({ token, email: user.email, wishlist: user.wishlist });
     } catch (error) {
         res.status(500).json({ message: "Server error during login", error: error.message });
     }
 });
 
-// CUSTOMER: Update their Wishlist in the database
 app.put('/api/users/wishlist', verifyUser, async (req, res) => {
     try {
         const { wishlist } = req.body;
-        
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id, 
             { wishlist: wishlist }, 
-            { new: true } 
+            { returnDocument: 'after' } 
         );
 
         if (!updatedUser) {
@@ -370,9 +370,7 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
         const imagePath = req.file ? req.file.path : '';
         
         const newProduct = new Product({ 
-            name, 
-            price, 
-            description, 
+            name, price, description, 
             bottleSize: bottleSize || '',
             stockAmount: parseInt(stockAmount) || 0,
             image: imagePath,
@@ -391,17 +389,14 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
         const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
         
         let updateData = { 
-            name, 
-            price, 
-            description,
-            bottleSize,
+            name, price, description, bottleSize,
             stockAmount: parseInt(stockAmount) || 0,
             isActive: isActive === 'false' || isActive === false ? false : true
         };
         
         if (req.file) updateData.image = req.file.path;
         
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
         res.status(200).json({ status: 'success', data: { product: updatedProduct } });
     } catch (error) { 
         res.status(400).json({ message: "Failed to update product", error: error.message }); 
@@ -417,7 +412,7 @@ app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
-// CUSTOMER: Leave a review for a product
+// CUSTOMER: Leave a review
 app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
     try {
         const { rating, text } = req.body;
@@ -441,7 +436,6 @@ app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
 });
 
 // --- Order Routes ---
-
 app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
     try {
         const orders = await Order.find({ "customer.email": req.user.email }).sort({ date: -1 });
@@ -455,13 +449,8 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ date: -1 });
         const formattedOrders = orders.map(o => ({
-            id: o._id, 
-            reference: o.reference,
-            customer: o.customer, 
-            cart: o.cart,
-            total: o.total, 
-            status: o.status, 
-            date: o.date
+            id: o._id, reference: o.reference, customer: o.customer, cart: o.cart,
+            total: o.total, status: o.status, date: o.date
         }));
         res.status(200).json({ data: { orders: formattedOrders } });
     } catch (error) { 
@@ -473,10 +462,11 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { new: true });
+        const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { returnDocument: 'after' });
         if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
         
-        sendStatusEmail(updatedOrder, status);
+        // FIX: Added await to prevent Render from killing the background email task
+        await sendStatusEmail(updatedOrder, status);
         
         res.json({ status: 'success', order: { ...updatedOrder.toObject(), id: updatedOrder._id } });
     } catch (error) { 
@@ -491,34 +481,28 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
-        // Notify Customer
-        sendStatusEmail(savedOrder, 'Processing');
+        // FIX: Await customer receipt
+        await sendStatusEmail(savedOrder, 'Processing');
         
-        // Notify Admin
+        // FIX: Await Admin Alert
         if (process.env.ADMIN_EMAIL) {
             const adminHtml = `
                 <div style="font-family: sans-serif; color: #191970;">
                     <h2 style="color: #D4AF37;">New Order Received!</h2>
                     <p>You just received a new order on OpevickyScents.</p>
-                    
                     <h3>Customer Details:</h3>
                     <p><strong>Name:</strong> ${customer.name}</p>
                     <p><strong>Email:</strong> ${customer.email}</p>
                     <p><strong>Phone:</strong> ${customer.phone}</p>
                     <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.state}</p>
-                    
                     <h3>Order Items:</h3>
                     <ul>
                         ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${item.name}</li>`).join('')}
                     </ul>
                     <p><strong>Total:</strong> ${total}</p>
-                    
-                    <hr style="border: 1px solid #eee; margin: 20px 0;" />
-                    <p>Log in to your Admin Panel to view full details and process the shipment.</p>
                 </div>
             `;
 
-            // Trigger EmailJS for Admin Alert
             await sendEmailJS({
                 to_email: process.env.ADMIN_EMAIL,
                 subject: `🚨 New Order Alert! from ${customer.name}`,
