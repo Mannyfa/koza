@@ -70,7 +70,8 @@ const productSchema = new mongoose.Schema({
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }, 
-    reviews: { type: Array, default: [] } 
+    reviews: { type: Array, default: [] },
+    discountPercentage: { type: Number, default: 0 } // NEW: For product discounts
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -129,7 +130,7 @@ const sendEmailJS = (templateParams) => {
     return new Promise((resolve) => {
         if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY || !process.env.EMAILJS_PRIVATE_KEY) {
             console.log("⚠️ Skipping EmailJS: Missing environment variables in Render.");
-            return resolve(); // Resolve so the API doesn't hang
+            return resolve(); 
         }
 
         const payload = JSON.stringify({
@@ -200,7 +201,6 @@ const sendStatusEmail = async (order, status) => {
         </div>
     `;
 
-    // Trigger EmailJS and wait for it to finish
     await sendEmailJS({
         to_email: order.customer.email,
         subject: subjects[status] || `Update on your Order`,
@@ -297,6 +297,48 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
+// NEW: Get all Admins for Settings Page
+app.get('/api/admin/users', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
+    try {
+        const admins = await Admin.find({}).select('-password'); 
+        res.status(200).json(admins);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch admins" });
+    }
+});
+
+// NEW: Delete Admin
+app.delete('/api/admin/users/:id', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
+    try {
+        if (req.admin.id === req.params.id) return res.status(400).json({ message: "Cannot delete your own account." });
+        await Admin.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Admin removed" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete admin" });
+    }
+});
+
+// --- Analytics Routes (NEW) ---
+app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
+    try {
+        const orders = await Order.find({ status: { $ne: 'Cancelled' } });
+        const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+        
+        const salesData = orders.reduce((acc, order) => {
+            const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            acc[date] = (acc[date] || 0) + order.total;
+            return acc;
+        }, {});
+
+        const chartData = Object.keys(salesData).map(date => ({ date, revenue: salesData[date] }));
+        
+        res.status(200).json({ totalRevenue, totalOrders: orders.length, chartData });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+});
+
+
 // --- Customer Auth Routes ---
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -366,13 +408,15 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
+        // UPDATED to include discountPercentage
+        const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
         const imagePath = req.file ? req.file.path : '';
         
         const newProduct = new Product({ 
             name, price, description, 
             bottleSize: bottleSize || '',
             stockAmount: parseInt(stockAmount) || 0,
+            discountPercentage: parseInt(discountPercentage) || 0,
             image: imagePath,
             isActive: isActive === 'false' || isActive === false ? false : true
         });
@@ -386,11 +430,13 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
 
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive } = req.body;
+        // UPDATED to include discountPercentage
+        const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
         
         let updateData = { 
             name, price, description, bottleSize,
             stockAmount: parseInt(stockAmount) || 0,
+            discountPercentage: parseInt(discountPercentage) || 0,
             isActive: isActive === 'false' || isActive === false ? false : true
         };
         
@@ -412,7 +458,6 @@ app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
-// CUSTOMER: Leave a review
 app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
     try {
         const { rating, text } = req.body;
@@ -465,7 +510,6 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
         const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { returnDocument: 'after' });
         if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
         
-        // FIX: Added await to prevent Render from killing the background email task
         await sendStatusEmail(updatedOrder, status);
         
         res.json({ status: 'success', order: { ...updatedOrder.toObject(), id: updatedOrder._id } });
@@ -481,10 +525,8 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
-        // FIX: Await customer receipt
         await sendStatusEmail(savedOrder, 'Processing');
         
-        // FIX: Await Admin Alert
         if (process.env.ADMIN_EMAIL) {
             const adminHtml = `
                 <div style="font-family: sans-serif; color: #191970;">

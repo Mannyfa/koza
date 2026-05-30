@@ -317,6 +317,13 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#191970]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
+                {/* NEW: Discount Badge overlay on the image */}
+                {product.discountPercentage > 0 && (
+                    <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg z-10">
+                        {product.discountPercentage}% OFF
+                    </div>
+                )}
+
                 {onToggleWishlist && (
                     <motion.button 
                         whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleWishlistClick} 
@@ -343,8 +350,26 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
                     </div>
                     <h3 className="text-lg font-extrabold text-[#191970] dark:text-white leading-tight mb-2 group-hover:text-[#D4AF37] transition-colors">{product.name}</h3>
                 </div>
+                
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-xl font-black text-[#191970] dark:text-[#D4AF37]">{formatPrice(product.price)}</p>
+                    {/* NEW: Dynamic Pricing Display */}
+                    <div>
+                        {product.discountPercentage > 0 ? (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                <p className="text-xl font-black text-red-600">
+                                    {formatPrice(product.price - (product.price * (product.discountPercentage / 100)))}
+                                </p>
+                                <p className="text-sm font-medium text-gray-400 line-through">
+                                    {formatPrice(product.price)}
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-xl font-black text-[#191970] dark:text-[#D4AF37]">
+                                {formatPrice(product.price)}
+                            </p>
+                        )}
+                    </div>
+                    
                     <span className="text-sm font-bold text-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                         View Details <span className="ml-1">→</span>
                     </span>
@@ -353,6 +378,7 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
         </motion.div>
     );
 };
+
 
 const Footer = ({ onNavigate }) => (
     <footer className="bg-gradient-to-br from-[#191970] via-[#0a0a33] to-[#0047AB] text-gray-300 py-16 mt-auto border-t-4 border-[#D4AF37]">
@@ -728,10 +754,8 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
     
     const isOutOfStock = product.stockAmount === 0;
 
-    // Use reviews embedded in the product object fetched from the backend
     const productReviews = product.reviews || [];
 
-    // FIX: Checks through order.cart to see if the user bought this product
     const hasPurchased = orders?.some(order => 
         (order.cart || []).some(item => item.product === product.id || item.id === product.id || item.product === product._id || item._id === product.id)
     );
@@ -746,6 +770,11 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
         setReviewText("");
         setRating(5);
     };
+
+    // Calculate discounted price
+    const effectivePrice = product.discountPercentage > 0 
+        ? product.price - (product.price * (product.discountPercentage / 100))
+        : product.price;
 
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen py-12">
@@ -771,7 +800,19 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                         <h1 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white mb-4">{product.name}</h1>
                         
                         <div className="flex items-center gap-4 mb-6">
-                            <p className="text-3xl font-bold text-[#191970] dark:text-[#D4AF37]">{formatPrice(product.price)}</p>
+                            {/* Updated Dynamic Pricing Display */}
+                            {product.discountPercentage > 0 ? (
+                                <div className="flex items-center gap-3">
+                                    <p className="text-3xl font-bold text-red-600">{formatPrice(effectivePrice)}</p>
+                                    <p className="text-xl font-medium text-gray-400 line-through">{formatPrice(product.price)}</p>
+                                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-black tracking-wider">
+                                        {product.discountPercentage}% OFF
+                                    </span>
+                                </div>
+                            ) : (
+                                <p className="text-3xl font-bold text-[#191970] dark:text-[#D4AF37]">{formatPrice(product.price)}</p>
+                            )}
+
                             {product.stockAmount !== undefined && (
                                 <span className={`px-3 py-1 text-sm font-bold rounded-full ${!isOutOfStock ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                                     {!isOutOfStock ? `${product.stockAmount} Available in Stock` : 'Out of Stock'}
@@ -959,7 +1000,12 @@ const AuthPage = ({ onLogin, onNavigate }) => {
 };
 
 const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
-    const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
+    // Calculates subtotal using the discounted price
+    const subtotal = useMemo(() => cart.reduce((total, item) => {
+        const itemPrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
+        return total + itemPrice * item.quantity;
+    }, 0), [cart]);
+
     const [showDisclaimer, setShowDisclaimer] = useState(false);
     
     return (
@@ -980,12 +1026,31 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 <AnimatePresence>
                                     {cart.map((item) => {
                                         const imageUrl = item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
+                                        const effectivePrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
+
                                         return (
                                             <motion.li layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} key={item.id} className="flex bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                                <div className="flex-shrink-0 w-32 h-32 bg-gray-50 dark:bg-black rounded-xl overflow-hidden"><img src={imageUrl} alt={item.name} className="w-full h-full object-cover" /></div>
+                                                <div className="flex-shrink-0 w-32 h-32 bg-gray-50 dark:bg-black rounded-xl overflow-hidden relative">
+                                                    <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                    {item.discountPercentage > 0 && (
+                                                        <div className="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                                                            -{item.discountPercentage}%
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div className="ml-6 flex-1 flex flex-col justify-center">
                                                     <div className="flex justify-between items-start">
-                                                        <div><h3 className="text-lg font-bold text-[#191970] dark:text-white">{item.name}</h3><p className="mt-1 text-sm font-medium text-[#D4AF37]">{formatPrice(item.price)} each</p></div>
+                                                        <div>
+                                                            <h3 className="text-lg font-bold text-[#191970] dark:text-white">{item.name}</h3>
+                                                            {item.discountPercentage > 0 ? (
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <p className="text-sm font-bold text-red-600">{formatPrice(effectivePrice)}</p>
+                                                                    <p className="text-xs font-medium text-gray-400 line-through">{formatPrice(item.price)}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="mt-1 text-sm font-medium text-[#D4AF37]">{formatPrice(item.price)}</p>
+                                                            )}
+                                                        </div>
                                                         <button onClick={() => onRemoveFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors p-1"><XIcon /></button>
                                                     </div>
                                                     <div className="flex items-center justify-between mt-4">
@@ -994,7 +1059,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                                             <span className="px-2 font-bold text-[#191970] dark:text-white">{item.quantity}</span>
                                                             <button onClick={() => onUpdateCart(item.id, Math.min(item.stockAmount || 1, item.quantity + 1))} disabled={item.quantity >= (item.stockAmount || 0)} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold disabled:opacity-50">+</button>
                                                         </div>
-                                                        <p className="font-extrabold text-lg text-[#191970] dark:text-white">{formatPrice(item.price * item.quantity)}</p>
+                                                        <p className="font-extrabold text-lg text-[#191970] dark:text-white">{formatPrice(effectivePrice * item.quantity)}</p>
                                                     </div>
                                                 </div>
                                             </motion.li>
@@ -1024,11 +1089,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                         <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-gray-100 dark:border-gray-800">
                             <div className="mx-auto w-16 h-16 bg-[#191970]/10 dark:bg-[#D4AF37]/10 text-[#191970] dark:text-[#D4AF37] rounded-full flex items-center justify-center mb-6"><TruckIcon /></div>
                             <h3 className="text-2xl font-black text-[#191970] dark:text-white mb-4 text-center">Delivery Information</h3>
-                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-center mb-8">Delivery within Lagos takes 24–48 hours, while delivery outside Lagos takes 3–5 business days.
-
-Please note that delivery/dispatch fees may vary depending on your location, so a member of our team will contact you to communicate the exact delivery cost.
-
-Thank you for your understanding.</p>
+                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-center mb-8">Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 business days. Delivery or dispatch prices can vary between locations so a member of our team will reach out to communicate your exact delivery price. Thank you for your understanding.</p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button onClick={() => setShowDisclaimer(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">Cancel</button>
                                 <button onClick={() => { setShowDisclaimer(false); onNavigate('checkout'); }} className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-3 px-4 rounded-xl shadow-lg">I Agree, Proceed</button>
@@ -1100,11 +1161,14 @@ const WishlistPage = ({ allProducts, currentUser, onNavigate, onProductClick, on
 const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     const [customerInfo, setCustomerInfo] = useState({ name: '', email: currentUser?.email || '', phone: '', address: '', city: '', state: '' });
     const [isPaying, setIsPaying] = useState(false);
-    const [isGuestCheckout, setIsGuestCheckout] = useState(false); // NEW STATE
+    const [isGuestCheckout, setIsGuestCheckout] = useState(false); 
     
-    const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
+    // Calculates subtotal using the discounted price
+    const subtotal = useMemo(() => cart.reduce((total, item) => {
+        const itemPrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
+        return total + itemPrice * item.quantity;
+    }, 0), [cart]);
 
-    // NEW: Elegant Guest Checkout Intercept Screen
     if (!currentUser && !isGuestCheckout) {
         return (
             <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] py-16 flex items-center justify-center px-4">
@@ -1190,11 +1254,16 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
                                 <ul className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[40vh] overflow-y-auto pr-2">
                                     {cart.map((product) => {
                                         const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
+                                        const effectivePrice = product.discountPercentage > 0 ? product.price - (product.price * (product.discountPercentage / 100)) : product.price;
+
                                         return (
                                             <li key={product.id} className="flex py-6">
                                                 <div className="w-20 h-20 bg-gray-50 dark:bg-black rounded-xl overflow-hidden border border-gray-100"><img src={imageUrl} alt={product.name} className="w-full h-full object-cover" /></div>
                                                 <div className="ml-4 flex-1 flex flex-col justify-center">
-                                                    <div className="flex justify-between font-bold text-[#191970] dark:text-white"><h3>{product.name}</h3><p className="text-[#D4AF37]">{formatPrice(product.price * product.quantity)}</p></div>
+                                                    <div className="flex justify-between font-bold text-[#191970] dark:text-white">
+                                                        <h3>{product.name}</h3>
+                                                        <p className="text-[#D4AF37]">{formatPrice(effectivePrice * product.quantity)}</p>
+                                                    </div>
                                                     <p className="mt-1 text-sm text-gray-500">Qty: {product.quantity}</p>
                                                 </div>
                                             </li>
@@ -1383,13 +1452,19 @@ export default function App() {
     const handlePaymentSuccess = async (reference, customerDetails) => {
         const token = localStorage.getItem('token');
         try {
+            // Adjust cart prices before sending to backend so the email receipt and database totals are mathematically correct
+            const adjustedCart = cart.map(item => ({
+                ...item,
+                price: item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price
+            }));
+
             const response = await fetch(`${API_URL}/payments/verify`, {
                 method: 'POST', 
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` 
                 },
-                body: JSON.stringify({ reference: reference, cart: cart, customer: customerDetails }),
+                body: JSON.stringify({ reference: reference, cart: adjustedCart, customer: customerDetails }),
             });
             
             if (!response.ok) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
@@ -21,10 +22,11 @@ const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
 const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>;
-// 👇 NEW Icons for Search and Pagination
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
 const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
+const ChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>;
+const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 
 // --- Components ---
 const Modal = ({ children, isOpen, onClose }) => {
@@ -41,7 +43,7 @@ const Modal = ({ children, isOpen, onClose }) => {
     );
 };
 
-const Sidebar = ({ current, setPage, isOpen, setIsOpen }) => (
+const Sidebar = ({ current, setPage, isOpen, setIsOpen, adminRole }) => (
     <>
         {isOpen && (
             <div 
@@ -59,6 +61,12 @@ const Sidebar = ({ current, setPage, isOpen, setIsOpen }) => (
             </div>
             <nav className="space-y-2">
                 <button 
+                    onClick={() => { setPage('analytics'); setIsOpen(false); }} 
+                    className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${current === 'analytics' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
+                >
+                    <ChartIcon /><span>Analytics</span>
+                </button>
+                <button 
                     onClick={() => { setPage('orders'); setIsOpen(false); }} 
                     className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${current === 'orders' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
                 >
@@ -70,6 +78,14 @@ const Sidebar = ({ current, setPage, isOpen, setIsOpen }) => (
                 >
                     <ProductsIcon /><span>Products</span>
                 </button>
+                {adminRole === 'superadmin' && (
+                    <button 
+                        onClick={() => { setPage('settings'); setIsOpen(false); }} 
+                        className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${current === 'settings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
+                    >
+                        <SettingsIcon /><span>Settings</span>
+                    </button>
+                )}
             </nav>
         </div>
     </>
@@ -134,6 +150,121 @@ const LoginPage = ({ onLoginSuccess }) => {
     );
 };
 
+// --- Analytics Page ---
+const AnalyticsPage = ({ onLogout }) => {
+    const [data, setData] = useState({ totalRevenue: 0, totalOrders: 0, chartData: [] });
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                const res = await fetch(`${API_URL}/analytics`, { headers: getAuthHeaders() });
+                if (res.status === 401) return onLogout();
+                const json = await res.json();
+                setData(json);
+            } catch (err) { console.error(err); }
+        };
+        fetchAnalytics();
+    }, [onLogout]);
+
+    return (
+        <div className="p-4 sm:p-8">
+            <h1 className="text-2xl font-bold mb-6">Store Analytics</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <p className="text-sm font-medium text-gray-500 uppercase">Total Revenue</p>
+                    <p className="text-3xl font-black text-green-600 mt-2">₦{data.totalRevenue.toLocaleString()}</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <p className="text-sm font-medium text-gray-500 uppercase">Total Orders</p>
+                    <p className="text-3xl font-black text-blue-600 mt-2">{data.totalOrders}</p>
+                </div>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-96">
+                <h3 className="font-bold text-gray-700 mb-4">Revenue Over Time</h3>
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data.chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="date" />
+                        <YAxis tickFormatter={(value) => `₦${value/1000}k`} />
+                        <Tooltip formatter={(value) => `₦${value.toLocaleString()}`} />
+                        <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 8 }} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    );
+};
+
+// --- Settings Page (Superadmin Only) ---
+const SettingsPage = () => {
+    const [admins, setAdmins] = useState([]);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'editor' });
+
+    const fetchAdmins = async () => {
+        const res = await fetch(`${API_URL}/admin/users`, { headers: getAuthHeaders() });
+        if (res.ok) setAdmins(await res.json());
+    };
+
+    useEffect(() => { fetchAdmins(); }, []);
+
+    const handleCreateAdmin = async (e) => {
+        e.preventDefault();
+        const res = await fetch(`${API_URL}/admin/register`, {
+            method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+            alert("Admin created successfully!");
+            setFormData({ name: '', email: '', password: '', role: 'editor' });
+            fetchAdmins();
+        } else {
+            const err = await res.json(); alert(err.message);
+        }
+    };
+
+    const handleDeleteAdmin = async (id) => {
+        if(window.confirm("Delete this admin account?")) {
+            await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            fetchAdmins();
+        }
+    };
+
+    return (
+        <div className="p-4 sm:p-8">
+            <h1 className="text-2xl font-bold mb-6">System Settings & Permissions</h1>
+            <div className="grid lg:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-xl shadow-sm border">
+                    <h3 className="font-bold text-lg mb-4">Create New Admin</h3>
+                    <form onSubmit={handleCreateAdmin} className="space-y-4">
+                        <input type="text" placeholder="Full Name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded-md" />
+                        <input type="email" placeholder="Email Address" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full p-2 border rounded-md" />
+                        <input type="password" placeholder="Password" required minLength="6" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2 border rounded-md" />
+                        <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full p-2 border rounded-md">
+                            <option value="editor">Editor (View Only)</option>
+                            <option value="manager">Manager (Manage Products & Orders)</option>
+                            <option value="superadmin">Superadmin (Full Access)</option>
+                        </select>
+                        <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700">Create Account</button>
+                    </form>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border">
+                    <h3 className="font-bold text-lg mb-4">Active Admins</h3>
+                    <ul className="divide-y">
+                        {admins.map(admin => (
+                            <li key={admin._id} className="py-3 flex justify-between items-center">
+                                <div>
+                                    <p className="font-bold text-gray-800">{admin.name} <span className="text-xs ml-2 bg-gray-100 text-gray-600 px-2 py-1 rounded uppercase tracking-wider">{admin.role}</span></p>
+                                    <p className="text-sm text-gray-500">{admin.email}</p>
+                                </div>
+                                <button onClick={() => handleDeleteAdmin(admin._id)} className="text-red-500 text-sm font-bold hover:text-red-700">Remove</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- Pages ---
 const ProductsPage = ({ onLogout, adminRole }) => {
     const [products, setProducts] = useState([]);
@@ -141,13 +272,13 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     
-    // 👇 NEW: Search and Pagination State
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
     
+    // UPDATED: Added discountPercentage to formData
     const [formData, setFormData] = useState({ 
-        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true
+        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: ''
     });
     const [imageFile, setImageFile] = useState(null); 
 
@@ -166,7 +297,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
 
     useEffect(() => { fetchProducts(); }, []);
 
-    // 👇 NEW: Reset to page 1 whenever the search term changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
@@ -180,11 +310,12 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                 description: product.description || '',
                 bottleSize: product.bottleSize || '',
                 stockAmount: product.stockAmount !== undefined ? product.stockAmount : '',
-                isActive: product.isActive !== undefined ? product.isActive : true
+                isActive: product.isActive !== undefined ? product.isActive : true,
+                discountPercentage: product.discountPercentage !== undefined ? product.discountPercentage : ''
             });
         } else {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true });
+            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: '' });
         }
         setImageFile(null);
         setIsModalOpen(true);
@@ -203,6 +334,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             formDataToSend.append('bottleSize', formData.bottleSize);
             formDataToSend.append('stockAmount', formData.stockAmount);
             formDataToSend.append('isActive', formData.isActive);
+            formDataToSend.append('discountPercentage', formData.discountPercentage); // UPDATED
             
             if (imageFile) formDataToSend.append('image', imageFile);
 
@@ -243,7 +375,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
         }
     };
 
-    // 👇 NEW: Filter and Paginate Logic
     const filteredProducts = products.filter(product => 
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -260,7 +391,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-xl sm:text-2xl font-bold">Manage Products</h1>
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    {/* 👇 NEW: Search Bar Input */}
                     <div className="relative w-full sm:w-64">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <SearchIcon />
@@ -299,7 +429,10 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                                 currentProducts.map(product => (
                                     <tr key={product._id} className="hover:bg-slate-50 transition">
                                         <td className="p-3 sm:p-4"><img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
-                                        <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">{product.name}</td>
+                                        <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">
+                                            {product.name} 
+                                            {product.discountPercentage > 0 && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">-{product.discountPercentage}%</span>}
+                                        </td>
                                         <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
                                         <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
                                         <td className="p-3 sm:p-4 text-sm sm:text-base">
@@ -336,7 +469,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                     </table>
                 </div>
                 
-                {/* 👇 NEW: Pagination Controls */}
                 {totalPages > 1 && (
                     <div className="bg-slate-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
                         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
@@ -381,7 +513,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                                 </nav>
                             </div>
                         </div>
-                        {/* Mobile Pagination */}
                         <div className="flex items-center justify-between w-full sm:hidden">
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -405,7 +536,6 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                 )}
             </div>
 
-            {/* Product Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <h2 className="text-lg sm:text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
                 <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -441,9 +571,16 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Count</label>
-                        <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Stock Count</label>
+                            <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
+                        </div>
+                        <div>
+                            {/* UPDATED: Added discount field */}
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+                            <input type="number" value={formData.discountPercentage} onChange={(e) => setFormData({...formData, discountPercentage: e.target.value})} min="0" max="100" placeholder="0" className="w-full p-2 border rounded-md" />
+                        </div>
                     </div>
 
                     <div>
@@ -638,7 +775,7 @@ export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('adminToken'));
     const [adminRole, setAdminRole] = useState(localStorage.getItem('adminRole') || '');
     const [adminName, setAdminName] = useState(localStorage.getItem('adminName') || '');
-    const [page, setPage] = useState('orders');
+    const [page, setPage] = useState('analytics');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleLogout = () => {
@@ -665,6 +802,7 @@ export default function App() {
                 setPage={setPage} 
                 isOpen={isSidebarOpen} 
                 setIsOpen={setIsSidebarOpen} 
+                adminRole={adminRole}
             />
             
             <div className="flex-1 flex flex-col min-w-0 md:ml-64 w-full">
@@ -691,8 +829,10 @@ export default function App() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-x-hidden">
+                    {page === 'analytics' ? <AnalyticsPage onLogout={handleLogout} /> : null}
                     {page === 'orders' ? <OrdersPage onLogout={handleLogout} adminRole={adminRole} /> : null}
                     {page === 'products' ? <ProductsPage onLogout={handleLogout} adminRole={adminRole} /> : null}
+                    {page === 'settings' && adminRole === 'superadmin' ? <SettingsPage /> : null}
                 </main>
             </div>
         </div>
