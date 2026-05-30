@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
@@ -132,25 +131,41 @@ mongoose.connect(process.env.MONGODB_URI)
 
 
 // ==========================================
-// 4. MAILING SERVICE SETUP & LOGIC
+// 4. EMAILJS SERVICE LOGIC (NEW)
 // ==========================================
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: true, 
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
 
-const sendStatusEmail = async (order, status) => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.log("Skipping email: Credentials missing in .env");
+const sendEmailJS = async (templateParams) => {
+    // Check if EmailJS keys exist in environment
+    if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY || !process.env.EMAILJS_PRIVATE_KEY) {
+        console.log("⚠️ Skipping EmailJS: Missing environment variables.");
         return;
     }
 
+    try {
+        const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                service_id: process.env.EMAILJS_SERVICE_ID,
+                template_id: process.env.EMAILJS_TEMPLATE_ID,
+                user_id: process.env.EMAILJS_PUBLIC_KEY,
+                accessToken: process.env.EMAILJS_PRIVATE_KEY,
+                template_params: templateParams
+            })
+        });
+
+        if (response.ok) {
+            console.log(`✅ EmailJS sent successfully to ${templateParams.to_email}`);
+        } else {
+            const errorText = await response.text();
+            console.error('❌ EmailJS API Error:', errorText);
+        }
+    } catch (error) {
+        console.error('❌ Failed to trigger EmailJS API:', error);
+    }
+};
+
+const sendStatusEmail = async (order, status) => {
     const shortOrderId = order._id.toString().slice(-6).toUpperCase();
     const subjects = {
         'Processing': `Your OpevickyScents Order #${shortOrderId} is being processed`,
@@ -177,19 +192,12 @@ const sendStatusEmail = async (order, status) => {
         </div>
     `;
 
-    const mailOptions = {
-        from: `"OpevickyScents" <${process.env.EMAIL_USER}>`, 
-        to: order.customer.email, 
-        subject: subjects[status] || `Update on your Order`, 
-        html: fullHtml, 
-    };
-
-    try { 
-        await transporter.sendMail(mailOptions); 
-        console.log(`✅ Email sent to ${order.customer.email} for status: ${status}`);
-    } catch (error) { 
-        console.error('❌ Error sending email:', error); 
-    }
+    // Trigger EmailJS
+    await sendEmailJS({
+        to_email: order.customer.email,
+        subject: subjects[status] || `Update on your Order`,
+        html_message: fullHtml
+    });
 };
 
 // ==========================================
@@ -213,7 +221,7 @@ const verifyAdmin = (req, res, next) => {
     }
 };
 
-// Middleware for Regular Customers (NEW)
+// Middleware for Regular Customers
 const verifyUser = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -285,8 +293,7 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
-
-// --- Customer Auth Routes (NEW - FIXES THE 404 ERROR) ---
+// --- Customer Auth Routes ---
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -302,7 +309,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
-        res.status(201).json({ token, email: newUser.email, wishlist: newUser.wishlist });
+        res.status(201).json({ token, user: { id: newUser._id, email: newUser.email, wishlist: newUser.wishlist } });
     } catch (error) {
         res.status(500).json({ message: "Server error during registration", error: error.message });
     }
@@ -320,18 +327,17 @@ app.post('/api/auth/login', async (req, res) => {
 
         const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
-        res.status(200).json({ token, email: user.email, wishlist: user.wishlist });
+        res.status(200).json({ token, user: { id: user._id, email: user.email, wishlist: user.wishlist } });
     } catch (error) {
         res.status(500).json({ message: "Server error during login", error: error.message });
     }
 });
 
-// CUSTOMER: Update their Wishlist in the database (NEW)
+// CUSTOMER: Update their Wishlist in the database
 app.put('/api/users/wishlist', verifyUser, async (req, res) => {
     try {
         const { wishlist } = req.body;
         
-        // req.user comes from your verifyUser middleware
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id, 
             { wishlist: wishlist }, 
@@ -348,9 +354,7 @@ app.put('/api/users/wishlist', verifyUser, async (req, res) => {
     }
 });
 
-
 // --- Product Routes ---
-// PUBLIC: Get all products
 app.get('/api/products', async (req, res) => { 
     try {
         const products = await Product.find({});
@@ -404,7 +408,6 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
     }
 });
 
-// PROTECTED: Delete product (Superadmin ONLY)
 app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
@@ -414,7 +417,7 @@ app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
-// CUSTOMER: Leave a review for a product (NEW)
+// CUSTOMER: Leave a review for a product
 app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
     try {
         const { rating, text } = req.body;
@@ -422,7 +425,7 @@ app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
         const review = {
-            userName: req.user.email.split('@')[0], // Creates a display name from email
+            userName: req.user.email.split('@')[0],
             rating: Number(rating),
             text,
             date: new Date()
@@ -437,13 +440,10 @@ app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
     }
 });
 
-
 // --- Order Routes ---
 
-// CUSTOMER: Get their own specific orders (NEW)
 app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
     try {
-        // Find orders where the customer.email matches the logged-in user's email
         const orders = await Order.find({ "customer.email": req.user.email }).sort({ date: -1 });
         res.status(200).json(orders);
     } catch (error) {
@@ -451,7 +451,6 @@ app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
     }
 });
 
-// PROTECTED: Get all orders (All Admins can view)
 app.get('/api/orders', verifyAdmin, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ date: -1 });
@@ -492,40 +491,39 @@ app.post('/api/payments/verify', async (req, res) => {
         const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
         const savedOrder = await newOrder.save();
         
+        // Notify Customer
         sendStatusEmail(savedOrder, 'Processing');
         
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            const adminMailOptions = {
-                from: `"OpevickyScents System" <${process.env.EMAIL_USER}>`,
-                to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-                subject: `🚨 New Order Alert! from ${customer.name}`,
-                html: `
-                    <div style="font-family: sans-serif; color: #191970;">
-                        <h2 style="color: #D4AF37;">New Order Received!</h2>
-                        <p>You just received a new order on OpevickyScents.</p>
-                        
-                        <h3>Customer Details:</h3>
-                        <p><strong>Name:</strong> ${customer.name}</p>
-                        <p><strong>Email:</strong> ${customer.email}</p>
-                        <p><strong>Phone:</strong> ${customer.phone}</p>
-                        <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.state}</p>
-                        
-                        <h3>Order Items:</h3>
-                        <ul>
-                            ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${item.name}</li>`).join('')}
-                        </ul>
-                        <p><strong>Total:</strong> ${total}</p>
-                        
-                        <hr style="border: 1px solid #eee; margin: 20px 0;" />
-                        <p>Log in to your Admin Panel to view full details and process the shipment.</p>
-                    </div>
-                `
-            };
+        // Notify Admin
+        if (process.env.ADMIN_EMAIL) {
+            const adminHtml = `
+                <div style="font-family: sans-serif; color: #191970;">
+                    <h2 style="color: #D4AF37;">New Order Received!</h2>
+                    <p>You just received a new order on OpevickyScents.</p>
+                    
+                    <h3>Customer Details:</h3>
+                    <p><strong>Name:</strong> ${customer.name}</p>
+                    <p><strong>Email:</strong> ${customer.email}</p>
+                    <p><strong>Phone:</strong> ${customer.phone}</p>
+                    <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.state}</p>
+                    
+                    <h3>Order Items:</h3>
+                    <ul>
+                        ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${item.name}</li>`).join('')}
+                    </ul>
+                    <p><strong>Total:</strong> ${total}</p>
+                    
+                    <hr style="border: 1px solid #eee; margin: 20px 0;" />
+                    <p>Log in to your Admin Panel to view full details and process the shipment.</p>
+                </div>
+            `;
 
-            // Send the admin email silently
-            transporter.sendMail(adminMailOptions)
-                .then(() => console.log("✅ Admin notification email sent successfully!"))
-                .catch((error) => console.error("❌ Failed to send admin notification email:", error));
+            // Trigger EmailJS for Admin Alert
+            await sendEmailJS({
+                to_email: process.env.ADMIN_EMAIL,
+                subject: `🚨 New Order Alert! from ${customer.name}`,
+                html_message: adminHtml
+            });
         }
         
         res.status(200).json({ status: 'success', message: 'Order saved successfully!', order: savedOrder });
