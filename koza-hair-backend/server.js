@@ -178,7 +178,7 @@ const sendStatusEmail = async (order, status) => {
     const shortOrderId = (order._id || order.id || 'ORDER').toString().slice(-6).toUpperCase();
     const subjects = {
         'Processing': `Your OpevickyScents Order #${shortOrderId} is being processed`,
-        'Shipped': `Great news! Your OpevickyScents Order #${shortOrderId} has shipped`,
+        'Shipped': `Great news! Your OpevickyScents Order #${shortOrderId} has been shipped`,
         'Delivered': `Your OpevickyScents Order #${shortOrderId} has been delivered!`
     };
     const messages = {

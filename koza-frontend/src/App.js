@@ -344,7 +344,7 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                 product.stockAmount > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                             }`}>
-                                {product.stockAmount > 0 ? `${product.stockAmount} In Stock` : 'Out of Stock'}
+                                {product.stockAmount > 0 ? `${product.stockAmount} in Stock` : 'Out of Stock'}
                             </span>
                         )}
                     </div>
