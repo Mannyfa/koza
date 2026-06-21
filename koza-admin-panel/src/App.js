@@ -150,9 +150,11 @@ const LoginPage = ({ onLoginSuccess }) => {
     );
 };
 
+
 // --- Analytics Page ---
 const AnalyticsPage = ({ onLogout }) => {
     const [data, setData] = useState({ totalRevenue: 0, totalOrders: 0, chartData: [] });
+    const [selectedMonth, setSelectedMonth] = useState('All Time');
 
     useEffect(() => {
         const fetchAnalytics = async () => {
@@ -166,19 +168,49 @@ const AnalyticsPage = ({ onLogout }) => {
         fetchAnalytics();
     }, [onLogout]);
 
+    // Calculate displayed stats based on the dropdown selection
+    let displayRevenue = data.totalRevenue;
+    let displayOrders = data.totalOrders;
+
+    if (selectedMonth !== 'All Time') {
+        const monthData = data.chartData.find(d => d.date === selectedMonth);
+        displayRevenue = monthData ? monthData.revenue : 0;
+        displayOrders = monthData ? monthData.ordersCount : 0;
+    }
+
     return (
         <div className="p-4 sm:p-8">
-            <h1 className="text-2xl font-bold mb-6">Store Analytics</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h1 className="text-2xl font-bold">Store Analytics</h1>
+                
+                {/* NEW: Month Filter Dropdown */}
+                <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="bg-white border border-gray-200 text-[#191970] font-bold py-2 px-4 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37] cursor-pointer"
+                >
+                    <option value="All Time">All Time</option>
+                    {data.chartData.map((item, index) => (
+                        <option key={index} value={item.date}>{item.date}</option>
+                    ))}
+                </select>
+            </div>
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm font-medium text-gray-500 uppercase">Total Revenue</p>
-                    <p className="text-3xl font-black text-green-600 mt-2">₦{data.totalRevenue.toLocaleString()}</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all">
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        {selectedMonth === 'All Time' ? 'Total Revenue' : `Revenue (${selectedMonth})`}
+                    </p>
+                    <p className="text-3xl font-black text-green-600 mt-2">₦{displayRevenue.toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm font-medium text-gray-500 uppercase">Total Orders</p>
-                    <p className="text-3xl font-black text-blue-600 mt-2">{data.totalOrders}</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all">
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        {selectedMonth === 'All Time' ? 'Total Orders' : `Orders (${selectedMonth})`}
+                    </p>
+                    <p className="text-3xl font-black text-blue-600 mt-2">{displayOrders}</p>
                 </div>
             </div>
+            
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-96">
                 <h3 className="font-bold text-gray-700 mb-4">Revenue Over Time</h3>
                 <ResponsiveContainer width="100%" height="100%">
@@ -194,6 +226,7 @@ const AnalyticsPage = ({ onLogout }) => {
         </div>
     );
 };
+
 
 // --- Settings Page (Superadmin Only) ---
 const SettingsPage = () => {

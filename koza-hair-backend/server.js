@@ -321,25 +321,33 @@ app.delete('/api/admin/users/:id', verifyAdmin, authorizeRoles('superadmin'), as
 // --- Analytics Routes ---
 app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
-        // Sort by date ascending so the chart flows left-to-right chronologically
         const orders = await Order.find({ status: { $ne: 'Cancelled' } }).sort({ date: 1 });
         const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
         
-        // Group revenue by Month and Year (e.g., "May 2026")
+        // Group revenue and order count by Month and Year (e.g., "May 2026")
         const salesData = orders.reduce((acc, order) => {
             const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            acc[date] = (acc[date] || 0) + order.total;
+            
+            if (!acc[date]) {
+                acc[date] = { revenue: 0, ordersCount: 0 };
+            }
+            
+            acc[date].revenue += order.total;
+            acc[date].ordersCount += 1;
             return acc;
         }, {});
 
-        const chartData = Object.keys(salesData).map(date => ({ date, revenue: salesData[date] }));
+        const chartData = Object.keys(salesData).map(date => ({ 
+            date, 
+            revenue: salesData[date].revenue,
+            ordersCount: salesData[date].ordersCount
+        }));
         
         res.status(200).json({ totalRevenue, totalOrders: orders.length, chartData });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch analytics" });
     }
 });
-
 
 // --- Customer Auth Routes ---
 app.post('/api/auth/register', async (req, res) => {
