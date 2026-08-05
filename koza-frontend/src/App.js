@@ -1426,6 +1426,71 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     );
 };
 
+const OrdersPage = ({ orders, onNavigate }) => {
+    return (
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 className="text-4xl font-black text-[#191970] dark:text-white mb-10">My Orders</h1>
+                
+                {!orders || orders.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800">
+                        <div className="mx-auto w-24 h-24 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-[#D4AF37]">
+                            <ReceiptIcon />
+                        </div>
+                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">No orders yet</h2>
+                        <p className="text-gray-500 dark:text-gray-400 mb-8">When you place an order, it will appear here.</p>
+                        <button onClick={() => onNavigate('shop')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-10 py-4 rounded-full font-bold shadow-lg">Start Shopping</button>
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        {orders.map(order => (
+                            <div key={order._id || order.id} className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Order #{(order._id || order.id || '').toString().slice(-8)}</p>
+                                        <p className="text-[#191970] dark:text-white font-semibold mt-1">Placed on {formatDate(order.createdAt || order.date)}</p>
+                                    </div>
+                                    <div className="mt-4 sm:mt-0 text-left sm:text-right">
+                                        <p className="text-2xl font-black text-[#D4AF37]">{formatPrice(order.totalAmount || order.total)}</p>
+                                        <span className="inline-block mt-1 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full">
+                                            {order.status || 'Processing'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                                    {(order.cart || []).map((item, i) => {
+                                        const imageUrl = item.image && item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
+                                        return (
+                                            <li key={i} className="py-4 flex items-center">
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-black border border-gray-100 dark:border-gray-800 flex-shrink-0">
+                                                    <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="ml-4 flex-1">
+                                                    <h4 className="text-[#191970] dark:text-white font-bold">{item.name}</h4>
+                                                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        onNavigate('product', { ...item, id: item.product || item.id || item._id });
+                                                    }}
+                                                    className="ml-4 text-sm font-bold text-[#D4AF37] hover:text-[#B58B22] border border-[#D4AF37] rounded-full px-4 py-2 transition-colors"
+                                                >
+                                                    Leave Review
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
+
 
 const OrderConfirmationPage = ({ onNavigate }) => ( 
     <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] flex items-center justify-center py-12 px-4"> 
