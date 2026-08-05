@@ -103,6 +103,11 @@ const SunIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
 const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
 const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+const ChevronDownIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+);
 
 const icons = { SparklesIcon, ScissorsIcon, TruckIcon, ChatBubbleIcon };
 
@@ -121,8 +126,6 @@ const itemVariant = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
 };
-
-
 
 const Notification = ({ message, show }) => (
     <AnimatePresence>
@@ -317,7 +320,7 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#191970]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                {/* NEW: Discount Badge overlay on the image */}
+                {/* Discount Badge overlay on the image */}
                 {product.discountPercentage > 0 && (
                     <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg z-10">
                         {product.discountPercentage}% OFF
@@ -352,7 +355,6 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
                 </div>
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    {/* NEW: Dynamic Pricing Display */}
                     <div>
                         {product.discountPercentage > 0 ? (
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -548,13 +550,75 @@ const AboutPage = () => {
                     </motion.p>
                 </div>
             </div>
+            
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
                 <div className="prose prose-lg md:prose-xl dark:prose-invert text-gray-700 dark:text-gray-300 mx-auto">
-                    <p className="lead text-2xl font-semibold text-[#191970] dark:text-[#D4AF37] mb-10 text-center">
-                        Welcome to OpevickyScents, where passion for luxury meets the art of perfumery.
+                    
+                    <p className="lead text-2xl font-semibold text-[#191970] dark:text-[#D4AF37] mb-12 text-center leading-relaxed">
+                        Opevicky Scents was born out of faith, resilience, and the belief that every great dream starts with a small beginning.
                     </p>
-                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6">The Genesis</h2>
-                    <p className="mb-6">Founded by Opeyemi Victoria, OpevickyScents was born out of a deeply rooted love for exquisite fragrances...</p>
+
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        Humble Beginnings
+                    </h2>
+                    <p className="mb-6 leading-relaxed">
+                        Our journey began on May 15th, 2020, with just one dozen bottles of perfume oil. At the time, resources were extremely limited. I even had to borrow money just to pay the delivery fee to my supplier. There were days when my siblings and I would walk long distances around Ago Okota, carrying perfumes from place to place because we couldn’t afford transportation. We were simply determined to make sales and create a better future.
+                    </p>
+                    <p className="mb-6 leading-relaxed">
+                        During that period, I was also learning tailoring, hoping it would become a source of income. Although life eventually led me down a different path, the discipline, resilience, and work ethic I developed during those years became the foundation of the business I’m building today.
+                    </p>
+                    <p className="mb-6 leading-relaxed">
+                        Despite every challenge, I refused to give up. I stayed consistent, believing that every customer mattered and that every single sale brought me one step closer to my dream.
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-16 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        Setbacks & Resilience
+                    </h2>
+                    <p className="mb-6 leading-relaxed">
+                        In 2023, I achieved a major milestone by opening my very first physical store. It was a dream come true, but unfortunately, the location wasn’t suitable for the business. Sales declined, and I lost a significant amount of money. It was one of the most difficult seasons of my life. I had to close the store, move everything back home, and return to operating exclusively online.
+                    </p>
+                    <p className="mb-6 leading-relaxed">
+                        Starting over wasn’t easy. There were moments when I questioned everything, but one thing never changed—my love for perfumes. To me, perfumes are more than just products; they’re a way people express themselves, create lasting memories, and feel more confident. That passion kept me going even when everything around me seemed uncertain.
+                    </p>
+                    <p className="mb-6 font-semibold text-[#191970] dark:text-[#D4AF37]">
+                        Rather than giving up, I chose to begin again.
+                    </p>
+
+                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-16 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        The Vision Ahead
+                    </h2>
+                    <p className="mb-6 leading-relaxed">
+                        Today, Opevicky Scents proudly serves customers both online and from our growing physical store. Every order, every recommendation, every returning customer, and every milestone reminds us how far we’ve come and motivates us to keep building.
+                    </p>
+                    <p className="mb-6 leading-relaxed">
+                        Our journey has taught us that success isn’t defined by where you start—it’s defined by your willingness to keep going, no matter how many times life asks you to begin again.
+                    </p>
+                    
+                    <blockquote className="border-l-4 border-[#D4AF37] pl-6 my-8 italic text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 py-4 pr-4 rounded-r-lg">
+                        Our vision is to become one of Nigeria’s most trusted perfume brands, known for authenticity, quality, exceptional customer service, and unforgettable fragrances that leave lasting impressions.
+                    </blockquote>
+
+                    <hr className="my-16 border-gray-200 dark:border-gray-800" />
+
+                    <div className="text-center bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-sm border border-gray-100 dark:border-gray-800">
+                        <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                            To every customer who has supported Opevicky Scents from the very beginning—and to everyone who is just discovering us—thank you for believing in our journey. Your trust, support, and loyalty continue to inspire us every single day.
+                        </p>
+                        <p className="mb-8 font-bold text-[#191970] dark:text-white text-xl">
+                            This is only the beginning.
+                        </p>
+                        <p className="mb-10 text-gray-600 dark:text-gray-300">
+                            We’re still growing, still learning, and still building the brand we’ve always dreamed of. The best is yet to come.
+                        </p>
+                        
+                        <h3 className="text-2xl sm:text-3xl font-black text-[#191970] dark:text-[#D4AF37] mb-3">
+                            Welcome to Opevicky Scents.
+                        </h3>
+                        <p className="text-lg text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+                            Where every fragrance tells a story, and every customer becomes part of ours.
+                        </p>
+                    </div>
+
                 </div>
             </div>
         </motion.div>
@@ -678,82 +742,15 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
     );
 };
 
-const OrdersPage = ({ orders, onNavigate }) => {
-    return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-4xl font-black text-[#191970] dark:text-white mb-10">My Orders</h1>
-                
-                {!orders || orders.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800">
-                        <div className="mx-auto w-24 h-24 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-[#D4AF37]">
-                            <ReceiptIcon />
-                        </div>
-                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">No orders yet</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8">When you place an order, it will appear here.</p>
-                        <button onClick={() => onNavigate('shop')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-10 py-4 rounded-full font-bold shadow-lg">Start Shopping</button>
-                    </div>
-                ) : (
-                    <div className="space-y-8">
-                        {orders.map(order => (
-                            <div key={order._id || order.id} className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Order #{(order._id || order.id || '').toString().slice(-8)}</p>
-                                        <p className="text-[#191970] dark:text-white font-semibold mt-1">Placed on {formatDate(order.createdAt || order.date)}</p>
-                                    </div>
-                                    <div className="mt-4 sm:mt-0 text-left sm:text-right">
-                                        <p className="text-2xl font-black text-[#D4AF37]">{formatPrice(order.totalAmount || order.total)}</p>
-                                        <span className="inline-block mt-1 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full">
-                                            {order.status || 'Processing'}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                {/* FIX: Maps through order.cart instead of order.items */}
-                                <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
-                                    {(order.cart || []).map((item, i) => {
-                                        const imageUrl = item.image && item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
-                                        return (
-                                            <li key={i} className="py-4 flex items-center">
-                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-black border border-gray-100 dark:border-gray-800 flex-shrink-0">
-                                                    <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="ml-4 flex-1">
-                                                    <h4 className="text-[#191970] dark:text-white font-bold">{item.name}</h4>
-                                                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                                                </div>
-                                                <button 
-                                                    onClick={() => {
-                                                        // Fallback structure to ensure navigation works correctly
-                                                        onNavigate('product', { ...item, id: item.product || item.id || item._id });
-                                                    }}
-                                                    className="ml-4 text-sm font-bold text-[#D4AF37] hover:text-[#B58B22] border border-[#D4AF37] rounded-full px-4 py-2 transition-colors"
-                                                >
-                                                    Leave Review
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </motion.div>
-    );
-};
-
 const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onBack, currentUser, orders, onSubmitReview }) => {
     const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
     const [quantity, setQuantity] = useState(1);
+    const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
     
     const [rating, setRating] = useState(5);
     const [reviewText, setReviewText] = useState("");
     
     const isOutOfStock = product.stockAmount === 0;
-
     const productReviews = product.reviews || [];
 
     const hasPurchased = orders?.some(order => 
@@ -775,6 +772,23 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
     const effectivePrice = product.discountPercentage > 0 
         ? product.price - (product.price * (product.discountPercentage / 100))
         : product.price;
+
+    // Helper function to dynamically parse and format raw text into proper HTML paragraphs and bullet points
+    const formatDescription = (text) => {
+        if (!text) return <p>Experience the epitome of luxury. This fragrance is crafted from the finest ingredients to create a scent that is both captivating and enduring.</p>;
+        
+        return text.split('\n').map((line, index) => {
+            const trimmedLine = line.trim();
+            // Detect manual bullet points from the admin text area and convert them to <li> tags
+            if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+                return <li key={index} className="ml-6 list-disc marker:text-[#D4AF37] mb-2">{trimmedLine.substring(1).trim()}</li>;
+            }
+            // Preserve blank lines
+            if (trimmedLine === '') return <div key={index} className="h-2"></div>;
+            // Standard paragraphs
+            return <p key={index} className="mb-3 leading-relaxed">{trimmedLine}</p>;
+        });
+    };
 
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen py-12">
@@ -800,7 +814,6 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                         <h1 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white mb-4">{product.name}</h1>
                         
                         <div className="flex items-center gap-4 mb-6">
-                            {/* Updated Dynamic Pricing Display */}
                             {product.discountPercentage > 0 ? (
                                 <div className="flex items-center gap-3">
                                     <p className="text-3xl font-bold text-red-600">{formatPrice(effectivePrice)}</p>
@@ -831,11 +844,37 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                             </span>
                         </div>
                         
-                        <div className="prose prose-lg text-gray-600 dark:text-gray-300 mb-10">
-                            <p className="leading-relaxed">{product.description || "Experience the epitome of luxury. This fragrance is crafted from the finest ingredients to create a scent that is both captivating and enduring. Perfect for those who appreciate the finer things in life."}</p>
+                        {/* Smooth Expandable Description Section */}
+                        <div className="border-t border-gray-200 dark:border-gray-800 py-6 mb-6">
+                            <button 
+                                onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
+                                className="w-full flex justify-between items-center group focus:outline-none"
+                            >
+                                <span className="text-lg font-black text-[#191970] dark:text-white group-hover:text-[#D4AF37] transition-colors">
+                                    Product Description
+                                </span>
+                                <motion.div animate={{ rotate: isDescriptionOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                                    <ChevronDownIcon className="w-6 h-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
+                                </motion.div>
+                            </button>
+                            <AnimatePresence>
+                                {isDescriptionOpen && (
+                                    <motion.div 
+                                        initial={{ height: 0, opacity: 0 }} 
+                                        animate={{ height: 'auto', opacity: 1 }} 
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="pt-6 text-gray-600 dark:text-gray-300 text-base">
+                                            {formatDescription(product.description)}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                         
-                        <div className="flex items-center gap-4 mt-auto">
+                        <div className="flex items-center gap-4 mt-auto pt-4">
                             <div className="flex items-center border-2 border-gray-200 dark:border-gray-800 rounded-xl h-14 w-32 bg-white dark:bg-black">
                                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold">-</button>
                                 <span className="flex-1 text-center font-bold text-[#191970] dark:text-white">{quantity}</span>
@@ -933,13 +972,18 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 };
 
 const AuthPage = ({ onLogin, onNavigate }) => {
-    const [isLogin, setIsLogin] = useState(true);
+    const [authView, setAuthView] = useState('login'); // 'login', 'register', 'forgot', 'reset'
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetCode, setResetCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const endpoint = isLogin ? '/auth/login' : '/auth/register';
+        setLoading(true);
+        const endpoint = authView === 'login' ? '/auth/login' : '/auth/register';
         
         try {
             const response = await fetch(`${API_URL}${endpoint}`, {
@@ -952,12 +996,10 @@ const AuthPage = ({ onLogin, onNavigate }) => {
             
             if (!response.ok) throw new Error(data.message);
             
-            // Save token securely
             localStorage.setItem('token', data.token);
             
-            // FIX: Extract the actual user object so the wishlist isn't buried
             const userData = data.user ? data.user : data;
-            if (!userData.wishlist) userData.wishlist = []; // Ensure wishlist array exists
+            if (!userData.wishlist) userData.wishlist = []; 
             
             localStorage.setItem('user', JSON.stringify(userData));
             
@@ -965,35 +1007,134 @@ const AuthPage = ({ onLogin, onNavigate }) => {
             onNavigate('home');
         } catch (error) {
             alert(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="min-h-[70vh] flex items-center justify-center bg-gray-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-10 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800">
-                <div>
-                    <h2 className="mt-2 text-center text-3xl font-black text-[#191970] dark:text-white">
-                        {isLogin ? 'Welcome back' : 'Create an account'}
-                    </h2>
-                    <p className="text-center mt-2 text-sm text-[#D4AF37] font-semibold">Join the OpevickyScents family</p>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                
+                {(authView === 'login' || authView === 'register') && (
+                    <>
+                        <div>
+                            <h2 className="mt-2 text-center text-3xl font-black text-[#191970] dark:text-white">
+                                {authView === 'login' ? 'Welcome back' : 'Create an account'}
+                            </h2>
+                            <p className="text-center mt-2 text-sm text-[#D4AF37] font-semibold">Join the OpevickyScents family</p>
+                        </div>
+                        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                            <div className="space-y-4">
+                                <input type="email" required className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
+                                <input type="password" required minLength="6" className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Password (min 6 characters)" value={password} onChange={e => setPassword(e.target.value)} />
+                            </div>
+                            
+                            {authView === 'login' && (
+                                <div className="text-right mt-2">
+                                    <button type="button" onClick={() => { setAuthView('forgot'); setResetEmail(email); }} className="text-sm font-bold text-[#D4AF37] hover:underline">
+                                        Forgot Password?
+                                    </button>
+                                </div>
+                            )}
+
+                            <div>
+                                <motion.button disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-xl text-[#191970] bg-gradient-to-r from-[#D4AF37] to-[#B58B22] shadow-lg disabled:opacity-50">
+                                    {loading ? 'Processing...' : (authView === 'login' ? 'Sign In Securely' : 'Register Account')}
+                                </motion.button>
+                            </div>
+                            <div className="text-center mt-4">
+                                <button type="button" onClick={() => setAuthView(authView === 'login' ? 'register' : 'login')} className="font-bold text-sm text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] transition-colors">
+                                    {authView === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                                </button>
+                            </div>
+                        </form>
+                    </>
+                )}
+
+                {authView === 'forgot' && (
                     <div className="space-y-4">
-                        <input type="email" required className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
-                        <input type="password" required minLength="6" className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Password (min 6 characters)" value={password} onChange={e => setPassword(e.target.value)} />
-                    </div>
-                    <div>
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-xl text-[#191970] bg-gradient-to-r from-[#D4AF37] to-[#B58B22] shadow-lg">
-                            {isLogin ? 'Sign In Securely' : 'Register Account'}
-                        </motion.button>
-                    </div>
-                    <div className="text-center mt-4">
-                        <button type="button" onClick={() => setIsLogin(!isLogin)} className="font-bold text-sm text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] transition-colors">
-                            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                        <h2 className="text-2xl font-black text-[#191970] dark:text-white">Reset Password</h2>
+                        <p className="text-gray-500 text-sm">Enter your email address and we'll send you a 6-digit recovery code.</p>
+                        <input 
+                            type="email" 
+                            placeholder="Email Address" 
+                            value={resetEmail} 
+                            onChange={(e) => setResetEmail(e.target.value)} 
+                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
+                        />
+                        <button 
+                            disabled={loading}
+                            onClick={async () => {
+                                setLoading(true);
+                                try {
+                                    await fetch(`${API_URL}/auth/forgot-password`, {
+                                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: resetEmail })
+                                    });
+                                    setAuthView('reset');
+                                } catch (e) {
+                                    alert("Failed to send reset code.");
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }} 
+                            className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl disabled:opacity-50"
+                        >
+                            {loading ? 'Sending...' : 'Send Recovery Code'}
                         </button>
+                        <button onClick={() => setAuthView('login')} className="w-full text-gray-500 text-sm font-bold mt-2 hover:text-[#D4AF37]">Back to Login</button>
                     </div>
-                </form>
+                )}
+
+                {authView === 'reset' && (
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-black text-[#191970] dark:text-white">Enter Reset Code</h2>
+                        <p className="text-gray-500 text-sm">Check the email for <b>{resetEmail}</b> and enter the 6-digit code below.</p>
+                        <input 
+                            type="text" 
+                            placeholder="6-Digit Code" 
+                            value={resetCode} 
+                            onChange={(e) => setResetCode(e.target.value)} 
+                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
+                            maxLength={6}
+                        />
+                        <input 
+                            type="password" 
+                            placeholder="Enter New Password" 
+                            value={newPassword} 
+                            onChange={(e) => setNewPassword(e.target.value)} 
+                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
+                        />
+                        <button 
+                            disabled={loading}
+                            onClick={async () => {
+                                setLoading(true);
+                                try {
+                                    const res = await fetch(`${API_URL}/auth/reset-password`, {
+                                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                                        body: JSON.stringify({ email: resetEmail, code: resetCode, newPassword })
+                                    });
+                                    if (res.ok) {
+                                        alert("Password successfully reset! You can now log in.");
+                                        setAuthView('login');
+                                    } else {
+                                        const data = await res.json();
+                                        alert(data.message);
+                                    }
+                                } catch (e) {
+                                    alert("Failed to reset password.");
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }} 
+                            className="w-full bg-[#191970] text-white font-bold py-4 rounded-xl disabled:opacity-50"
+                        >
+                            {loading ? 'Verifying...' : 'Update Password'}
+                        </button>
+                        <button onClick={() => setAuthView('login')} className="w-full text-gray-500 text-sm font-bold mt-2 hover:text-[#D4AF37]">Back to Login</button>
+                    </div>
+                )}
+
             </div>
         </motion.div>
     );
