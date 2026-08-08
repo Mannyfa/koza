@@ -58,7 +58,10 @@ const Admin = mongoose.model('Admin', adminSchema);
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    wishlist: { type: Array, default: [] } 
+    wishlist: { type: Array, default: [] },
+    // NEW: For password resets
+    resetCode: { type: String }, 
+    resetCodeExpires: { type: Date } 
 }, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
@@ -71,7 +74,7 @@ const productSchema = new mongoose.Schema({
     stockAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }, 
     reviews: { type: Array, default: [] },
-    discountPercentage: { type: Number, default: 0 } // NEW: For product discounts
+    discountPercentage: { type: Number, default: 0 }
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -297,7 +300,6 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
     }
 });
 
-// NEW: Get all Admins for Settings Page
 app.get('/api/admin/users', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         const admins = await Admin.find({}).select('-password'); 
@@ -307,7 +309,6 @@ app.get('/api/admin/users', verifyAdmin, authorizeRoles('superadmin'), async (re
     }
 });
 
-// NEW: Delete Admin
 app.delete('/api/admin/users/:id', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         if (req.admin.id === req.params.id) return res.status(400).json({ message: "Cannot delete your own account." });
@@ -324,7 +325,6 @@ app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
         const orders = await Order.find({ status: { $ne: 'Cancelled' } }).sort({ date: 1 });
         const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
         
-        // Group revenue and order count by Month and Year (e.g., "May 2026")
         const salesData = orders.reduce((acc, order) => {
             const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             
@@ -387,6 +387,78 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// CUSTOMER: Request Password Reset Code
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // 1. Make the search case-insensitive so "Email@gmail.com" matches "email@gmail.com"
+        const user = await User.findOne({ email: new RegExp('^' + email + '$', 'i') });
+        
+        // 2. Removed the "silent fail" so it warns you if the account doesn't exist
+        if (!user) {
+            return res.status(404).json({ message: "No account found with that email address." });
+        }
+
+        // Generate a 6-digit code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Save code to user and set it to expire in 15 minutes
+        user.resetCode = resetCode;
+        user.resetCodeExpires = Date.now() + 15 * 60 * 1000; 
+        await user.save();
+
+        const htmlMessage = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; text-align: center;">
+                <h2 style="color: #191970;">OpevickyScents Password Reset</h2>
+                <p>You requested to reset your password. Please use the verification code below:</p>
+                <div style="background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                    <h1 style="font-size: 40px; letter-spacing: 8px; color: #D4AF37; margin: 0;">${resetCode}</h1>
+                </div>
+                <p style="color: #777; font-size: 12px;">This code will expire in 15 minutes. If you did not request this, please ignore this email.</p>
+            </div>
+        `;
+
+        await sendEmailJS({
+            to_email: user.email,
+            subject: `Your Password Reset Code: ${resetCode}`,
+            html_message: htmlMessage
+        });
+
+        res.status(200).json({ message: "Success! Code sent." });
+    } catch (error) {
+        res.status(500).json({ message: "Error processing request", error: error.message });
+    }
+});
+
+// CUSTOMER: Verify Code & Save New Password
+app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        
+        const user = await User.findOne({ 
+            email: new RegExp('^' + email + '$', 'i'), 
+            resetCode: code, 
+            resetCodeExpires: { $gt: Date.now() } 
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired reset code." });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        
+        user.resetCode = undefined;
+        user.resetCodeExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully!" });
+    } catch (error) {
+        res.status(500).json({ message: "Error resetting password", error: error.message });
+    }
+});
+
 app.put('/api/users/wishlist', verifyUser, async (req, res) => {
     try {
         const { wishlist } = req.body;
@@ -418,7 +490,6 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        // UPDATED to include discountPercentage
         const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
         const imagePath = req.file ? req.file.path : '';
         
@@ -440,7 +511,6 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
 
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
     try {
-        // UPDATED to include discountPercentage
         const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
         
         let updateData = { 
