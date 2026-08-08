@@ -103,13 +103,15 @@ const SunIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
 const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
 const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+const TiktokIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.22-1.15 4.33-2.9 5.6-1.8 1.34-4.22 1.76-6.4 1.15-2.26-.6-4.2-2.3-4.9-4.52-.75-2.22-.38-4.78 1.07-6.66 1.4-1.83 3.65-2.88 5.92-2.98.01 1.37.01 2.73.01 4.1-.9-.05-1.81.21-2.52.75-.72.54-1.18 1.36-1.28 2.25-.1 1.01.19 2.05.8 2.8.62.77 1.62 1.2 2.63 1.21 1.11.02 2.2-.39 3.01-1.11.75-.68 1.22-1.65 1.28-2.65.04-5.63.02-11.26.03-16.89z"/></svg>;
+const WhatsAppIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 21c-1.566 0-3.08-.42-4.42-1.215l-1.04-.616-4.912 1.285 1.312-4.786-.676-1.074C1.455 13.149 1 11.597 1 10.007 1 4.49 5.485 0 11.996 0 18.51 0 23 4.49 23 10.007c0 5.517-4.49 10.993-10.969 10.993zm-5.61-3.136c1.336.791 2.89 1.21 4.505 1.21 5.378 0 9.756-4.37 9.756-9.755 0-5.385-4.378-9.754-9.756-9.754-5.378 0-9.756 4.369-9.756 9.754 0 1.706.446 3.35 1.294 4.81l.135.228-1.075 3.92 4.025-1.053.255.148c.003 0 .003-.001.004-.002zm6.27-11.56c-.244-.543-.5-.554-.728-.564-.188-.008-.403-.008-.618-.008-.215 0-.564.08-.859.397-.295.317-1.127 1.101-1.127 2.686 0 1.585 1.154 3.118 1.315 3.33.161.212 2.274 3.469 5.512 4.869.771.332 1.373.531 1.841.679.774.246 1.48.211 2.035.128.623-.095 1.916-.782 2.185-1.538.268-.755.268-1.402.188-1.538-.08-.135-.295-.215-.618-.374-.322-.159-1.916-.946-2.211-1.052-.295-.106-.51-.159-.725.158-.215.318-.838 1.053-1.026 1.265-.188.212-.376.238-.698.08-.322-.159-1.368-.503-2.607-1.61-.963-.861-1.614-1.925-1.802-2.242-.188-.318-.02-.49.141-.649.145-.143.322-.375.483-.564.161-.188.215-.317.322-.531.107-.212.054-.397-.027-.556-.08-.159-.725-1.748-.994-2.392z"/></svg>;
 const ChevronDownIcon = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
 );
 
-const icons = { SparklesIcon, ScissorsIcon, TruckIcon, ChatBubbleIcon };
+const icons = { SparklesIcon, ScissorsIcon, TruckIcon, ChatBubbleIcon, TiktokIcon, WhatsAppIcon };
 
 const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -410,9 +412,11 @@ const Footer = ({ onNavigate }) => (
                  <div>
                     <h3 className="text-sm font-bold text-[#D4AF37] tracking-wider uppercase mb-6">Connect</h3>
                     <div className="flex space-x-5">
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors"><InstagramIcon /></a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors"><TwitterIcon /></a>
-                        <a href="mailto:hello@opevickyscents.com" className="text-gray-400 hover:text-[#D4AF37] transition-colors"><MailIcon /></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Instagram"><InstagramIcon /></a>
+                        <a href="https://www.tiktok.com/@opevickyscents?_r=1&_t=ZS-98d6IGw5WAj" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="TikTok"><TiktokIcon /></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Twitter"><TwitterIcon /></a>
+                        <a href="https://wa.me/2348142600088" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="WhatsApp"><WhatsAppIcon /></a>
+                        <a href="mailto:opevickyscents@gmail.com" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Email"><MailIcon /></a>
                     </div>
                 </div>
             </div>
