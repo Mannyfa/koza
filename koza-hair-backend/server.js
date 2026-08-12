@@ -3,7 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const https = require('https'); // Native module to guarantee API calls work on any server
+const https = require('https'); 
 const jwt = require('jsonwebtoken'); 
 const bcrypt = require('bcryptjs'); 
 require('dotenv').config();
@@ -59,7 +59,6 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     wishlist: { type: Array, default: [] },
-    // NEW: For password resets
     resetCode: { type: String }, 
     resetCodeExpires: { type: Date } 
 }, { timestamps: true });
@@ -68,13 +67,14 @@ const User = mongoose.model('User', userSchema);
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
-    image: { type: String, required: true },
+    image: { type: String }, // Legacy primary image
+    images: { type: Array, default: [] }, // NEW: Array for multiple images
     description: String,
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }, 
     reviews: { type: Array, default: [] },
-    discountPercentage: { type: Number, default: 0 }
+    discountPercentage: { type: Number, default: 0 } 
 });
 const Product = mongoose.model('Product', productSchema);
 
@@ -387,23 +387,15 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// CUSTOMER: Request Password Reset Code
 app.post('/api/auth/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        
-        // 1. Make the search case-insensitive so "Email@gmail.com" matches "email@gmail.com"
         const user = await User.findOne({ email: new RegExp('^' + email + '$', 'i') });
-        
-        // 2. Removed the "silent fail" so it warns you if the account doesn't exist
         if (!user) {
             return res.status(404).json({ message: "No account found with that email address." });
         }
 
-        // Generate a 6-digit code
         const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Save code to user and set it to expire in 15 minutes
         user.resetCode = resetCode;
         user.resetCodeExpires = Date.now() + 15 * 60 * 1000; 
         await user.save();
@@ -431,7 +423,6 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
 });
 
-// CUSTOMER: Verify Code & Save New Password
 app.post('/api/auth/reset-password', async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
@@ -488,17 +479,21 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
+// UPDATED: Now accepts an array of up to 5 images
+app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
-        const imagePath = req.file ? req.file.path : '';
+        
+        const imagePaths = req.files ? req.files.map(file => file.path) : [];
+        const primaryImage = imagePaths.length > 0 ? imagePaths[0] : '';
         
         const newProduct = new Product({ 
             name, price, description, 
             bottleSize: bottleSize || '',
             stockAmount: parseInt(stockAmount) || 0,
             discountPercentage: parseInt(discountPercentage) || 0,
-            image: imagePath,
+            image: primaryImage, 
+            images: imagePaths, 
             isActive: isActive === 'false' || isActive === false ? false : true
         });
         
@@ -509,7 +504,8 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
     }
 });
 
-app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.single('image'), async (req, res) => {
+// UPDATED: Now accepts an array of up to 5 images
+app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
         const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
         
@@ -520,7 +516,11 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
             isActive: isActive === 'false' || isActive === false ? false : true
         };
         
-        if (req.file) updateData.image = req.file.path;
+        if (req.files && req.files.length > 0) {
+            const imagePaths = req.files.map(file => file.path);
+            updateData.images = imagePaths;
+            updateData.image = imagePaths[0]; // Set primary image to the first uploaded file
+        }
         
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
         res.status(200).json({ status: 'success', data: { product: updatedProduct } });

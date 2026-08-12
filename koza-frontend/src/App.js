@@ -747,15 +747,25 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
 };
 
 const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onBack, currentUser, orders, onSubmitReview }) => {
-    const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
     const [quantity, setQuantity] = useState(1);
     const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+    
+    // NEW: State to track the currently displayed image
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
     
     const [rating, setRating] = useState(5);
     const [reviewText, setReviewText] = useState("");
     
     const isOutOfStock = product.stockAmount === 0;
     const productReviews = product.reviews || [];
+
+    // NEW: Create an array of images to display, falling back to the single image if old product
+    const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
+    
+    const getImageUrl = (path) => {
+        if (!path) return 'https://placehold.co/400x500/cccccc/333333?text=No+Image';
+        return path.startsWith('http') ? path : `${API_BASE_URL}/${path}`;
+    };
 
     const hasPurchased = orders?.some(order => 
         (order.cart || []).some(item => item.product === product.id || item.id === product.id || item.product === product._id || item._id === product.id)
@@ -772,27 +782,26 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
         setRating(5);
     };
 
-    // Calculate discounted price
     const effectivePrice = product.discountPercentage > 0 
         ? product.price - (product.price * (product.discountPercentage / 100))
         : product.price;
 
-    // Helper function to dynamically parse and format raw text into proper HTML paragraphs and bullet points
     const formatDescription = (text) => {
         if (!text) return <p>Experience the epitome of luxury. This fragrance is crafted from the finest ingredients to create a scent that is both captivating and enduring.</p>;
         
         return text.split('\n').map((line, index) => {
             const trimmedLine = line.trim();
-            // Detect manual bullet points from the admin text area and convert them to <li> tags
             if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
                 return <li key={index} className="ml-6 list-disc marker:text-[#D4AF37] mb-2">{trimmedLine.substring(1).trim()}</li>;
             }
-            // Preserve blank lines
             if (trimmedLine === '') return <div key={index} className="h-2"></div>;
-            // Standard paragraphs
             return <p key={index} className="mb-3 leading-relaxed">{trimmedLine}</p>;
         });
     };
+
+    // Handlers for image navigation
+    const nextImage = () => setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
+    const prevImage = () => setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
 
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen py-12">
@@ -802,16 +811,61 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                 </button>
                 
                 <div className="lg:grid lg:grid-cols-2 lg:gap-16 xl:gap-24 mb-24">
-                    <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="aspect-[4/5] rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-900 relative shadow-2xl border border-gray-100 dark:border-gray-800">
-                        <img src={imageUrl} alt={product.name} className="w-full h-full object-cover object-center" />
-                        {onToggleWishlist && (
-                            <button onClick={() => onToggleWishlist(product.id)} className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm dark:bg-black/90 rounded-full p-4 text-gray-400 hover:text-red-500 shadow-xl transition-transform active:scale-95">
-                                <HeartIcon className={`h-6 w-6 ${isWishlisted ? 'text-red-500 fill-red-500' : ''}`} isFilled={isWishlisted} />
-                            </button>
-                        )}
-                    </motion.div>
                     
-                    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mt-10 lg:mt-0 flex flex-col justify-center">
+                    {/* NEW: Left Column for Image Carousel */}
+                    <div className="flex flex-col gap-4 mb-12 lg:mb-0">
+                        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="aspect-[4/5] rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-900 relative shadow-2xl border border-gray-100 dark:border-gray-800 group">
+                            
+                            {/* Animated Main Image Crossfade */}
+                            <AnimatePresence mode="wait">
+                                <motion.img 
+                                    key={currentImageIndex}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    src={getImageUrl(productImages[currentImageIndex])} 
+                                    alt={`${product.name} - View ${currentImageIndex + 1}`} 
+                                    className="w-full h-full object-cover object-center" 
+                                />
+                            </AnimatePresence>
+
+                            {/* Carousel Navigation Arrows (Only show if multiple images exist) */}
+                            {productImages.length > 1 && (
+                                <>
+                                    <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 p-2 rounded-full text-[#191970] dark:text-[#D4AF37] hover:scale-110 transition-transform backdrop-blur-sm shadow-lg opacity-0 group-hover:opacity-100">
+                                        <ChevronLeftIcon className="w-6 h-6" />
+                                    </button>
+                                    <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 p-2 rounded-full text-[#191970] dark:text-[#D4AF37] hover:scale-110 transition-transform backdrop-blur-sm shadow-lg opacity-0 group-hover:opacity-100">
+                                        <ChevronRightIcon className="w-6 h-6" />
+                                    </button>
+                                </>
+                            )}
+
+                            {onToggleWishlist && (
+                                <button onClick={() => onToggleWishlist(product.id)} className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm dark:bg-black/90 rounded-full p-4 text-gray-400 hover:text-red-500 shadow-xl transition-transform active:scale-95 z-20">
+                                    <HeartIcon className={`h-6 w-6 ${isWishlisted ? 'text-red-500 fill-red-500' : ''}`} isFilled={isWishlisted} />
+                                </button>
+                            )}
+                        </motion.div>
+
+                        {/* Thumbnail Strip */}
+                        {productImages.length > 1 && (
+                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                {productImages.map((img, idx) => (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => setCurrentImageIndex(idx)}
+                                        className={`flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${currentImageIndex === idx ? 'border-[#D4AF37] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img src={getImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    
+                    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col justify-center">
                         <p className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-3">
                             {product.bottleSize ? `Premium Fragrance • ${product.bottleSize}` : 'Premium Fragrance'}
                         </p>
@@ -848,7 +902,6 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                             </span>
                         </div>
                         
-                        {/* Smooth Expandable Description Section */}
                         <div className="border-t border-gray-200 dark:border-gray-800 py-6 mb-6">
                             <button 
                                 onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}

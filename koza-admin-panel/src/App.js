@@ -27,6 +27,7 @@ const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className=
 const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
 const ChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>;
 const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
 
 // --- Components ---
 const Modal = ({ children, isOpen, onClose }) => {
@@ -150,7 +151,6 @@ const LoginPage = ({ onLoginSuccess }) => {
     );
 };
 
-
 // --- Analytics Page ---
 const AnalyticsPage = ({ onLogout }) => {
     const [data, setData] = useState({ totalRevenue: 0, totalOrders: 0, chartData: [] });
@@ -168,7 +168,6 @@ const AnalyticsPage = ({ onLogout }) => {
         fetchAnalytics();
     }, [onLogout]);
 
-    // Calculate displayed stats based on the dropdown selection
     let displayRevenue = data.totalRevenue;
     let displayOrders = data.totalOrders;
 
@@ -183,7 +182,6 @@ const AnalyticsPage = ({ onLogout }) => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold">Store Analytics</h1>
                 
-                {/* NEW: Month Filter Dropdown */}
                 <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
@@ -226,7 +224,6 @@ const AnalyticsPage = ({ onLogout }) => {
         </div>
     );
 };
-
 
 // --- Settings Page (Superadmin Only) ---
 const SettingsPage = () => {
@@ -309,11 +306,12 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
     
-    // UPDATED: Added discountPercentage to formData
     const [formData, setFormData] = useState({ 
         name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: ''
     });
-    const [imageFile, setImageFile] = useState(null); 
+    
+    // UPDATED: Now an array to handle multiple files
+    const [imageFiles, setImageFiles] = useState([]); 
 
     const fetchProducts = async () => {
         try {
@@ -350,7 +348,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             setEditingProduct(null);
             setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: '' });
         }
-        setImageFile(null);
+        setImageFiles([]); // Reset image array
         setIsModalOpen(true);
     };
 
@@ -367,9 +365,14 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             formDataToSend.append('bottleSize', formData.bottleSize);
             formDataToSend.append('stockAmount', formData.stockAmount);
             formDataToSend.append('isActive', formData.isActive);
-            formDataToSend.append('discountPercentage', formData.discountPercentage); // UPDATED
+            formDataToSend.append('discountPercentage', formData.discountPercentage); 
             
-            if (imageFile) formDataToSend.append('image', imageFile);
+            // UPDATED: Append each file inside the imageFiles array
+            if (imageFiles && imageFiles.length > 0) {
+                imageFiles.forEach(file => {
+                    formDataToSend.append('images', file);
+                });
+            }
 
             const response = await fetch(url, {
                 method: method,
@@ -459,38 +462,42 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                         </thead>
                         <tbody className="divide-y">
                             {currentProducts.length > 0 ? (
-                                currentProducts.map(product => (
-                                    <tr key={product._id} className="hover:bg-slate-50 transition">
-                                        <td className="p-3 sm:p-4"><img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
-                                        <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">
-                                            {product.name} 
-                                            {product.discountPercentage > 0 && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">-{product.discountPercentage}%</span>}
-                                        </td>
-                                        <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
-                                        <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
-                                        <td className="p-3 sm:p-4 text-sm sm:text-base">
-                                            <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                {product.stockAmount !== undefined ? product.stockAmount : 0} left
-                                            </span>
-                                        </td>
-                                        <td className="p-3 sm:p-4 text-sm sm:text-base">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                                                {product.isActive !== false ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                        <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
-                                            {(adminRole === 'superadmin' || adminRole === 'manager') && (
-                                                <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
-                                            )}
-                                            {adminRole === 'superadmin' && (
-                                                <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
-                                            )}
-                                            {adminRole === 'editor' && (
-                                                <span className="text-gray-400 italic text-xs">View Only</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
+                                currentProducts.map(product => {
+                                    // Handle legacy single image vs new array
+                                    const thumbImg = product.images && product.images.length > 0 ? product.images[0] : product.image;
+                                    return (
+                                        <tr key={product._id} className="hover:bg-slate-50 transition">
+                                            <td className="p-3 sm:p-4"><img src={getImageUrl(thumbImg)} alt={product.name} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border" /></td>
+                                            <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">
+                                                {product.name} 
+                                                {product.discountPercentage > 0 && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">-{product.discountPercentage}%</span>}
+                                            </td>
+                                            <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
+                                            <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
+                                            <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                                <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                    {product.stockAmount !== undefined ? product.stockAmount : 0} left
+                                                </span>
+                                            </td>
+                                            <td className="p-3 sm:p-4 text-sm sm:text-base">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                    {product.isActive !== false ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 sm:p-4 text-right space-x-2 sm:space-x-3 text-sm sm:text-base">
+                                                {(adminRole === 'superadmin' || adminRole === 'manager') && (
+                                                    <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800 font-medium p-1">Edit</button>
+                                                )}
+                                                {adminRole === 'superadmin' && (
+                                                    <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium p-1">Delete</button>
+                                                )}
+                                                {adminRole === 'editor' && (
+                                                    <span className="text-gray-400 italic text-xs">View Only</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-gray-500">
@@ -610,17 +617,37 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                             <input type="number" value={formData.stockAmount} onChange={(e) => setFormData({...formData, stockAmount: e.target.value})} min="0" placeholder="0" className="w-full p-2 border rounded-md" required />
                         </div>
                         <div>
-                            {/* UPDATED: Added discount field */}
                             <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
                             <input type="number" value={formData.discountPercentage} onChange={(e) => setFormData({...formData, discountPercentage: e.target.value})} min="0" max="100" placeholder="0" className="w-full p-2 border rounded-md" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
-                        <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} className="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm" required={!editingProduct} />
-                        {editingProduct && editingProduct.image && !imageFile && (
-                            <div className="mt-2"><span className="text-xs text-gray-500">Current:</span><img src={getImageUrl(editingProduct.image)} alt="Current" className="h-16 w-16 object-cover mt-1 rounded-md border" /></div>
+                        {/* UPDATED: Multiple image upload support */}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Images (Up to 5)</label>
+                        <input type="file" accept="image/*" multiple onChange={(e) => setImageFiles(Array.from(e.target.files))} className="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm" required={!editingProduct} />
+                        
+                        {/* Preview existing images if no new ones are selected */}
+                        {editingProduct && imageFiles.length === 0 && (
+                            <div className="mt-2">
+                                <span className="text-xs text-gray-500 block mb-1">Current Images:</span>
+                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                    {editingProduct.images && editingProduct.images.length > 0 ? (
+                                        editingProduct.images.map((img, idx) => (
+                                            <img key={idx} src={getImageUrl(img)} alt={`Current ${idx}`} className="h-16 w-16 min-w-[4rem] object-cover rounded-md border" />
+                                        ))
+                                    ) : editingProduct.image ? (
+                                        <img src={getImageUrl(editingProduct.image)} alt="Current" className="h-16 w-16 object-cover rounded-md border" />
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Inform user how many new files are selected */}
+                        {imageFiles.length > 0 && (
+                            <div className="mt-2 text-sm text-blue-600 font-bold">
+                                {imageFiles.length} new image(s) selected to upload.
+                            </div>
                         )}
                     </div>
                     <div>
@@ -742,7 +769,6 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                         </h2>
                         
                         <div className="space-y-5">
-                            {/* Customer Info Section */}
                             <div className="bg-slate-50 p-3 rounded-lg border">
                                 <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Customer Info</h3>
                                 <div className="text-sm space-y-1 text-slate-600">
@@ -752,7 +778,6 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                 </div>
                             </div>
 
-                            {/* Delivery Address Section */}
                             <div className="bg-slate-50 p-3 rounded-lg border">
                                 <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Delivery Address</h3>
                                 <div className="text-sm text-slate-600">
@@ -761,29 +786,32 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                 </div>
                             </div>
 
-                            {/* Cart Items Section */}
                             <div>
                                 <h3 className="font-semibold text-sm text-slate-800 mb-2 uppercase tracking-wide">Items Ordered</h3>
                                 <ul className="divide-y border rounded-lg bg-white overflow-hidden">
                                     {selectedOrder.cart && selectedOrder.cart.length > 0 ? (
-                                        selectedOrder.cart.map((item, index) => (
-                                            <li key={index} className="p-3 flex justify-between items-center text-sm">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs shrink-0">x{item.quantity}</span>
-                                                    <img 
-                                                        src={getImageUrl(item.image)} 
-                                                        alt={item.name} 
-                                                        className="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0" 
-                                                    />
-                                                    <span className="font-medium text-slate-700">
-                                                        {item.name} {item.bottleSize ? <span className="text-slate-400 font-normal">({item.bottleSize})</span> : ''}
+                                        selectedOrder.cart.map((item, index) => {
+                                            // Handle mapping array images back down to cart preview securely
+                                            const imgUrl = item.images && item.images.length > 0 ? item.images[0] : item.image;
+                                            return (
+                                                <li key={index} className="p-3 flex justify-between items-center text-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded text-xs shrink-0">x{item.quantity}</span>
+                                                        <img 
+                                                            src={getImageUrl(imgUrl)} 
+                                                            alt={item.name} 
+                                                            className="w-10 h-10 object-cover rounded-md border border-gray-200 shrink-0" 
+                                                        />
+                                                        <span className="font-medium text-slate-700">
+                                                            {item.name} {item.bottleSize ? <span className="text-slate-400 font-normal">({item.bottleSize})</span> : ''}
+                                                        </span>
+                                                    </div>
+                                                    <span className="font-semibold text-slate-800 shrink-0 ml-2">
+                                                        ₦{(item.price * item.quantity).toLocaleString()}
                                                     </span>
-                                                </div>
-                                                <span className="font-semibold text-slate-800 shrink-0 ml-2">
-                                                    ₦{(item.price * item.quantity).toLocaleString()}
-                                                </span>
-                                            </li>
-                                        ))
+                                                </li>
+                                            )
+                                        })
                                     ) : (
                                         <li className="p-3 text-sm text-gray-500 italic text-center">
                                             No items details found for this older order.
