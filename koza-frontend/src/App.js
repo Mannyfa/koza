@@ -11,7 +11,6 @@ import ownerImage from './images/owner.jpg';
 // --- API Configuration ---
 const API_BASE_URL = 'https://koza-2fkh.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
-
 const PAYSTACK_PUBLIC_KEY = "pk_live_0656fb181e5469d49bf27ae2852ec9a830386d8b";
 
 const ThemeContext = createContext();
@@ -29,9 +28,7 @@ const ThemeProvider = ({ children }) => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    const toggleTheme = () => {
-        setTheme(theme === 'light' ? 'dark' : 'light');
-    };
+    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -49,26 +46,10 @@ const navLinks = [
 ];
 
 const heroSlides = [
-    {
-        imageUrl: heroImage1, 
-        title: 'Luxury Perfume, Unmatched Quality.',
-        subtitle: 'Discover flawless fragrances that empower your style. Crafted for perfection, delivered to your doorstep.'
-    },
-    {
-        imageUrl: heroImage2,
-        title: 'Define Your Fragrance.',
-        subtitle: 'Embrace your unique essence with our premium collection of curated scents.'
-    },
-    {
-        imageUrl: heroImage3,
-        title: 'Sleek, Nice, Stunning.',
-        subtitle: 'Achieve a timeless, sophisticated aura with our long-lasting perfumes.'
-    },
-    {
-        imageUrl: heroImage4,
-        title: 'Confidence in Yourself.',
-        subtitle: 'Invest in perfume that not only smells good but makes you feel incredible.'
-    }
+    { imageUrl: heroImage1, title: 'Unmatched Quality.', subtitle: 'Discover flawless fragrances that empower your style.' },
+    { imageUrl: heroImage2, title: 'Define Your Essence.', subtitle: 'Premium collection of curated, long-lasting scents.' },
+    { imageUrl: heroImage3, title: 'Timeless Aura.', subtitle: 'Achieve a sophisticated presence with every spray.' },
+    { imageUrl: heroImage4, title: 'Pure Confidence.', subtitle: 'Invest in perfume that makes you feel incredible.' }
 ];
 
 const whyUsData = [
@@ -82,51 +63,46 @@ const whyUsData = [
 const formatPrice = (price) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(price);
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
 
-const SearchIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
-const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
-const ShoppingBagIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>);
-const MenuIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>);
-const XIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>);
+const SearchIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
+const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
+const ShoppingBagIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>);
+const MenuIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16m-7 6h7" /></svg>);
+const XIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className || ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg>);
 const StarIcon = ({ className }) => (<svg className={className} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
-const StarOutlineIcon = ({ className }) => (<svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>);
-const CheckCircleIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#D4AF37] mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>);
-const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L12 12l-2.293-2.293a1 1 0 010-1.414L12 6z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12l2.293 2.293a1 1 0 010 1.414L12 18l-2.293-2.293a1 1 0 010-1.414L12 12zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-const ScissorsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a1 1 0 01-1.414 0L9 12m0 0l2.879-2.879a1 1 0 011.414 0L16 12M4 4v.01M4 8v.01M4 12v.01M4 16v.01M8 4v.01M12 4v.01M16 4v.01" /></svg>;
-const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8l2-2zM13 16l2 2h3.5a1 1 0 001-1.447l-2-4A1 1 0 0016.5 9H13v7z" /></svg>;
-const ChatBubbleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>;
-const HeartIcon = ({ className, isFilled }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill={isFilled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>);
-const InstagramIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" strokeWidth="2"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"></path></svg>;
-const TwitterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"></path></svg>;
-const MailIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>;
-const MoonIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>);
-const SunIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m8.485-8.485l-.707.707M5.222 5.222l-.707.707M12 12a4 4 0 100-8 4 4 0 000 8zM21 12h-1M4 12H3m16.778 6.778l-.707-.707M6.929 18.778l-.707-.707" /></svg>);
-const ChevronLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
-const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
-const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
-const TiktokIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.22-1.15 4.33-2.9 5.6-1.8 1.34-4.22 1.76-6.4 1.15-2.26-.6-4.2-2.3-4.9-4.52-.75-2.22-.38-4.78 1.07-6.66 1.4-1.83 3.65-2.88 5.92-2.98.01 1.37.01 2.73.01 4.1-.9-.05-1.81.21-2.52.75-.72.54-1.18 1.36-1.28 2.25-.1 1.01.19 2.05.8 2.8.62.77 1.62 1.2 2.63 1.21 1.11.02 2.2-.39 3.01-1.11.75-.68 1.22-1.65 1.28-2.65.04-5.63.02-11.26.03-16.89z"/></svg>;
-const WhatsAppIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 21c-1.566 0-3.08-.42-4.42-1.215l-1.04-.616-4.912 1.285 1.312-4.786-.676-1.074C1.455 13.149 1 11.597 1 10.007 1 4.49 5.485 0 11.996 0 18.51 0 23 4.49 23 10.007c0 5.517-4.49 10.993-10.969 10.993zm-5.61-3.136c1.336.791 2.89 1.21 4.505 1.21 5.378 0 9.756-4.37 9.756-9.755 0-5.385-4.378-9.754-9.756-9.754-5.378 0-9.756 4.369-9.756 9.754 0 1.706.446 3.35 1.294 4.81l.135.228-1.075 3.92 4.025-1.053.255.148c.003 0 .003-.001.004-.002zm6.27-11.56c-.244-.543-.5-.554-.728-.564-.188-.008-.403-.008-.618-.008-.215 0-.564.08-.859.397-.295.317-1.127 1.101-1.127 2.686 0 1.585 1.154 3.118 1.315 3.33.161.212 2.274 3.469 5.512 4.869.771.332 1.373.531 1.841.679.774.246 1.48.211 2.035.128.623-.095 1.916-.782 2.185-1.538.268-.755.268-1.402.188-1.538-.08-.135-.295-.215-.618-.374-.322-.159-1.916-.946-2.211-1.052-.295-.106-.51-.159-.725.158-.215.318-.838 1.053-1.026 1.265-.188.212-.376.238-.698.08-.322-.159-1.368-.503-2.607-1.61-.963-.861-1.614-1.925-1.802-2.242-.188-.318-.02-.49.141-.649.145-.143.322-.375.483-.564.161-.188.215-.317.322-.531.107-.212.054-.397-.027-.556-.08-.159-.725-1.748-.994-2.392z"/></svg>;
-const ChevronDownIcon = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-);
+const StarOutlineIcon = ({ className }) => (<svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>);
+const CheckCircleIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#111] dark:text-white mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>);
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L12 12l-2.293-2.293a1 1 0 010-1.414L12 6z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 12l2.293 2.293a1 1 0 010 1.414L12 18l-2.293-2.293a1 1 0 010-1.414L12 12zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const ScissorsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a1 1 0 01-1.414 0L9 12m0 0l2.879-2.879a1 1 0 011.414 0L16 12M4 4v.01M4 8v.01M4 12v.01M4 16v.01M8 4v.01M12 4v.01M16 4v.01" /></svg>;
+const TruckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8l2-2zM13 16l2 2h3.5a1 1 0 001-1.447l-2-4A1 1 0 0016.5 9H13v7z" /></svg>;
+const ChatBubbleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>;
+const HeartIcon = ({ className, isFilled }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill={isFilled ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>);
+const InstagramIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" strokeWidth="1.5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"></path></svg>;
+const TwitterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"></path></svg>;
+const MailIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>;
+const MoonIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>);
+const SunIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m8.485-8.485l-.707.707M5.222 5.222l-.707.707M12 12a4 4 0 100-8 4 4 0 000 8zM21 12h-1M4 12H3m16.778 6.778l-.707-.707M6.929 18.778l-.707-.707" /></svg>);
+const ChevronLeftIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+const ChevronRightIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className || ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
+const ReceiptIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+const ChevronDownIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" /></svg>);
+const TiktokIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.22-1.15 4.33-2.9 5.6-1.8 1.34-4.22 1.76-6.4 1.15-2.26-.6-4.2-2.3-4.9-4.52-.75-2.22-.38-4.78 1.07-6.66 1.4-1.83 3.65-2.88 5.92-2.98.01 1.37.01 2.73.01 4.1-.9-.05-1.81.21-2.52.75-.72.54-1.18 1.36-1.28 2.25-.1 1.01.19 2.05.8 2.8.62.77 1.62 1.2 2.63 1.21 1.11.02 2.2-.39 3.01-1.11.75-.68 1.22-1.65 1.28-2.65.04-5.63.02-11.26.03-16.89z"/></svg>;
+const WhatsAppIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 21c-1.566 0-3.08-.42-4.42-1.215l-1.04-.616-4.912 1.285 1.312-4.786-.676-1.074C1.455 13.149 1 11.597 1 10.007 1 4.49 5.485 0 11.996 0 18.51 0 23 4.49 23 10.007c0 5.517-4.49 10.993-10.969 10.993zm-5.61-3.136c1.336.791 2.89 1.21 4.505 1.21 5.378 0 9.756-4.37 9.756-9.755 0-5.385-4.378-9.754-9.756-9.754-5.378 0-9.756 4.369-9.756 9.754 0 1.706.446 3.35 1.294 4.81l.135.228-1.075 3.92 4.025-1.053.255.148c.003 0 .003-.001.004-.002zm6.27-11.56c-.244-.543-.5-.554-.728-.564-.188-.008-.403-.008-.618-.008-.215 0-.564.08-.859.397-.295.317-1.127 1.101-1.127 2.686 0 1.585 1.154 3.118 1.315 3.33.161.212 2.274 3.469 5.512 4.869.771.332 1.373.531 1.841.679.774.246 1.48.211 2.035.128.623-.095 1.916-.782 2.185-1.538.268-.755.268-1.402.188-1.538-.08-.135-.295-.215-.618-.374-.322-.159-1.916-.946-2.211-1.052-.295-.106-.51-.159-.725.158-.215.318-.838 1.053-1.026 1.265-.188.212-.376.238-.698.08-.322-.159-1.368-.503-2.607-1.61-.963-.861-1.614-1.925-1.802-2.242-.188-.318-.02-.49.141-.649.145-.143.322-.375.483-.564.161-.188.215-.317.322-.531.107-.212.054-.397-.027-.556-.08-.159-.725-1.748-.994-2.392z"/></svg>;
 
 const icons = { SparklesIcon, ScissorsIcon, TruckIcon, ChatBubbleIcon, TiktokIcon, WhatsAppIcon };
 
+// --- Elegant Animation Variants ---
 const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    in: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
-    out: { opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeIn" } }
+    initial: { opacity: 0 },
+    in: { opacity: 1, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } },
+    out: { opacity: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } }
 };
- 
 const staggerContainer = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
 };
-
 const itemVariant = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } }
 };
 
 const Notification = ({ message, show }) => (
@@ -134,10 +110,10 @@ const Notification = ({ message, show }) => (
         {show && (
             <motion.div 
                 initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
-                className="fixed top-20 right-5 z-50"
+                className="fixed top-24 right-5 z-50"
             >
-                <div className="bg-[#191970] text-[#D4AF37] border border-[#D4AF37] font-bold rounded-lg shadow-xl p-4 flex items-center gap-3">
-                    <SparklesIcon className="w-5 h-5" />
+                <div className="bg-[#111] dark:bg-white text-white dark:text-[#111] font-medium text-xs tracking-widest uppercase p-4 flex items-center gap-4 shadow-lg border border-gray-800 dark:border-gray-200">
+                    <SparklesIcon />
                     <p>{message}</p>
                 </div>
             </motion.div>
@@ -147,10 +123,10 @@ const Notification = ({ message, show }) => (
 
 const BrandLoader = () => (
     <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
-        <div className="flex space-x-2 text-2xl sm:text-4xl md:text-5xl font-black tracking-[0.2em] uppercase">
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#191970] dark:text-white">Ope</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-[#D4AF37]">Vicky</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#191970] dark:text-white">Scents</motion.span>
+        <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
         </div>
     </div>
 );
@@ -158,15 +134,24 @@ const BrandLoader = () => (
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
     return (
-        <button onClick={toggleTheme} className="p-2 rounded-lg text-[#191970] hover:text-[#D4AF37] dark:text-gray-300 dark:hover:text-[#D4AF37] transition-colors" aria-label="Toggle theme">
+        <button onClick={toggleTheme} className="hover:opacity-50 transition-opacity" aria-label="Toggle theme">
             {theme === 'light' ? <MoonIcon /> : <SunIcon />}
         </button>
     );
 };
 
+// --- Header: Editorial & Stark ---
+// --- Header: Editorial & Stark (Always White) ---
 const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUser, onLogout }) => {
+    const [scrolled, setScrolled] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 50);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -176,92 +161,69 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
     };
 
     return (
-        <header className="sticky top-0 z-40 flex flex-col shadow-sm">
-            <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
-                <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        <div className="flex items-center">
-                            <button onClick={() => onNavigate('home')} className="flex items-center gap-3 group">
-                                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-[#D4AF37] shadow-sm">
-                                    <img src={myLogo} alt="OpevickyScents Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                                </div>
-                                <span className="hidden sm:block text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#191970] to-[#0047AB] dark:from-[#D4AF37] dark:to-[#B58B22] tracking-wider">
-                                    OpevickyScents
-                                </span>
-                            </button>
-                        </div>
-                        
-                        <div className="hidden md:block">
-                            <div className="ml-10 flex items-baseline space-x-1 bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-full p-1 border border-gray-100/50 dark:border-gray-800/50">
-                                {navLinks.map((link) => (
-                                    <button 
-                                        key={link.name} onClick={() => onNavigate(link.page)} 
-                                        className="text-[#191970] dark:text-gray-300 hover:bg-white/80 hover:text-[#D4AF37] dark:hover:bg-black/60 dark:hover:text-[#D4AF37] px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
-                                    >
-                                        {link.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+        <header className={`fixed top-0 w-full z-40 transition-all duration-500 bg-white/95 backdrop-blur-md border-b border-gray-200 ${scrolled ? 'py-4 shadow-sm' : 'py-6'}`}>
+            <nav className="max-w-screen-2xl mx-auto px-6 lg:px-12 flex items-center justify-between">
+                
+                <div className="flex items-center gap-6 w-1/3">
+                    <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity">
+                        <MenuIcon />
+                    </button>
+                    <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center border-b border-[#111] pb-1 opacity-50 hover:opacity-100 transition-opacity focus-within:opacity-100">
+                        <SearchIcon />
+                        <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="SEARCH..." className="bg-transparent border-none outline-none text-xs font-medium tracking-[0.15em] uppercase text-[#111] placeholder-gray-500 ml-2 w-32 focus:w-48 transition-all" />
+                    </form>
+                </div>
 
-                        <div className="flex items-center space-x-2">
-                            <ThemeToggle />
-                            
-                            <form onSubmit={handleSearchSubmit} className="relative hidden lg:block ml-2">
-                                <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="w-48 pl-4 pr-10 py-2 rounded-full border border-gray-200/60 bg-gray-50/60 focus:bg-white/90 focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] dark:bg-gray-900/60 dark:border-gray-800/60 dark:text-white transition-all outline-none backdrop-blur-sm" />
-                                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-[#191970] hover:text-[#D4AF37] dark:text-gray-400 dark:hover:text-[#D4AF37] transition-colors"><SearchIcon/></button>
-                            </form>
-                            
-                            <button className="p-2 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] dark:hover:text-[#D4AF37] lg:hidden" onClick={() => { onSearch(prompt("Search...")) }}><SearchIcon /></button>
-                            
-                            <div className="relative">
-                                <button onClick={() => currentUser ? setUserMenuOpen(!userMenuOpen) : onNavigate('auth')} className="p-2 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] dark:hover:text-[#D4AF37] flex items-center rounded-full transition-colors">
-                                    <UserIcon />
-                                </button>
-                                
-                                <AnimatePresence>
-                                    {currentUser && userMenuOpen && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} transition={{ duration: 0.15 }}
-                                            className="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-xl py-1 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl ring-1 ring-black ring-opacity-5 z-50 border border-gray-100/50 dark:border-gray-800/50"
-                                            onMouseLeave={() => setUserMenuOpen(false)}
-                                        >
-                                            <div className="px-4 py-3">
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Signed in as</p>
-                                                <p className="text-sm font-bold text-[#191970] dark:text-[#D4AF37] truncate mt-1">{currentUser.email}</p>
-                                            </div>
-                                            <div className="border-t border-gray-100/50 dark:border-gray-800/50"></div>
-                                            <button onClick={() => { onNavigate('orders'); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-black/50 hover:text-[#D4AF37] transition-colors">My Orders</button>
-                                            <button onClick={() => { onNavigate('wishlist'); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-black/50 hover:text-[#D4AF37] transition-colors">My Wishlist</button>
-                                            <button onClick={() => { onLogout(); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50/80 dark:hover:bg-red-900/20 transition-colors">Logout</button>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                <div className="flex-1 flex justify-center w-1/3">
+                    <button onClick={() => onNavigate('home')} className="text-xl md:text-2xl font-black tracking-[0.2em] uppercase text-[#111] hover:opacity-70 transition-opacity">
+                        Opevicky
+                    </button>
+                </div>
 
-                            <button onClick={() => onNavigate('cart')} className="relative p-2 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] dark:hover:text-[#D4AF37] transition-colors">
-                                <ShoppingBagIcon />
-                                <AnimatePresence>
-                                    {cartCount > 0 && (
-                                        <motion.span 
-                                            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                                            className="absolute top-0 right-0 text-[10px] font-bold bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] rounded-full w-5 h-5 flex items-center justify-center border-2 border-white dark:border-black shadow-sm"
-                                        >
-                                            {cartCount}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
+                <div className="flex items-center justify-end gap-6 w-1/3 text-[#111] relative">
+                    <div className="hidden lg:flex items-center gap-8 mr-4">
+                        {navLinks.map((link) => (
+                            <button key={link.name} onClick={() => onNavigate(link.page)} className="text-xs font-medium tracking-[0.15em] uppercase hover:opacity-50 transition-opacity">
+                                {link.name}
                             </button>
-                            
-                            <div className="md:hidden ml-1">
-                                <button onClick={() => setMobileMenuOpen(true)} className="p-2 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] dark:hover:text-[#D4AF37] transition-colors">
-                                    <MenuIcon />
-                                </button>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-                </nav>
-            </div>
+                    
+                    <ThemeToggle />
+                    
+                    <div className="relative">
+                        <button onClick={() => currentUser ? setUserMenuOpen(!userMenuOpen) : onNavigate('auth')} className="hover:opacity-50 transition-opacity">
+                            <UserIcon />
+                        </button>
+                        <AnimatePresence>
+                            {currentUser && userMenuOpen && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}
+                                    className="absolute right-0 mt-4 w-48 bg-white border border-gray-200 shadow-xl z-50 rounded-none"
+                                    onMouseLeave={() => setUserMenuOpen(false)}
+                                >
+                                    <div className="p-4 border-b border-gray-100">
+                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Account</p>
+                                        <p className="text-xs font-bold text-[#111] truncate mt-1">{currentUser.email}</p>
+                                    </div>
+                                    <button onClick={() => { onNavigate('orders'); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-3 text-xs tracking-widest uppercase text-gray-700 hover:bg-gray-50 transition-colors">My Orders</button>
+                                    <button onClick={() => { onNavigate('wishlist'); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-3 text-xs tracking-widest uppercase text-gray-700 hover:bg-gray-50 transition-colors">Wishlist</button>
+                                    <button onClick={() => { onLogout(); setUserMenuOpen(false); }} className="w-full text-left block px-4 py-3 text-xs tracking-widest uppercase text-red-500 hover:bg-red-50 transition-colors">Logout</button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    <button onClick={() => onNavigate('cart')} className="relative hover:opacity-50 transition-opacity">
+                        <ShoppingBagIcon />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-1.5 -right-2 bg-[#111] text-white font-bold text-[9px] w-4 h-4 flex items-center justify-center rounded-none border border-transparent">
+                                {cartCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </nav>
         </header>
     );
 };
@@ -270,25 +232,25 @@ const MobileMenu = ({ mobileMenuOpen, setMobileMenuOpen, onNavigate }) => (
     <AnimatePresence>
         {mobileMenuOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 md:hidden flex">
-                <div className="fixed inset-0 bg-[#191970]/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
+                <div className="fixed inset-0 bg-[#111]/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
                 <motion.div 
-                    initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-black shadow-2xl border-r border-gray-100 dark:border-gray-800"
+                    initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-gray-800 rounded-none"
                 >
-                    <div className="absolute top-0 right-0 -mr-12 pt-4">
-                        <button onClick={() => setMobileMenuOpen(false)} className="ml-1 flex items-center justify-center h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white focus:outline-none">
+                    <div className="absolute top-0 right-0 -mr-12 pt-6">
+                        <button onClick={() => setMobileMenuOpen(false)} className="ml-1 flex items-center justify-center h-10 w-10 text-white focus:outline-none hover:opacity-50 transition-opacity">
                             <XIcon className="text-white" />
                         </button>
                     </div>
-                    <div className="flex-1 h-0 pt-8 pb-4 overflow-y-auto px-6">
-                        <div className="mb-8">
-                             <h2 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#191970] to-[#0047AB] dark:from-[#D4AF37] dark:to-[#B58B22] tracking-wider">OpevickyScents</h2>
+                    <div className="flex-1 h-0 pt-12 pb-4 overflow-y-auto px-8">
+                        <div className="mb-12">
+                             <h2 className="text-xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white">Opevicky</h2>
                         </div>
-                        <nav className="space-y-2">
+                        <nav className="space-y-6">
                             {navLinks.map((link) => (
                                 <button 
                                     key={link.name} onClick={() => { onNavigate(link.page); setMobileMenuOpen(false); }} 
-                                    className="w-full text-left block px-4 py-3 rounded-xl text-base font-bold text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] hover:bg-gray-50 dark:hover:bg-gray-900 dark:hover:text-[#D4AF37] transition-all"
+                                    className="w-full text-left block text-sm tracking-[0.2em] uppercase font-medium text-[#111] dark:text-gray-300 hover:text-gray-500 transition-colors"
                                 >
                                     {link.name}
                                 </button>
@@ -301,127 +263,102 @@ const MobileMenu = ({ mobileMenuOpen, setMobileMenuOpen, onNavigate }) => (
     </AnimatePresence>
 );
 
+// --- NEW: Minimalist Skeleton Loader ---
+const ProductSkeleton = () => (
+    <div className="flex flex-col animate-pulse">
+        <div className="w-full aspect-[3/4] bg-gray-200 dark:bg-gray-800 mb-4 rounded-none"></div>
+        <div className="h-2.5 bg-gray-200 dark:bg-gray-800 w-1/4 mb-3"></div>
+        <div className="flex justify-between items-start gap-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 w-1/2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 w-16"></div>
+        </div>
+    </div>
+);
+
+// --- Product Card: Minimalist Editorial ---
 const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }) => {
     const imageUrl = product.image && product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
-    
-    const handleWishlistClick = (e) => {
-        e.stopPropagation(); 
-        onToggleWishlist(product.id);
-    };
+    const effectivePrice = product.discountPercentage > 0 ? product.price - (product.price * (product.discountPercentage / 100)) : product.price;
 
     return (
-        <motion.div 
-            variants={itemVariant} whileHover={{ y: -5 }} onClick={() => onProductClick(product)} 
-            className="group relative cursor-pointer bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 flex flex-col h-full"
-        >
-            <div className="w-full aspect-[4/5] bg-gray-50 dark:bg-black overflow-hidden relative">
+        <motion.div variants={itemVariant} onClick={() => onProductClick(product)} className="group cursor-pointer flex flex-col">
+            <div className="w-full aspect-[3/4] bg-[#F9F9F9] dark:bg-[#1A1A1A] overflow-hidden relative mb-4">
                 <motion.img 
-                    whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }}
-                    src={imageUrl} alt={product.name} className="w-full h-full object-cover" 
-                    onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x500/cccccc/333333?text=No+Image'; }} 
+                    whileHover={{ scale: 1.05 }} transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                    src={imageUrl} alt={product.name} className="w-full h-full object-cover object-center" 
+                    onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x500/cccccc/333333?text=No+Image'; }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#191970]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                {/* Discount Badge overlay on the image */}
+                
                 {product.discountPercentage > 0 && (
-                    <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg z-10">
+                    <div className="absolute top-4 left-4 border border-[#111] dark:border-white text-[#111] dark:text-white text-[10px] uppercase tracking-widest px-2 py-1 bg-white/50 dark:bg-black/50 backdrop-blur-md">
                         {product.discountPercentage}% OFF
                     </div>
                 )}
 
                 {onToggleWishlist && (
-                    <motion.button 
-                        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleWishlistClick} 
-                        className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm dark:bg-black/90 rounded-full p-2.5 text-gray-400 hover:text-red-500 z-10 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
-                    >
-                        <HeartIcon className={`h-5 w-5 ${isWishlisted ? 'text-red-500 fill-red-500' : ''}`} isFilled={isWishlisted} />
-                    </motion.button>
+                    <button onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }} className="absolute top-4 right-4 text-[#111] dark:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <HeartIcon className={`h-5 w-5 ${isWishlisted ? 'fill-[#111] dark:fill-white' : ''}`} isFilled={isWishlisted} />
+                    </button>
                 )}
             </div>
             
-            <div className="p-6 flex flex-col flex-grow justify-between">
-                <div>
-                    <div className="flex justify-between items-center mb-1">
-                        <p className="text-xs text-[#D4AF37] uppercase tracking-wider font-bold">
-                            {product.bottleSize ? product.bottleSize : 'Fragrance'}
-                        </p>
-                        {product.stockAmount !== undefined && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                product.stockAmount > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                            }`}>
-                                {product.stockAmount > 0 ? `${product.stockAmount} in Stock` : 'Out of Stock'}
-                            </span>
-                        )}
-                    </div>
-                    <h3 className="text-lg font-extrabold text-[#191970] dark:text-white leading-tight mb-2 group-hover:text-[#D4AF37] transition-colors">{product.name}</h3>
-                </div>
-                
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <div>
+            <div className="flex flex-col flex-grow">
+                <p className="text-[10px] text-gray-500 tracking-[0.2em] uppercase mb-1">
+                    {product.bottleSize || 'Signature'}
+                </p>
+                <div className="flex justify-between items-start gap-4">
+                    <h3 className="text-sm font-medium text-[#111] dark:text-white leading-snug truncate">{product.name}</h3>
+                    <div className="text-right">
                         {product.discountPercentage > 0 ? (
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <p className="text-xl font-black text-red-600">
-                                    {formatPrice(product.price - (product.price * (product.discountPercentage / 100)))}
-                                </p>
-                                <p className="text-sm font-medium text-gray-400 line-through">
-                                    {formatPrice(product.price)}
-                                </p>
+                            <div className="flex flex-col items-end">
+                                <p className="text-sm font-medium text-[#111] dark:text-white">{formatPrice(effectivePrice)}</p>
+                                <p className="text-[10px] text-gray-400 line-through">{formatPrice(product.price)}</p>
                             </div>
                         ) : (
-                            <p className="text-xl font-black text-[#191970] dark:text-[#D4AF37]">
-                                {formatPrice(product.price)}
-                            </p>
+                            <p className="text-sm font-medium text-[#111] dark:text-white">{formatPrice(product.price)}</p>
                         )}
                     </div>
-                    
-                    <span className="text-sm font-bold text-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
-                        View Details <span className="ml-1">→</span>
-                    </span>
                 </div>
             </div>
         </motion.div>
     );
 };
 
-
+// --- Footer: High End Minimalist ---
 const Footer = ({ onNavigate }) => (
-    <footer className="bg-gradient-to-br from-[#191970] via-[#0a0a33] to-[#0047AB] text-gray-300 py-16 mt-auto border-t-4 border-[#D4AF37]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-                <div className="space-y-6">
-                    <h2 className="text-2xl font-extrabold text-[#D4AF37] tracking-wider">OpevickyScents</h2>
-                    <p className="text-sm text-gray-400 leading-relaxed">
+    <footer className="bg-[#111] text-white pt-24 pb-12 border-t border-gray-900">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
+                <div className="col-span-1 md:col-span-2">
+                    <h2 className="text-2xl font-black tracking-[0.2em] uppercase mb-6">Opevicky</h2>
+                    <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
                         Curating the finest luxury fragrances. Elevate your presence and leave a lasting impression wherever you go.
                     </p>
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-[#D4AF37] tracking-wider uppercase mb-6">Shop</h3>
+                    <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-gray-400 mb-8">Collections</h3>
                     <ul className="space-y-4">
-                        <li><button onClick={() => onNavigate('shop')} className="text-sm hover:text-white transition-colors">All Perfumes</button></li>
-                        <li><button onClick={() => onNavigate('shop')} className="text-sm hover:text-white transition-colors">New Arrivals</button></li>
-                        <li><button onClick={() => onNavigate('shop')} className="text-sm hover:text-white transition-colors">Best Sellers</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-sm text-gray-300 hover:text-white transition-colors">All Perfumes</button></li>
+                        <li><button onClick={() => onNavigate('shop')} className="text-sm text-gray-300 hover:text-white transition-colors">New Arrivals</button></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-[#D4AF37] tracking-wider uppercase mb-6">Support</h3>
+                    <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-gray-400 mb-8">Client Services</h3>
                     <ul className="space-y-4">
-                        <li><button onClick={() => onNavigate('contact')} className="text-sm hover:text-white transition-colors">Contact Us</button></li>
-                        <li><button onClick={() => onNavigate('about')} className="text-sm hover:text-white transition-colors">About Us</button></li>
+                        <li><button onClick={() => onNavigate('contact')} className="text-sm text-gray-300 hover:text-white transition-colors">Contact Us</button></li>
+                        <li><button onClick={() => onNavigate('about')} className="text-sm text-gray-300 hover:text-white transition-colors">Our Story</button></li>
                     </ul>
                 </div>
-                 <div>
-                    <h3 className="text-sm font-bold text-[#D4AF37] tracking-wider uppercase mb-6">Connect</h3>
-                    <div className="flex space-x-5">
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Instagram"><InstagramIcon /></a>
-                        <a href="https://www.tiktok.com/@opevickyscents?_r=1&_t=ZS-98d6IGw5WAj" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="TikTok"><TiktokIcon /></a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Twitter"><TwitterIcon /></a>
-                        <a href="https://wa.me/2348142600088" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="WhatsApp"><WhatsAppIcon /></a>
-                        <a href="mailto:opevickyscents@gmail.com" className="text-gray-400 hover:text-[#D4AF37] transition-colors" aria-label="Email"><MailIcon /></a>
-                    </div>
-                </div>
             </div>
-            <div className="mt-16 pt-8 border-t border-[#D4AF37]/20 flex flex-col md:flex-row justify-between items-center">
-                <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} OpevickyScents. All rights reserved.</p>
+            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-800 text-xs text-gray-500 uppercase tracking-widest">
+                <p>&copy; {new Date().getFullYear()} OpevickyScents. All Rights Reserved.</p>
+                <div className="flex space-x-6 mt-4 md:mt-0">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="Instagram"><InstagramIcon /></a>
+                    <a href="https://www.tiktok.com/@opevickyscents?_r=1&_t=ZS-98d6IGw5WAj" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="TikTok"><TiktokIcon /></a>
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="Twitter"><TwitterIcon /></a>
+                    <a href="https://wa.me/2348142600088" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="WhatsApp"><WhatsAppIcon /></a>
+                    <a href="mailto:opevickyscents@gmail.com" className="hover:text-white transition-colors" aria-label="Email"><MailIcon /></a>
+                </div>
             </div>
         </div>
     </footer>
@@ -438,97 +375,85 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
     }, []);
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out">
-            <div className="relative w-full h-[85vh] bg-[#191970] overflow-hidden">
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A]">
+            
+            <div className="relative w-full h-screen overflow-hidden bg-[#111]">
                 <AnimatePresence mode="wait">
-                    <motion.div key={currentIndex} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut" }} className="absolute inset-0">
-                        <img className="w-full h-full object-cover" src={heroSlides[currentIndex].imageUrl} alt="Luxury Perfume" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#191970]/90 via-[#191970]/50 to-transparent"></div>
+                    <motion.div key={currentIndex} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.8, ease: "easeInOut" }} className="absolute inset-0">
+                        <img className="w-full h-full object-cover opacity-60" src={heroSlides[currentIndex].imageUrl} alt="Luxury Perfume" />
                     </motion.div>
                 </AnimatePresence>
 
-                <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
-                    <div className="max-w-2xl">
-                        <motion.h1 key={`title-${currentIndex}`} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-[#D4AF37]">
-                            {heroSlides[currentIndex].title}
-                        </motion.h1>
-                        <motion.p key={`sub-${currentIndex}`} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }} className="mt-6 text-xl text-gray-200 leading-relaxed font-light">
-                            {heroSlides[currentIndex].subtitle}
-                        </motion.p>
-                        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }} className="mt-10 flex gap-4">
-                            <button onClick={() => onNavigate('shop')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-10 py-4 rounded-full font-extrabold text-lg hover:scale-105 transition-transform shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                                Explore Collection
-                            </button>
-                        </motion.div>
-                    </div>
+                <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 z-10">
+                    <motion.h1 key={`title-${currentIndex}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-[0.1em] text-white mb-6">
+                        {heroSlides[currentIndex].title}
+                    </motion.h1>
+                    <motion.p key={`sub-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.5 }} className="text-sm md:text-base tracking-[0.2em] uppercase text-gray-300 mb-10 max-w-lg font-light">
+                        {heroSlides[currentIndex].subtitle}
+                    </motion.p>
+                    <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.8 }} onClick={() => onNavigate('shop')} className="border border-white text-white px-10 py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-colors duration-500 rounded-none">
+                        Discover Collection
+                    </motion.button>
                 </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-black py-24 sm:py-32">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-sm font-bold text-[#D4AF37] tracking-widest uppercase mb-3">Handpicked Selection</h2>
-                        <h3 className="text-3xl sm:text-5xl font-extrabold text-[#191970] dark:text-white">Featured Fragrances</h3>
+            <div className="py-32 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-gray-200 dark:border-gray-800 pb-8">
+                    <div>
+                        <h2 className="text-3xl md:text-4xl font-medium text-[#111] dark:text-white tracking-tight">Curated Signatures</h2>
                     </div>
-                    
-                    {loading ? ( <BrandLoader /> ) : error ? ( <p className="text-center text-red-500 font-bold">{error}</p> ) : (
-                        <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {allProducts.slice(0, 4).map((product) => (
-                                <ProductCard key={product.id} product={product} onProductClick={onProductClick} onToggleWishlist={onToggleWishlist} isWishlisted={currentUser?.wishlist?.includes(product.id)} />
-                            ))}
-                        </motion.div>
-                    )}
-                    
-                    <div className="mt-16 text-center">
-                        <button onClick={() => onNavigate('shop')} className="inline-flex items-center font-bold text-[#191970] dark:text-[#D4AF37] hover:text-[#D4AF37] dark:hover:text-[#B58B22] border-b-2 border-[#191970] dark:border-[#D4AF37] pb-1 transition-all hover:gap-2">
-                            View All Products <span>→</span>
+                    <button onClick={() => onNavigate('shop')} className="mt-4 md:mt-0 text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-gray-400 hover:opacity-50 transition-opacity">
+                        View Complete Range →
+                    </button>
+                </div>
+                
+                {loading ? ( 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16">
+                        {[...Array(4)].map((_, i) => <ProductSkeleton key={i} />)}
+                    </div>
+                ) : error ? ( 
+                    <p className="text-center text-red-500 font-bold">{error}</p> 
+                ) : (
+                    <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16">
+                        {allProducts.slice(0, 4).map((product) => (
+                            <ProductCard key={product.id} product={product} onProductClick={onProductClick} onToggleWishlist={onToggleWishlist} isWishlisted={currentUser?.wishlist?.includes(product.id)} />
+                        ))}
+                    </motion.div>
+                )}
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-[#0A0A0A]">
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                    <div className="h-[60vh] lg:h-auto overflow-hidden">
+                        <img src={ownerImage} alt="Opeyemi Victoria" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+                    </div>
+                    <div className="flex flex-col justify-center px-8 py-24 lg:p-24">
+                        <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-gray-400 mb-8">The Architect of Scent</h3>
+                        <h2 className="text-3xl md:text-5xl font-medium text-[#111] dark:text-white leading-tight mb-8">
+                            "Perfume is the invisible accessory that leaves a lasting impression."
+                        </h2>
+                        <p className="text-sm md:text-base text-gray-500 leading-relaxed mb-12 max-w-md">
+                            Founded by Opeyemi Victoria, OpevickyScents was established to bring world-class, undeniable elegance to the modern individual. A pursuit of uncompromising quality.
+                        </p>
+                        <button onClick={() => onNavigate('about')} className="self-start border-b border-[#111] dark:border-white text-[#111] dark:text-white pb-1 text-xs tracking-[0.2em] uppercase hover:opacity-50 transition-opacity">
+                            Read The Manifesto
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 py-24 sm:py-32 overflow-hidden border-t border-gray-100 dark:border-gray-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
-                        <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="mb-12 lg:mb-0">
-                            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                                <img src={ownerImage} alt="Founder of OpevickyScents" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#191970]/60 to-transparent"></div>
-                                <div className="absolute bottom-8 left-8 text-white">
-                                    <p className="font-extrabold text-2xl">Opeyemi Victoria</p>
-                                    <p className="text-[#D4AF37] font-semibold tracking-wider text-sm uppercase mt-1">Founder & CEO</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                        
-                        <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }} className="flex flex-col justify-center">
-                            <h2 className="text-sm font-bold text-[#D4AF37] tracking-widest uppercase mb-3">The Face Behind The Brand</h2>
-                            <h3 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white leading-tight mb-6">Crafting Confidence Through Scent</h3>
-                            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
-                                "Perfume is more than just a fragrance; it's a statement. It is the invisible accessory that leaves a lasting impression long after you've left the room. I started OpevickyScents to bring world-class, undeniable elegance to everyone."
-                            </p>
-                            <div>
-                                <button onClick={() => onNavigate('about')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-8 py-4 rounded-full font-extrabold text-lg hover:scale-105 transition-transform shadow-lg inline-flex items-center gap-2">
-                                    Read Our Story <span>→</span>
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-[#0a0a1a] py-24 border-t border-gray-100 dark:border-gray-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+            <div className="bg-[#F9F9F9] dark:bg-[#111] py-24 border-t border-gray-200 dark:border-gray-900">
+                <div className="max-w-screen-2xl mx-auto px-6 lg:px-12">
+                    <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 text-center">
                         {whyUsData.map((feature) => {
                             const IconComponent = icons[feature.icon];
                             return (
                                 <div key={feature.title} className="flex flex-col items-center">
-                                    <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-[#191970] to-[#0047AB] text-[#D4AF37] flex items-center justify-center mb-6 shadow-xl">
+                                    <div className="h-16 w-16 text-[#111] dark:text-white flex items-center justify-center mb-6">
                                         <IconComponent />
                                     </div>
-                                    <h4 className="text-xl font-extrabold text-[#191970] dark:text-white mb-3">{feature.title}</h4>
-                                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{feature.description}</p>
+                                    <h4 className="text-sm font-bold uppercase tracking-widest text-[#111] dark:text-white mb-4">{feature.title}</h4>
+                                    <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">{feature.description}</p>
                                 </div>
                             );
                         })}
@@ -541,85 +466,83 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
 
 const AboutPage = () => {
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen">
-            <div className="relative py-24 bg-[#191970] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-[#191970]/80 to-[#191970] z-10"></div>
-                <img src="https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80" alt="Perfume background" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-                <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-4xl sm:text-6xl font-black text-white tracking-tight mb-4">
-                        Our <span className="text-[#D4AF37]">Story</span>
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen">
+            <div className="relative pt-32 pb-24 bg-[#111] overflow-hidden flex items-center justify-center min-h-[50vh]">
+                <img src="https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80" alt="Perfume background" className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale" />
+                <div className="relative z-20 max-w-7xl mx-auto px-6 text-center">
+                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl sm:text-6xl font-black text-white tracking-[0.1em] uppercase mb-6">
+                        The Manifesto
                     </motion.h1>
-                    <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-xl text-gray-300 max-w-2xl mx-auto font-light">
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-sm md:text-base tracking-[0.2em] text-gray-300 uppercase font-light">
                         Redefining elegance, one fragrance at a time.
                     </motion.p>
                 </div>
             </div>
             
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                <div className="prose prose-lg md:prose-xl dark:prose-invert text-gray-700 dark:text-gray-300 mx-auto">
-                    
-                    <p className="lead text-2xl font-semibold text-[#191970] dark:text-[#D4AF37] mb-12 text-center leading-relaxed">
+            <div className="max-w-3xl mx-auto px-6 py-24">
+                <div className="text-gray-600 dark:text-gray-300">
+                    <p className="text-xl md:text-2xl font-medium text-[#111] dark:text-white mb-16 text-center leading-relaxed">
                         Opevicky Scents was born out of faith, resilience, and the belief that every great dream starts with a small beginning.
                     </p>
 
-                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white mt-16 mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
                         Humble Beginnings
                     </h2>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         Our journey began on May 15th, 2020, with just one dozen bottles of perfume oil. At the time, resources were extremely limited. I even had to borrow money just to pay the delivery fee to my supplier. There were days when my siblings and I would walk long distances around Ago Okota, carrying perfumes from place to place because we couldn’t afford transportation. We were simply determined to make sales and create a better future.
                     </p>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         During that period, I was also learning tailoring, hoping it would become a source of income. Although life eventually led me down a different path, the discipline, resilience, and work ethic I developed during those years became the foundation of the business I’m building today.
                     </p>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         Despite every challenge, I refused to give up. I stayed consistent, believing that every customer mattered and that every single sale brought me one step closer to my dream.
                     </p>
 
-                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-16 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white mt-16 mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
                         Setbacks & Resilience
                     </h2>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         In 2023, I achieved a major milestone by opening my very first physical store. It was a dream come true, but unfortunately, the location wasn’t suitable for the business. Sales declined, and I lost a significant amount of money. It was one of the most difficult seasons of my life. I had to close the store, move everything back home, and return to operating exclusively online.
                     </p>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         Starting over wasn’t easy. There were moments when I questioned everything, but one thing never changed—my love for perfumes. To me, perfumes are more than just products; they’re a way people express themselves, create lasting memories, and feel more confident. That passion kept me going even when everything around me seemed uncertain.
                     </p>
-                    <p className="mb-6 font-semibold text-[#191970] dark:text-[#D4AF37]">
+                    <p className="mb-6 text-sm font-bold text-[#111] dark:text-white">
                         Rather than giving up, I chose to begin again.
                     </p>
 
-                    <h2 className="text-3xl font-bold text-[#191970] dark:text-white mt-16 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white mt-16 mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
                         The Vision Ahead
                     </h2>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         Today, Opevicky Scents proudly serves customers both online and from our growing physical store. Every order, every recommendation, every returning customer, and every milestone reminds us how far we’ve come and motivates us to keep building.
                     </p>
-                    <p className="mb-6 leading-relaxed">
+                    <p className="mb-6 text-sm leading-relaxed">
                         Our journey has taught us that success isn’t defined by where you start—it’s defined by your willingness to keep going, no matter how many times life asks you to begin again.
                     </p>
                     
-                    <blockquote className="border-l-4 border-[#D4AF37] pl-6 my-8 italic text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 py-4 pr-4 rounded-r-lg">
+                    <blockquote className="border-l border-[#111] dark:border-white pl-6 my-12 italic text-gray-500 py-2">
                         Our vision is to become one of Nigeria’s most trusted perfume brands, known for authenticity, quality, exceptional customer service, and unforgettable fragrances that leave lasting impressions.
                     </blockquote>
 
                     <hr className="my-16 border-gray-200 dark:border-gray-800" />
 
-                    <div className="text-center bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-sm border border-gray-100 dark:border-gray-800">
-                        <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                    <div className="text-center p-8 sm:p-12 border border-gray-200 dark:border-gray-800 bg-[#F9F9F9] dark:bg-[#111] rounded-none">
+                        <p className="mb-8 text-sm leading-relaxed">
                             To every customer who has supported Opevicky Scents from the very beginning—and to everyone who is just discovering us—thank you for believing in our journey. Your trust, support, and loyalty continue to inspire us every single day.
                         </p>
-                        <p className="mb-8 font-bold text-[#191970] dark:text-white text-xl">
+                        <p className="mb-8 font-black tracking-widest uppercase text-[#111] dark:text-white text-sm">
                             This is only the beginning.
                         </p>
-                        <p className="mb-10 text-gray-600 dark:text-gray-300">
+                        <p className="mb-10 text-sm text-gray-500">
                             We’re still growing, still learning, and still building the brand we’ve always dreamed of. The best is yet to come.
                         </p>
                         
-                        <h3 className="text-2xl sm:text-3xl font-black text-[#191970] dark:text-[#D4AF37] mb-3">
+                        <h3 className="text-xl font-black uppercase tracking-widest text-[#111] dark:text-white mb-3">
                             Welcome to Opevicky Scents.
                         </h3>
-                        <p className="text-lg text-gray-500 dark:text-gray-400 font-medium tracking-wide">
-                            Where every fragrance tells a story, and every customer becomes part of ours.
+                        <p className="text-xs text-gray-400 font-medium tracking-[0.2em] uppercase">
+                            Where every fragrance tells a story.
                         </p>
                     </div>
 
@@ -646,39 +569,37 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
     };
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-gray-200 dark:border-gray-800 pb-6">
-                    <div>
-                        <h1 className="text-4xl font-black text-[#191970] dark:text-white">Our Collection</h1>
-                        <p className="mt-2 text-lg text-[#D4AF37] font-semibold">Discover your signature scent.</p>
-                    </div>
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-2xl mx-auto px-6 lg:px-12">
+                <div className="flex flex-col border-b border-gray-200 dark:border-gray-800 pb-8 mb-12">
+                    <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-[#111] dark:text-white mb-2">Our Collection</h1>
+                    <p className="text-xs tracking-[0.2em] uppercase text-gray-500">Discover your signature scent.</p>
                 </div>
 
-                {loading ? ( <BrandLoader /> ) : error ? ( <div className="bg-red-50 text-red-500 p-6 rounded-xl text-center border border-red-200">Could not load products. Please ensure backend is running.</div> ) : (
+                {loading ? ( 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
+                        {[...Array(12)].map((_, i) => <ProductSkeleton key={i} />)}
+                    </div>
+                ) : error ? ( 
+                    <div className="text-xs tracking-widest uppercase text-red-500 border border-red-200 p-6 text-center">Could not load products. Please ensure backend is running.</div> 
+                ) : (
                     <>
-                        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
                             {currentProducts.map(product => (
                                 <ProductCard key={product.id} product={product} onProductClick={onProductClick} onToggleWishlist={onToggleWishlist} isWishlisted={currentUser?.wishlist?.includes(product.id)} />
                             ))}
                         </motion.div>
 
                         {totalPages > 1 && (
-                            <div className="mt-16 w-full flex flex-col items-center">
-                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden px-4">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30">Previous</button>
-                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Page {currentPage} of {totalPages}</span>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30">Next</button>
-                                </div>
-
-                                <div className="hidden sm:flex justify-center items-center space-x-4">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] disabled:opacity-30 transition-all"><ChevronLeftIcon /></button>
-                                    <div className="flex flex-wrap justify-center gap-2">
+                            <div className="mt-24 w-full flex justify-center">
+                                <div className="flex items-center space-x-2">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon /></button>
+                                    <div className="flex space-x-2">
                                         {[...Array(totalPages)].map((_, i) => (
-                                            <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 rounded-full font-black text-sm transition-all flex items-center justify-center ${currentPage === i + 1 ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>{i + 1}</button>
+                                            <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 flex items-center justify-center border text-xs font-bold transition-colors rounded-none ${currentPage === i + 1 ? 'border-[#111] dark:border-white bg-[#111] dark:bg-white text-white dark:text-[#111]' : 'border-gray-300 dark:border-gray-700 text-gray-500 hover:border-[#111] dark:hover:border-white'}`}>{i + 1}</button>
                                         ))}
                                     </div>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] disabled:opacity-30 transition-all"><ChevronRightIcon /></button>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon /></button>
                                 </div>
                             </div>
                         )}
@@ -706,39 +627,40 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
     };
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-black tracking-tight text-[#191970] dark:text-white mb-12">Search Results for "<span className="text-[#D4AF37]">{query}</span>"</h1>
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-2xl mx-auto px-6 lg:px-12">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-8 mb-12">
+                    <h1 className="text-3xl font-black uppercase tracking-tight text-[#111] dark:text-white">Results for "{query}"</h1>
+                </div>
                 
-                {loading ? ( <BrandLoader /> ) : searchResults.length > 0 ? (
+                {loading ? ( 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
+                        {[...Array(8)].map((_, i) => <ProductSkeleton key={i} />)}
+                    </div>
+                ) : searchResults.length > 0 ? (
                     <>
-                        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
                             {currentProducts.map(product => (
                                 <ProductCard key={product.id} product={product} onProductClick={onProductClick} onToggleWishlist={onToggleWishlist} isWishlisted={currentUser?.wishlist?.includes(product.id)} />
                             ))}
                         </motion.div>
                         {totalPages > 1 && (
-                            <div className="mt-16 w-full flex flex-col items-center">
-                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden px-4">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30">Previous</button>
-                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Page {currentPage} of {totalPages}</span>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 font-bold text-sm disabled:opacity-30">Next</button>
-                                </div>
-                                <div className="hidden sm:flex justify-center items-center space-x-4">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 disabled:opacity-30"><ChevronLeftIcon /></button>
-                                    <div className="flex flex-wrap justify-center gap-2">
+                            <div className="mt-24 w-full flex justify-center">
+                                <div className="flex items-center space-x-2">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon /></button>
+                                    <div className="flex space-x-2">
                                         {[...Array(totalPages)].map((_, i) => (
-                                            <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 rounded-full font-black text-sm ${currentPage === i + 1 ? 'bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] shadow-lg scale-110' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>{i + 1}</button>
+                                            <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 flex items-center justify-center border text-xs font-bold transition-colors rounded-none ${currentPage === i + 1 ? 'border-[#111] dark:border-white bg-[#111] dark:bg-white text-white dark:text-[#111]' : 'border-gray-300 dark:border-gray-700 text-gray-500 hover:border-[#111] dark:hover:border-white'}`}>{i + 1}</button>
                                         ))}
                                     </div>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="p-3 rounded-full border-2 border-gray-200 dark:border-gray-800 text-[#191970] dark:text-gray-300 disabled:opacity-30"><ChevronRightIcon /></button>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon /></button>
                                 </div>
                             </div>
                         )}
                     </>
                 ) : (
-                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800 mt-8">
-                        <p className="text-xl font-medium text-gray-500 dark:text-gray-400">No products found matching your search.</p>
+                    <div className="border border-gray-200 dark:border-gray-800 p-16 text-center mt-8 bg-white dark:bg-[#111]">
+                        <p className="text-xs tracking-widest uppercase font-medium text-gray-500">No products found matching your search.</p>
                     </div>
                 )}
             </div>
@@ -748,18 +670,13 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
 
 const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishlisted, onBack, currentUser, orders, onSubmitReview }) => {
     const [quantity, setQuantity] = useState(1);
-    const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
-    
-    // NEW: State to track the currently displayed image
+    const [isDescriptionOpen, setIsDescriptionOpen] = useState(true); 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    
     const [rating, setRating] = useState(5);
     const [reviewText, setReviewText] = useState("");
     
     const isOutOfStock = product.stockAmount === 0;
     const productReviews = product.reviews || [];
-
-    // NEW: Create an array of images to display, falling back to the single image if old product
     const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
     
     const getImageUrl = (path) => {
@@ -774,10 +691,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
     const handleReviewSubmit = (e) => {
         e.preventDefault();
         if(!reviewText.trim()) return;
-        onSubmitReview(product.id || product._id, {
-            rating, 
-            text: reviewText, 
-        });
+        onSubmitReview(product.id || product._id, { rating, text: reviewText });
         setReviewText("");
         setRating(5);
     };
@@ -788,75 +702,67 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 
     const formatDescription = (text) => {
         if (!text) return <p>Experience the epitome of luxury. This fragrance is crafted from the finest ingredients to create a scent that is both captivating and enduring.</p>;
-        
         return text.split('\n').map((line, index) => {
             const trimmedLine = line.trim();
             if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-                return <li key={index} className="ml-6 list-disc marker:text-[#D4AF37] mb-2">{trimmedLine.substring(1).trim()}</li>;
+                return <li key={index} className="ml-6 list-disc mb-2 text-sm text-gray-600 dark:text-gray-400">{trimmedLine.substring(1).trim()}</li>;
             }
             if (trimmedLine === '') return <div key={index} className="h-2"></div>;
-            return <p key={index} className="mb-3 leading-relaxed">{trimmedLine}</p>;
+            return <p key={index} className="mb-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{trimmedLine}</p>;
         });
     };
 
-    // Handlers for image navigation
     const nextImage = () => setCurrentImageIndex((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
     const prevImage = () => setCurrentImageIndex((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-black min-h-screen py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <button onClick={onBack} className="mb-8 text-sm font-bold text-[#191970] hover:text-[#D4AF37] dark:text-[#D4AF37] dark:hover:text-white flex items-center transition-colors">
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-xl mx-auto px-6 lg:px-12">
+                <button onClick={onBack} className="mb-12 text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white hover:opacity-50 flex items-center transition-opacity">
                     ← Back to Shop
                 </button>
                 
                 <div className="lg:grid lg:grid-cols-2 lg:gap-16 xl:gap-24 mb-24">
                     
-                    {/* NEW: Left Column for Image Carousel */}
+                    {/* Image Carousel */}
                     <div className="flex flex-col gap-4 mb-12 lg:mb-0">
-                        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="aspect-[4/5] rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-900 relative shadow-2xl border border-gray-100 dark:border-gray-800 group">
-                            
-                            {/* Animated Main Image Crossfade */}
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="aspect-[3/4] bg-[#F9F9F9] dark:bg-[#111] relative border border-gray-200 dark:border-gray-800 group rounded-none">
                             <AnimatePresence mode="wait">
                                 <motion.img 
                                     key={currentImageIndex}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
                                     src={getImageUrl(productImages[currentImageIndex])} 
                                     alt={`${product.name} - View ${currentImageIndex + 1}`} 
                                     className="w-full h-full object-cover object-center" 
                                 />
                             </AnimatePresence>
 
-                            {/* Carousel Navigation Arrows (Only show if multiple images exist) */}
                             {productImages.length > 1 && (
                                 <>
-                                    <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 p-2 rounded-full text-[#191970] dark:text-[#D4AF37] hover:scale-110 transition-transform backdrop-blur-sm shadow-lg opacity-0 group-hover:opacity-100">
-                                        <ChevronLeftIcon className="w-6 h-6" />
+                                    <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white dark:bg-black p-3 text-[#111] dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors border border-gray-200 dark:border-gray-800 opacity-0 group-hover:opacity-100 rounded-none">
+                                        <ChevronLeftIcon className="w-5 h-5" />
                                     </button>
-                                    <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/90 p-2 rounded-full text-[#191970] dark:text-[#D4AF37] hover:scale-110 transition-transform backdrop-blur-sm shadow-lg opacity-0 group-hover:opacity-100">
-                                        <ChevronRightIcon className="w-6 h-6" />
+                                    <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white dark:bg-black p-3 text-[#111] dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors border border-gray-200 dark:border-gray-800 opacity-0 group-hover:opacity-100 rounded-none">
+                                        <ChevronRightIcon className="w-5 h-5" />
                                     </button>
                                 </>
                             )}
 
                             {onToggleWishlist && (
-                                <button onClick={() => onToggleWishlist(product.id)} className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm dark:bg-black/90 rounded-full p-4 text-gray-400 hover:text-red-500 shadow-xl transition-transform active:scale-95 z-20">
-                                    <HeartIcon className={`h-6 w-6 ${isWishlisted ? 'text-red-500 fill-red-500' : ''}`} isFilled={isWishlisted} />
+                                <button onClick={() => onToggleWishlist(product.id)} className="absolute top-6 right-6 p-3 text-[#111] dark:text-white hover:text-red-500 transition-colors z-20">
+                                    <HeartIcon className={`h-6 w-6 ${isWishlisted ? 'fill-[#111] dark:fill-white text-[#111] dark:text-white hover:fill-red-500' : ''}`} isFilled={isWishlisted} />
                                 </button>
                             )}
                         </motion.div>
 
                         {/* Thumbnail Strip */}
                         {productImages.length > 1 && (
-                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                 {productImages.map((img, idx) => (
                                     <button 
                                         key={idx} 
                                         onClick={() => setCurrentImageIndex(idx)}
-                                        className={`flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${currentImageIndex === idx ? 'border-[#D4AF37] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                        className={`flex-shrink-0 w-20 h-24 border transition-all duration-300 rounded-none ${currentImageIndex === idx ? 'border-[#111] dark:border-white' : 'border-transparent opacity-50 hover:opacity-100'}`}
                                     >
                                         <img src={getImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                                     </button>
@@ -865,65 +771,53 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                         )}
                     </div>
                     
-                    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col justify-center">
-                        <p className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-3">
-                            {product.bottleSize ? `Premium Fragrance • ${product.bottleSize}` : 'Premium Fragrance'}
+                    {/* Product Details */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-col justify-start pt-4">
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">
+                            {product.bottleSize ? `Signature • ${product.bottleSize}` : 'Signature Collection'}
                         </p>
-                        <h1 className="text-4xl sm:text-5xl font-black text-[#191970] dark:text-white mb-4">{product.name}</h1>
+                        <h1 className="text-3xl md:text-5xl font-medium text-[#111] dark:text-white tracking-tight mb-6">{product.name}</h1>
                         
-                        <div className="flex items-center gap-4 mb-6">
+                        <div className="flex items-center gap-4 mb-8">
                             {product.discountPercentage > 0 ? (
-                                <div className="flex items-center gap-3">
-                                    <p className="text-3xl font-bold text-red-600">{formatPrice(effectivePrice)}</p>
-                                    <p className="text-xl font-medium text-gray-400 line-through">{formatPrice(product.price)}</p>
-                                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-black tracking-wider">
+                                <div className="flex items-end gap-3">
+                                    <p className="text-2xl font-medium text-[#111] dark:text-white">{formatPrice(effectivePrice)}</p>
+                                    <p className="text-sm font-light text-gray-400 line-through pb-1">{formatPrice(product.price)}</p>
+                                    <span className="ml-2 border border-[#111] dark:border-white text-[#111] dark:text-white text-[10px] uppercase tracking-widest px-2 py-1 mb-1">
                                         {product.discountPercentage}% OFF
                                     </span>
                                 </div>
                             ) : (
-                                <p className="text-3xl font-bold text-[#191970] dark:text-[#D4AF37]">{formatPrice(product.price)}</p>
-                            )}
-
-                            {product.stockAmount !== undefined && (
-                                <span className={`px-3 py-1 text-sm font-bold rounded-full ${!isOutOfStock ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                    {!isOutOfStock ? `${product.stockAmount} Available in Stock` : 'Out of Stock'}
-                                </span>
+                                <p className="text-2xl font-medium text-[#111] dark:text-white">{formatPrice(product.price)}</p>
                             )}
                         </div>
+
+                        {product.stockAmount !== undefined && (
+                            <p className={`text-xs uppercase tracking-widest font-bold mb-8 ${!isOutOfStock ? 'text-[#111] dark:text-white' : 'text-red-500'}`}>
+                                {!isOutOfStock ? 'In Stock' : 'Out of Stock'}
+                            </p>
+                        )}
                         
-                        <div className="flex items-center mb-8">
-                            <div className="flex text-[#D4AF37]">
-                                {[1,2,3,4,5].map(star => (
-                                    <StarIcon key={star} className="h-5 w-5" />
-                                ))}
+                        <div className="flex items-center mb-10 pb-10 border-b border-gray-200 dark:border-gray-800">
+                            <div className="flex text-[#111] dark:text-white">
+                                {[1,2,3,4,5].map(star => <StarIcon key={star} className="h-4 w-4" />)}
                             </div>
-                            <span className="ml-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                                ({productReviews.length} Reviews)
+                            <span className="ml-4 text-xs font-medium text-gray-500 tracking-widest uppercase">
+                                {productReviews.length} Reviews
                             </span>
                         </div>
                         
-                        <div className="border-t border-gray-200 dark:border-gray-800 py-6 mb-6">
-                            <button 
-                                onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
-                                className="w-full flex justify-between items-center group focus:outline-none"
-                            >
-                                <span className="text-lg font-black text-[#191970] dark:text-white group-hover:text-[#D4AF37] transition-colors">
-                                    Product Description
-                                </span>
+                        <div className="mb-12">
+                            <button onClick={() => setIsDescriptionOpen(!isDescriptionOpen)} className="w-full flex justify-between items-center group focus:outline-none mb-4">
+                                <span className="text-sm font-bold uppercase tracking-widest text-[#111] dark:text-white">The Details</span>
                                 <motion.div animate={{ rotate: isDescriptionOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                                    <ChevronDownIcon className="w-6 h-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
+                                    <ChevronDownIcon className="w-5 h-5 text-[#111] dark:text-white" />
                                 </motion.div>
                             </button>
                             <AnimatePresence>
                                 {isDescriptionOpen && (
-                                    <motion.div 
-                                        initial={{ height: 0, opacity: 0 }} 
-                                        animate={{ height: 'auto', opacity: 1 }} 
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="pt-6 text-gray-600 dark:text-gray-300 text-base">
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                        <div className="pt-2">
                                             {formatDescription(product.description)}
                                         </div>
                                     </motion.div>
@@ -931,40 +825,39 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                             </AnimatePresence>
                         </div>
                         
-                        <div className="flex items-center gap-4 mt-auto pt-4">
-                            <div className="flex items-center border-2 border-gray-200 dark:border-gray-800 rounded-xl h-14 w-32 bg-white dark:bg-black">
-                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold">-</button>
-                                <span className="flex-1 text-center font-bold text-[#191970] dark:text-white">{quantity}</span>
-                                <button onClick={() => setQuantity(Math.min(product.stockAmount || 1, quantity + 1))} disabled={quantity >= (product.stockAmount || 0)} className="px-4 text-gray-500 hover:text-[#D4AF37] h-full font-bold disabled:opacity-50">+</button>
+                        <div className="flex flex-col sm:flex-row items-stretch gap-4 mt-auto">
+                            <div className="flex items-center border border-[#111] dark:border-white h-14 w-full sm:w-32 bg-transparent rounded-none">
+                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 text-[#111] dark:text-white h-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">-</button>
+                                <span className="flex-1 text-center font-medium text-[#111] dark:text-white">{quantity}</span>
+                                <button onClick={() => setQuantity(Math.min(product.stockAmount || 1, quantity + 1))} disabled={quantity >= (product.stockAmount || 0)} className="px-4 text-[#111] dark:text-white h-full disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">+</button>
                             </div>
                             
-                            <motion.button whileHover={{ scale: isOutOfStock ? 1 : 1.02 }} whileTap={{ scale: isOutOfStock ? 1 : 0.98 }} onClick={() => onAddToCart(product, quantity)} disabled={isOutOfStock} className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] h-14 rounded-xl font-extrabold text-lg shadow-[0_0_15px_rgba(212,175,55,0.4)] flex items-center justify-center gap-2 disabled:from-gray-300 disabled:to-gray-400 disabled:text-gray-500">
-                                <ShoppingBagIcon /> {isOutOfStock ? 'Currently Out of Stock' : 'Add to Bag'}
+                            <motion.button onClick={() => onAddToCart(product, quantity)} disabled={isOutOfStock} className="flex-1 bg-[#111] dark:bg-white text-white dark:text-[#111] h-14 text-xs font-bold tracking-[0.2em] uppercase rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                                {isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
                             </motion.button>
                         </div>
                     </motion.div>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-16">
-                    <h2 className="text-3xl font-black text-[#191970] dark:text-white mb-10">Customer Reviews</h2>
+                {/* Reviews Section */}
+                <div className="border-t border-[#111] dark:border-gray-800 pt-24">
+                    <h2 className="text-2xl font-medium tracking-tight text-[#111] dark:text-white mb-12">Client Feedback</h2>
                     
                     <div className="lg:grid lg:grid-cols-12 lg:gap-16">
-                        <div className="lg:col-span-7 space-y-8 mb-12 lg:mb-0">
+                        <div className="lg:col-span-7 space-y-4 mb-12 lg:mb-0">
                             {productReviews.length === 0 ? (
-                                <p className="text-gray-500 dark:text-gray-400 italic">No reviews yet. Be the first to review this fragrance!</p>
+                                <p className="text-gray-500 text-sm italic">No reviews yet. Be the first to share your experience.</p>
                             ) : (
                                 productReviews.map((review, index) => (
-                                    <div key={index} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                    <div key={index} className="bg-[#F9F9F9] dark:bg-[#111] p-8 border border-gray-200 dark:border-gray-800 rounded-none">
                                         <div className="flex items-center justify-between mb-4">
                                             <div>
-                                                <p className="font-bold text-[#191970] dark:text-white">{review.userName}</p>
-                                                <p className="text-xs text-gray-400 mt-1">{formatDate(review.createdAt || review.date || new Date())}</p>
+                                                <p className="font-bold text-xs uppercase tracking-widest text-[#111] dark:text-white">{review.userName}</p>
+                                                <p className="text-xs text-gray-500 mt-1">{formatDate(review.createdAt || review.date || new Date())}</p>
                                             </div>
-                                            <div className="flex text-[#D4AF37]">
+                                            <div className="flex text-[#111] dark:text-white">
                                                 {[1,2,3,4,5].map(star => (
-                                                    star <= review.rating 
-                                                    ? <StarIcon key={star} className="h-4 w-4" /> 
-                                                    : <StarOutlineIcon key={star} className="h-4 w-4" />
+                                                    star <= review.rating ? <StarIcon key={star} className="h-3 w-3" /> : <StarOutlineIcon key={star} className="h-3 w-3" />
                                                 ))}
                                             </div>
                                         </div>
@@ -976,47 +869,33 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 
                         <div className="lg:col-span-5">
                             {hasPurchased ? (
-                                <div className="bg-white dark:bg-black p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 sticky top-28">
-                                    <h3 className="text-xl font-bold text-[#191970] dark:text-white mb-6">Write a Review</h3>
+                                <div className="border border-[#111] dark:border-gray-800 p-8 bg-white dark:bg-[#0A0A0A] rounded-none sticky top-32">
+                                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">Leave a Review</h3>
                                     <form onSubmit={handleReviewSubmit}>
                                         <div className="mb-6">
-                                            <p className="text-sm font-semibold text-gray-500 mb-2">Your Rating</p>
+                                            <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">Rating</p>
                                             <div className="flex gap-2">
                                                 {[1,2,3,4,5].map(star => (
-                                                    <button 
-                                                        type="button" 
-                                                        key={star} 
-                                                        onClick={() => setRating(star)}
-                                                        className="text-[#D4AF37] focus:outline-none transition-transform hover:scale-110"
-                                                    >
-                                                        {star <= rating ? <StarIcon className="h-8 w-8" /> : <StarOutlineIcon className="h-8 w-8" />}
+                                                    <button type="button" key={star} onClick={() => setRating(star)} className="text-[#111] dark:text-white focus:outline-none transition-transform hover:scale-110">
+                                                        {star <= rating ? <StarIcon className="h-6 w-6" /> : <StarOutlineIcon className="h-6 w-6" />}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-                                        <div className="mb-6">
-                                            <label className="block text-sm font-semibold text-gray-500 mb-2">Your Review</label>
-                                            <textarea 
-                                                required 
-                                                rows="4" 
-                                                value={reviewText}
-                                                onChange={(e) => setReviewText(e.target.value)}
-                                                placeholder="What did you love about this scent?"
-                                                className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:outline-none transition-all"
-                                            ></textarea>
+                                        <div className="mb-8">
+                                            <label className="block text-xs uppercase tracking-widest text-gray-500 mb-3">Experience</label>
+                                            <textarea required rows="4" value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="Share your thoughts..." className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white rounded-none focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors text-sm"></textarea>
                                         </div>
-                                        <button type="submit" className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
+                                        <button type="submit" className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] font-bold text-xs tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
                                             Submit Review
                                         </button>
                                     </form>
                                 </div>
                             ) : (
-                                <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 text-center">
-                                    <div className="mx-auto w-16 h-16 bg-white dark:bg-black rounded-full flex items-center justify-center mb-4 text-[#D4AF37]">
-                                        <ShoppingBagIcon />
-                                    </div>
-                                    <h3 className="font-bold text-[#191970] dark:text-white mb-2">Verified Purchases Only</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">You can only leave a review for fragrances you have purchased through your account.</p>
+                                <div className="border border-gray-200 dark:border-gray-800 p-12 bg-[#F9F9F9] dark:bg-[#111] rounded-none text-center">
+                                    <div className="mx-auto w-12 h-12 text-gray-400 mb-6 flex justify-center items-center"><ShoppingBagIcon /></div>
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-[#111] dark:text-white mb-2">Verified Clients Only</h3>
+                                    <p className="text-sm text-gray-500">Reviews are reserved for accounts that have purchased this item.</p>
                                 </div>
                             )}
                         </div>
@@ -1029,7 +908,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 };
 
 const AuthPage = ({ onLogin, onNavigate }) => {
-    const [authView, setAuthView] = useState('login'); // 'login', 'register', 'forgot', 'reset'
+    const [authView, setAuthView] = useState('login'); 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [resetEmail, setResetEmail] = useState('');
@@ -1044,65 +923,60 @@ const AuthPage = ({ onLogin, onNavigate }) => {
         
         try {
             const response = await fetch(`${API_URL}${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password })
             });
-            
             const data = await response.json();
-            
             if (!response.ok) throw new Error(data.message);
             
             localStorage.setItem('token', data.token);
-            
             const userData = data.user ? data.user : data;
             if (!userData.wishlist) userData.wishlist = []; 
-            
             localStorage.setItem('user', JSON.stringify(userData));
             
             onLogin(userData);
             onNavigate('home');
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { alert(error.message); } finally { setLoading(false); }
     };
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="min-h-[70vh] flex items-center justify-center bg-gray-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-10 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800">
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="min-h-screen flex items-center justify-center bg-[#FAFAFA] dark:bg-[#0A0A0A] py-32 px-4 sm:px-6">
+            <div className="max-w-md w-full bg-white dark:bg-[#111] p-10 border border-gray-200 dark:border-gray-800 rounded-none">
                 
                 {(authView === 'login' || authView === 'register') && (
                     <>
-                        <div>
-                            <h2 className="mt-2 text-center text-3xl font-black text-[#191970] dark:text-white">
-                                {authView === 'login' ? 'Welcome back' : 'Create an account'}
+                        <div className="mb-10 text-center border-b border-gray-200 dark:border-gray-800 pb-8">
+                            <h2 className="text-2xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white">
+                                {authView === 'login' ? 'Sign In' : 'Create Account'}
                             </h2>
-                            <p className="text-center mt-2 text-sm text-[#D4AF37] font-semibold">Join the OpevickyScents family</p>
                         </div>
-                        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                        <form className="space-y-6" onSubmit={handleSubmit}>
                             <div className="space-y-4">
-                                <input type="email" required className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
-                                <input type="password" required minLength="6" className="appearance-none relative block w-full px-4 py-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Password (min 6 characters)" value={password} onChange={e => setPassword(e.target.value)} />
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
+                                    <input type="email" required className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white rounded-none focus:outline-none focus:border-[#111] dark:focus:border-white transition-colors" value={email} onChange={e => setEmail(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Password</label>
+                                    <input type="password" required minLength="6" className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white rounded-none focus:outline-none focus:border-[#111] dark:focus:border-white transition-colors" value={password} onChange={e => setPassword(e.target.value)} />
+                                </div>
                             </div>
                             
                             {authView === 'login' && (
-                                <div className="text-right mt-2">
-                                    <button type="button" onClick={() => { setAuthView('forgot'); setResetEmail(email); }} className="text-sm font-bold text-[#D4AF37] hover:underline">
+                                <div className="text-right">
+                                    <button type="button" onClick={() => { setAuthView('forgot'); setResetEmail(email); }} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-[#111] dark:hover:text-white transition-colors">
                                         Forgot Password?
                                     </button>
                                 </div>
                             )}
 
-                            <div>
-                                <motion.button disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-xl text-[#191970] bg-gradient-to-r from-[#D4AF37] to-[#B58B22] shadow-lg disabled:opacity-50">
-                                    {loading ? 'Processing...' : (authView === 'login' ? 'Sign In Securely' : 'Register Account')}
-                                </motion.button>
+                            <div className="pt-4">
+                                <button disabled={loading} type="submit" className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors disabled:opacity-50">
+                                    {loading ? 'Processing...' : (authView === 'login' ? 'Authenticate' : 'Register')}
+                                </button>
                             </div>
-                            <div className="text-center mt-4">
-                                <button type="button" onClick={() => setAuthView(authView === 'login' ? 'register' : 'login')} className="font-bold text-sm text-[#191970] dark:text-gray-300 hover:text-[#D4AF37] transition-colors">
-                                    {authView === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                            <div className="text-center mt-6">
+                                <button type="button" onClick={() => setAuthView(authView === 'login' ? 'register' : 'login')} className="text-xs tracking-widest uppercase font-medium text-gray-500 hover:text-[#111] dark:hover:text-white border-b border-transparent hover:border-[#111] dark:hover:border-white pb-1 transition-all">
+                                    {authView === 'login' ? "Create an account" : "Return to sign in"}
                                 </button>
                             </div>
                         </form>
@@ -1110,95 +984,59 @@ const AuthPage = ({ onLogin, onNavigate }) => {
                 )}
 
                 {authView === 'forgot' && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-black text-[#191970] dark:text-white">Reset Password</h2>
-                        <p className="text-gray-500 text-sm">Enter your email address and we'll send you a 6-digit recovery code.</p>
-                        <input 
-                            type="email" 
-                            placeholder="Email Address" 
-                            value={resetEmail} 
-                            onChange={(e) => setResetEmail(e.target.value)} 
-                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
-                        />
-                        <button 
-                            disabled={loading}
-                            onClick={async () => {
-                                setLoading(true);
-                                try {
-                                    await fetch(`${API_URL}/auth/forgot-password`, {
-                                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: resetEmail })
-                                    });
-                                    setAuthView('reset');
-                                } catch (e) {
-                                    alert("Failed to send reset code.");
-                                } finally {
-                                    setLoading(false);
-                                }
-                            }} 
-                            className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl disabled:opacity-50"
-                        >
-                            {loading ? 'Sending...' : 'Send Recovery Code'}
+                    <div className="space-y-6">
+                        <div className="mb-10 text-center border-b border-gray-200 dark:border-gray-800 pb-8">
+                            <h2 className="text-2xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white mb-2">Reset Password</h2>
+                            <p className="text-xs text-gray-500 tracking-widest uppercase">Enter email for recovery code</p>
+                        </div>
+                        <div>
+                            <input type="email" placeholder="EMAIL ADDRESS" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white rounded-none focus:outline-none focus:border-[#111] dark:focus:border-white transition-colors text-xs tracking-widest uppercase" />
+                        </div>
+                        <button disabled={loading} onClick={async () => {
+                            setLoading(true);
+                            try {
+                                await fetch(`${API_URL}/auth/forgot-password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: resetEmail }) });
+                                setAuthView('reset');
+                            } catch (e) { alert("Failed to send reset code."); } finally { setLoading(false); }
+                        }} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors disabled:opacity-50">
+                            {loading ? 'Sending...' : 'Send Code'}
                         </button>
-                        <button onClick={() => setAuthView('login')} className="w-full text-gray-500 text-sm font-bold mt-2 hover:text-[#D4AF37]">Back to Login</button>
+                        <div className="text-center">
+                            <button onClick={() => setAuthView('login')} className="text-xs tracking-widest uppercase font-medium text-gray-500 hover:text-[#111] dark:hover:text-white border-b border-transparent hover:border-[#111] dark:hover:border-white pb-1 transition-all">Cancel</button>
+                        </div>
                     </div>
                 )}
 
                 {authView === 'reset' && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-black text-[#191970] dark:text-white">Enter Reset Code</h2>
-                        <p className="text-gray-500 text-sm">Check the email for <b>{resetEmail}</b> and enter the 6-digit code below.</p>
-                        <input 
-                            type="text" 
-                            placeholder="6-Digit Code" 
-                            value={resetCode} 
-                            onChange={(e) => setResetCode(e.target.value)} 
-                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
-                            maxLength={6}
-                        />
-                        <input 
-                            type="password" 
-                            placeholder="Enter New Password" 
-                            value={newPassword} 
-                            onChange={(e) => setNewPassword(e.target.value)} 
-                            className="w-full p-4 border border-gray-200 dark:border-gray-700 dark:bg-black dark:text-white rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:outline-none"
-                        />
-                        <button 
-                            disabled={loading}
-                            onClick={async () => {
-                                setLoading(true);
-                                try {
-                                    const res = await fetch(`${API_URL}/auth/reset-password`, {
-                                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                                        body: JSON.stringify({ email: resetEmail, code: resetCode, newPassword })
-                                    });
-                                    if (res.ok) {
-                                        alert("Password successfully reset! You can now log in.");
-                                        setAuthView('login');
-                                    } else {
-                                        const data = await res.json();
-                                        alert(data.message);
-                                    }
-                                } catch (e) {
-                                    alert("Failed to reset password.");
-                                } finally {
-                                    setLoading(false);
-                                }
-                            }} 
-                            className="w-full bg-[#191970] text-white font-bold py-4 rounded-xl disabled:opacity-50"
-                        >
+                    <div className="space-y-6">
+                        <div className="mb-10 text-center border-b border-gray-200 dark:border-gray-800 pb-8">
+                            <h2 className="text-2xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white mb-2">Enter Code</h2>
+                            <p className="text-xs text-gray-500 tracking-widest uppercase">Sent to {resetEmail}</p>
+                        </div>
+                        <div className="space-y-4">
+                            <input type="text" placeholder="6-DIGIT CODE" value={resetCode} onChange={(e) => setResetCode(e.target.value)} maxLength={6} className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white text-center rounded-none focus:outline-none focus:border-[#111] dark:focus:border-white transition-colors text-xl tracking-[0.5em] font-bold" />
+                            <input type="password" placeholder="NEW PASSWORD" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full p-4 border border-gray-300 dark:border-gray-700 bg-transparent text-[#111] dark:text-white rounded-none focus:outline-none focus:border-[#111] dark:focus:border-white transition-colors text-xs tracking-widest uppercase" />
+                        </div>
+                        <button disabled={loading} onClick={async () => {
+                            setLoading(true);
+                            try {
+                                const res = await fetch(`${API_URL}/auth/reset-password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: resetEmail, code: resetCode, newPassword }) });
+                                if (res.ok) { alert("Password successfully reset."); setAuthView('login'); } else { const data = await res.json(); alert(data.message); }
+                            } catch (e) { alert("Failed to reset password."); } finally { setLoading(false); }
+                        }} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors disabled:opacity-50">
                             {loading ? 'Verifying...' : 'Update Password'}
                         </button>
-                        <button onClick={() => setAuthView('login')} className="w-full text-gray-500 text-sm font-bold mt-2 hover:text-[#D4AF37]">Back to Login</button>
+                        <div className="text-center">
+                            <button onClick={() => setAuthView('login')} className="text-xs tracking-widest uppercase font-medium text-gray-500 hover:text-[#111] dark:hover:text-white border-b border-transparent hover:border-[#111] dark:hover:border-white pb-1 transition-all">Cancel</button>
+                        </div>
                     </div>
                 )}
-
             </div>
         </motion.div>
     );
 };
 
 const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
-    // Calculates subtotal using the discounted price
     const subtotal = useMemo(() => cart.reduce((total, item) => {
         const itemPrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
         return total + itemPrice * item.quantity;
@@ -1207,57 +1045,47 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
     const [showDisclaimer, setShowDisclaimer] = useState(false);
     
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16 relative">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-4xl font-black text-[#191970] dark:text-white mb-10">Your Shopping Bag</h1>
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24 relative">
+            <div className="max-w-screen-xl mx-auto px-6 lg:px-12">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-8 mb-12">
+                    <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-[#111] dark:text-white">Shopping Bag</h1>
+                </div>
+                
                 {cart.length === 0 ? (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800">
-                        <div className="mx-auto w-24 h-24 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-[#D4AF37]"><ShoppingBagIcon /></div>
-                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">Your bag is empty</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8">Looks like you haven't added any fragrances yet.</p>
-                        <button onClick={() => onNavigate('shop')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">Start Shopping</button>
-                    </motion.div>
+                    <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 p-24 text-center rounded-none">
+                        <div className="mx-auto w-12 h-12 text-[#111] dark:text-white flex justify-center items-center mb-8"><ShoppingBagIcon /></div>
+                        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-4">Your bag is empty</h2>
+                        <button onClick={() => onNavigate('shop')} className="border-b border-[#111] dark:border-white text-xs tracking-widest uppercase pb-1 hover:opacity-50 transition-opacity text-[#111] dark:text-white">Discover Fragrances</button>
+                    </div>
                 ) : (
-                    <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-start">
-                        <section className="lg:col-span-7">
-                            <ul className="space-y-6">
+                    <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-start">
+                        <section className="lg:col-span-8">
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-800 border-t border-gray-200 dark:border-gray-800">
                                 <AnimatePresence>
                                     {cart.map((item) => {
                                         const imageUrl = item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
                                         const effectivePrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
 
                                         return (
-                                            <motion.li layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} key={item.id} className="flex bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                                <div className="flex-shrink-0 w-32 h-32 bg-gray-50 dark:bg-black rounded-xl overflow-hidden relative">
+                                            <motion.li layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} key={item.id} className="flex py-8">
+                                                <div className="flex-shrink-0 w-32 h-40 bg-[#F9F9F9] dark:bg-black border border-gray-200 dark:border-gray-800 rounded-none overflow-hidden relative">
                                                     <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                                                    {item.discountPercentage > 0 && (
-                                                        <div className="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
-                                                            -{item.discountPercentage}%
-                                                        </div>
-                                                    )}
                                                 </div>
-                                                <div className="ml-6 flex-1 flex flex-col justify-center">
+                                                <div className="ml-6 flex-1 flex flex-col">
                                                     <div className="flex justify-between items-start">
                                                         <div>
-                                                            <h3 className="text-lg font-bold text-[#191970] dark:text-white">{item.name}</h3>
-                                                            {item.discountPercentage > 0 ? (
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <p className="text-sm font-bold text-red-600">{formatPrice(effectivePrice)}</p>
-                                                                    <p className="text-xs font-medium text-gray-400 line-through">{formatPrice(item.price)}</p>
-                                                                </div>
-                                                            ) : (
-                                                                <p className="mt-1 text-sm font-medium text-[#D4AF37]">{formatPrice(item.price)}</p>
-                                                            )}
+                                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{item.bottleSize || 'Signature'}</p>
+                                                            <h3 className="text-lg font-medium text-[#111] dark:text-white">{item.name}</h3>
                                                         </div>
-                                                        <button onClick={() => onRemoveFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors p-1"><XIcon /></button>
+                                                        <button onClick={() => onRemoveFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors"><XIcon /></button>
                                                     </div>
-                                                    <div className="flex items-center justify-between mt-4">
-                                                        <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg h-10 bg-gray-50 dark:bg-black">
-                                                            <button onClick={() => onUpdateCart(item.id, Math.max(1, item.quantity - 1))} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold">-</button>
-                                                            <span className="px-2 font-bold text-[#191970] dark:text-white">{item.quantity}</span>
-                                                            <button onClick={() => onUpdateCart(item.id, Math.min(item.stockAmount || 1, item.quantity + 1))} disabled={item.quantity >= (item.stockAmount || 0)} className="px-3 text-gray-500 hover:text-[#D4AF37] font-bold disabled:opacity-50">+</button>
+                                                    <div className="mt-auto flex items-end justify-between">
+                                                        <div className="flex items-center border border-[#111] dark:border-gray-600 h-10 w-28 bg-transparent rounded-none">
+                                                            <button onClick={() => onUpdateCart(item.id, Math.max(1, item.quantity - 1))} className="px-3 text-[#111] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">-</button>
+                                                            <span className="flex-1 text-center text-sm font-medium text-[#111] dark:text-white">{item.quantity}</span>
+                                                            <button onClick={() => onUpdateCart(item.id, Math.min(item.stockAmount || 1, item.quantity + 1))} disabled={item.quantity >= (item.stockAmount || 0)} className="px-3 text-[#111] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">+</button>
                                                         </div>
-                                                        <p className="font-extrabold text-lg text-[#191970] dark:text-white">{formatPrice(effectivePrice * item.quantity)}</p>
+                                                        <p className="font-medium text-lg text-[#111] dark:text-white">{formatPrice(effectivePrice * item.quantity)}</p>
                                                     </div>
                                                 </div>
                                             </motion.li>
@@ -1266,15 +1094,21 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                 </AnimatePresence>
                             </ul>
                         </section>
-                        <section className="mt-10 lg:mt-0 lg:col-span-5 sticky top-28">
-                            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-800">
-                                <h2 className="text-2xl font-black text-[#191970] dark:text-white mb-6">Order Summary</h2>
-                                <dl className="space-y-4 text-base text-gray-600 dark:text-gray-300">
-                                    <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-bold text-[#191970] dark:text-white">{formatPrice(subtotal)}</dd></div>
-                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-green-600 font-bold">Calculated after order</dd></div>
-                                    <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center"><dt className="text-lg font-black text-[#191970] dark:text-white">Estimated Total</dt><dd className="text-3xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd></div>
+                        
+                        <section className="mt-16 lg:mt-0 lg:col-span-4 sticky top-32">
+                            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 p-8 rounded-none">
+                                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">Order Summary</h2>
+                                <dl className="space-y-4 text-sm text-gray-600 dark:text-gray-400 mb-6 border-b border-gray-200 dark:border-gray-800 pb-6">
+                                    <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-medium text-[#111] dark:text-white">{formatPrice(subtotal)}</dd></div>
+                                    <div className="flex justify-between"><dt>Shipping</dt><dd className="text-gray-500 italic">Calculated at next step</dd></div>
                                 </dl>
-                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowDisclaimer(true)} className="w-full mt-8 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl shadow-lg transition-all">Proceed to Checkout</motion.button>
+                                <div className="flex justify-between items-end mb-8">
+                                    <dt className="text-xs font-bold uppercase tracking-widest text-[#111] dark:text-white">Estimated Total</dt>
+                                    <dd className="text-2xl font-medium text-[#111] dark:text-white">{formatPrice(subtotal)}</dd>
+                                </div>
+                                <button onClick={() => setShowDisclaimer(true)} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
+                                    Proceed to Checkout
+                                </button>
                             </div>
                         </section>
                     </div>
@@ -1283,14 +1117,13 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
             
             <AnimatePresence>
                 {showDisclaimer && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191970]/60 dark:bg-black/80 backdrop-blur-sm">
-                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-gray-100 dark:border-gray-800">
-                            <div className="mx-auto w-16 h-16 bg-[#191970]/10 dark:bg-[#D4AF37]/10 text-[#191970] dark:text-[#D4AF37] rounded-full flex items-center justify-center mb-6"><TruckIcon /></div>
-                            <h3 className="text-2xl font-black text-[#191970] dark:text-white mb-4 text-center">Delivery Information</h3>
-                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-center mb-8">Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 business days. Delivery or dispatch prices can vary between locations so a member of our team will reach out to communicate your exact delivery price. Thank you for your understanding.</p>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111]/80 backdrop-blur-sm">
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-[#0A0A0A] p-12 max-w-lg w-full border border-gray-200 dark:border-gray-800 rounded-none">
+                            <h3 className="text-lg font-black uppercase tracking-widest text-[#111] dark:text-white mb-6 text-center border-b border-gray-200 dark:border-gray-800 pb-4">Delivery Policy</h3>
+                            <p className="text-gray-500 text-sm leading-relaxed text-center mb-10">Delivery within Lagos takes 24 to 48 hours, while delivery outside Lagos takes 3-5 business days. Delivery pricing varies by location; our concierge team will reach out to confirm precise logistics. Thank you for choosing Opevicky.</p>
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <button onClick={() => setShowDisclaimer(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">Cancel</button>
-                                <button onClick={() => { setShowDisclaimer(false); onNavigate('checkout'); }} className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-3 px-4 rounded-xl shadow-lg">I Agree, Proceed</button>
+                                <button onClick={() => setShowDisclaimer(false)} className="flex-1 py-4 text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-300 dark:border-gray-700 hover:border-[#111] dark:hover:border-white hover:text-[#111] dark:hover:text-white transition-colors rounded-none">Decline</button>
+                                <button onClick={() => { setShowDisclaimer(false); onNavigate('checkout'); }} className="flex-1 bg-[#111] dark:bg-white text-white dark:text-[#111] font-bold text-xs uppercase tracking-widest py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">Acknowledge</button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -1300,68 +1133,11 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
     );
 };
 
-const WishlistPage = ({ allProducts, currentUser, onNavigate, onProductClick, onToggleWishlist }) => {
-    
-    if (!currentUser) {
-        return (
-            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[60vh] flex items-center justify-center py-16 px-4">
-                <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl p-10 shadow-xl border border-gray-100 dark:border-gray-800 text-center">
-                    <HeartIcon className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-6" />
-                    <h2 className="text-2xl font-black text-[#191970] dark:text-white mb-4">Sign in to view your Wishlist</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8">Save your favorite fragrances and keep track of what you want to buy next.</p>
-                    <button onClick={() => onNavigate('auth')} className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
-                        Sign In / Register
-                    </button>
-                </div>
-            </motion.div>
-        );
-    }
-
-    const wishlistedItems = allProducts.filter(product => currentUser.wishlist?.includes(product.id));
-
-    return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-gray-200 dark:border-gray-800 pb-6">
-                    <div>
-                        <h1 className="text-4xl font-black text-[#191970] dark:text-white">My Wishlist</h1>
-                        <p className="mt-2 text-lg text-[#D4AF37] font-semibold">Your curated collection of favorites.</p>
-                    </div>
-                </div>
-
-                {wishlistedItems.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800 mt-8">
-                        <div className="mx-auto w-20 h-20 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-gray-400">
-                            <HeartIcon className="w-10 h-10" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">Your wishlist is empty</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8">Find something you love? Tap the heart icon to save it here.</p>
-                        <button onClick={() => onNavigate('shop')} className="bg-[#D4AF37] text-[#191970] px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">Explore Fragrances</button>
-                    </div>
-                ) : (
-                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {wishlistedItems.map(product => (
-                            <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                onProductClick={onProductClick} 
-                                onToggleWishlist={onToggleWishlist} 
-                                isWishlisted={true} 
-                            />
-                        ))}
-                    </motion.div>
-                )}
-            </div>
-        </motion.div>
-    );
-};
-
 const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     const [customerInfo, setCustomerInfo] = useState({ name: '', email: currentUser?.email || '', phone: '', address: '', city: '', state: '' });
     const [isPaying, setIsPaying] = useState(false);
     const [isGuestCheckout, setIsGuestCheckout] = useState(false); 
     
-    // Calculates subtotal using the discounted price
     const subtotal = useMemo(() => cart.reduce((total, item) => {
         const itemPrice = item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price;
         return total + itemPrice * item.quantity;
@@ -1369,20 +1145,17 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
 
     if (!currentUser && !isGuestCheckout) {
         return (
-            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] py-16 flex items-center justify-center px-4">
-                <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl p-10 shadow-2xl border border-gray-100 dark:border-gray-800 text-center">
-                    <div className="mx-auto w-16 h-16 bg-[#191970]/10 dark:bg-[#D4AF37]/10 text-[#191970] dark:text-[#D4AF37] rounded-full flex items-center justify-center mb-6">
-                        <ShoppingBagIcon />
-                    </div>
-                    <h2 className="text-3xl font-black text-[#191970] dark:text-white mb-4">Almost there!</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">Create an account to track your orders and save your wishlist, or checkout instantly as a guest.</p>
+            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen py-32 flex items-center justify-center px-6">
+                <div className="max-w-md w-full bg-white dark:bg-[#111] p-12 border border-gray-200 dark:border-gray-800 text-center rounded-none">
+                    <h2 className="text-xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white mb-4">Authentication</h2>
+                    <p className="text-gray-500 text-sm mb-12">Sign in for a streamlined experience, or proceed as a guest.</p>
                     
                     <div className="space-y-4">
-                        <button onClick={() => onNavigate('auth')} className="w-full bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
-                            Sign In / Register
+                        <button onClick={() => onNavigate('auth')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-widest uppercase py-4 hover:bg-black/80 dark:hover:bg-gray-200 transition-colors rounded-none">
+                            Sign In
                         </button>
-                        <button onClick={() => setIsGuestCheckout(true)} className="w-full bg-transparent text-[#191970] dark:text-gray-300 font-bold py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-[#D4AF37] dark:hover:border-[#D4AF37] transition-colors">
-                            Continue as Guest
+                        <button onClick={() => setIsGuestCheckout(true)} className="w-full bg-transparent text-[#111] dark:text-white text-xs font-bold tracking-widest uppercase py-4 border border-[#111] dark:border-white hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none">
+                            Guest Checkout
                         </button>
                     </div>
                 </div>
@@ -1414,67 +1187,67 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     const isFormValid = customerInfo.email && customerInfo.name && customerInfo.phone && customerInfo.address && customerInfo.city && customerInfo.state && cart.length > 0;
 
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl mx-auto lg:max-w-none">
-                    <div className="flex items-center justify-between mb-10">
-                        <h1 className="text-3xl font-black text-[#191970] dark:text-white">Complete Your Order</h1>
-                        {!currentUser && (
-                            <span className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                                Guest Checkout
-                            </span>
-                        )}
-                    </div>
-                    <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
-                        <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
-                            <div>
-                                <h2 className="text-xl font-bold text-[#191970] dark:text-white">Contact Information</h2>
-                                <div className="mt-6 space-y-4">
-                                    <input type="text" name="name" placeholder="Full Name" onChange={handleInputChange} value={customerInfo.name} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                    <input type="email" name="email" placeholder="Email Address" onChange={handleInputChange} value={customerInfo.email} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                    <input type="tel" name="phone" placeholder="Phone Number" onChange={handleInputChange} value={customerInfo.phone} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                </div>
-                            </div>
-                            <div className="mt-10 border-t border-gray-100 dark:border-gray-800 pt-10">
-                                <h2 className="text-xl font-bold text-[#191970] dark:text-white">Shipping Information</h2>
-                                <div className="mt-6 space-y-4">
-                                    <input type="text" name="address" placeholder="Street Address" onChange={handleInputChange} value={customerInfo.address} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input type="text" name="city" placeholder="City" onChange={handleInputChange} value={customerInfo.city} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                        <input type="text" name="state" placeholder="State" onChange={handleInputChange} value={customerInfo.state} className="block w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#D4AF37] dark:bg-black dark:border-gray-700 dark:text-white" required />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-10 lg:mt-0">
-                            <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 sticky top-28">
-                                <h2 className="text-xl font-bold text-[#191970] dark:text-white mb-6">Order Summary</h2>
-                                <ul className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[40vh] overflow-y-auto pr-2">
-                                    {cart.map((product) => {
-                                        const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
-                                        const effectivePrice = product.discountPercentage > 0 ? product.price - (product.price * (product.discountPercentage / 100)) : product.price;
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <main className="max-w-screen-xl mx-auto px-6 lg:px-12">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-8 mb-12 flex items-center justify-between">
+                    <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-[#111] dark:text-white">Checkout</h1>
+                    {!currentUser && <span className="text-[10px] tracking-widest uppercase font-bold text-gray-400 border border-gray-300 dark:border-gray-700 px-3 py-1">Guest</span>}
+                </div>
 
-                                        return (
-                                            <li key={product.id} className="flex py-6">
-                                                <div className="w-20 h-20 bg-gray-50 dark:bg-black rounded-xl overflow-hidden border border-gray-100"><img src={imageUrl} alt={product.name} className="w-full h-full object-cover" /></div>
-                                                <div className="ml-4 flex-1 flex flex-col justify-center">
-                                                    <div className="flex justify-between font-bold text-[#191970] dark:text-white">
-                                                        <h3>{product.name}</h3>
-                                                        <p className="text-[#D4AF37]">{formatPrice(effectivePrice * product.quantity)}</p>
-                                                    </div>
-                                                    <p className="mt-1 text-sm text-gray-500">Qty: {product.quantity}</p>
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                                <dl className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6 space-y-4">
-                                    <div className="flex justify-between"><dt className="text-gray-600 dark:text-gray-400">Total</dt><dd className="text-2xl font-black text-[#D4AF37]">{formatPrice(subtotal)}</dd></div>
-                                </dl>
-                                <button type="button" onClick={handlePaystackPayment} className="w-full mt-8 bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] font-extrabold py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50" disabled={!isFormValid || isPaying}>
-                                    {isPaying ? 'Processing...' : 'Pay Now Securely'}
-                                </button>
+                <div className="lg:grid lg:grid-cols-12 lg:gap-16">
+                    <div className="lg:col-span-7 space-y-12">
+                        <section>
+                            <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white mb-6">Contact Detail</h2>
+                            <div className="space-y-4">
+                                <input type="text" name="name" placeholder="FULL NAME" onChange={handleInputChange} value={customerInfo.name} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
+                                <input type="email" name="email" placeholder="EMAIL ADDRESS" onChange={handleInputChange} value={customerInfo.email} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
+                                <input type="tel" name="phone" placeholder="PHONE NUMBER" onChange={handleInputChange} value={customerInfo.phone} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
                             </div>
+                        </section>
+                        
+                        <section>
+                            <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white mb-6">Shipping Destination</h2>
+                            <div className="space-y-4">
+                                <input type="text" name="address" placeholder="STREET ADDRESS" onChange={handleInputChange} value={customerInfo.address} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
+                                <div className="grid grid-cols-2 gap-6">
+                                    <input type="text" name="city" placeholder="CITY" onChange={handleInputChange} value={customerInfo.city} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
+                                    <input type="text" name="state" placeholder="STATE/REGION" onChange={handleInputChange} value={customerInfo.state} className="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 text-[#111] dark:text-white text-xs tracking-widest p-4 focus:border-[#111] dark:focus:border-white focus:outline-none transition-colors rounded-none" required />
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div className="mt-16 lg:mt-0 lg:col-span-5">
+                        <div className="bg-white dark:bg-[#111] p-8 border border-gray-200 dark:border-gray-800 rounded-none sticky top-32">
+                            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">Manifest</h2>
+                            <ul className="divide-y divide-gray-100 dark:divide-gray-800 max-h-[40vh] overflow-y-auto pr-4 mb-8">
+                                {cart.map((product) => {
+                                    const imageUrl = product.image.startsWith('http') ? product.image : `${API_BASE_URL}/${product.image}`;
+                                    const effectivePrice = product.discountPercentage > 0 ? product.price - (product.price * (product.discountPercentage / 100)) : product.price;
+
+                                    return (
+                                        <li key={product.id} className="flex py-6">
+                                            <div className="w-16 h-20 bg-[#F9F9F9] dark:bg-black border border-gray-200 dark:border-gray-800 rounded-none overflow-hidden flex-shrink-0">
+                                                <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="ml-4 flex-1 flex flex-col justify-center">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h3 className="text-sm font-medium text-[#111] dark:text-white">{product.name}</h3>
+                                                    <p className="text-sm font-medium text-[#111] dark:text-white">{formatPrice(effectivePrice * product.quantity)}</p>
+                                                </div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-widest">Qty: {product.quantity}</p>
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                            <div className="flex justify-between items-end pt-6 border-t border-[#111] dark:border-white mb-8">
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#111] dark:text-white">Total</span>
+                                <span className="text-2xl font-medium text-[#111] dark:text-white">{formatPrice(subtotal)}</span>
+                            </div>
+                            <button type="button" onClick={handlePaystackPayment} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors disabled:opacity-50" disabled={!isFormValid || isPaying}>
+                                {isPaying ? 'Processing...' : 'Authorize Payment'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1483,57 +1256,95 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
     );
 };
 
-const OrdersPage = ({ orders, onNavigate }) => {
+const WishlistPage = ({ allProducts, currentUser, onNavigate, onProductClick, onToggleWishlist }) => {
+    if (!currentUser) {
+        return (
+            <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen py-32 flex items-center justify-center px-6">
+                <div className="max-w-md w-full bg-white dark:bg-[#111] p-12 border border-gray-200 dark:border-gray-800 text-center rounded-none">
+                    <HeartIcon className="w-10 h-10 mx-auto text-gray-400 mb-6" />
+                    <h2 className="text-xl font-black uppercase tracking-[0.2em] text-[#111] dark:text-white mb-4">Authentication Required</h2>
+                    <p className="text-gray-500 text-sm mb-12">Sign in to view and curate your personal collection.</p>
+                    <button onClick={() => onNavigate('auth')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs font-bold tracking-widest uppercase py-4 hover:bg-black/80 dark:hover:bg-gray-200 transition-colors rounded-none">
+                        Sign In
+                    </button>
+                </div>
+            </motion.div>
+        );
+    }
+
+    const wishlistedItems = allProducts.filter(product => currentUser.wishlist?.includes(product.id));
+
     return (
-        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-screen py-16">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-4xl font-black text-[#191970] dark:text-white mb-10">My Orders</h1>
-                
-                {!orders || orders.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-900 rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800">
-                        <div className="mx-auto w-24 h-24 bg-gray-50 dark:bg-black rounded-full flex items-center justify-center mb-6 text-[#D4AF37]">
-                            <ReceiptIcon />
-                        </div>
-                        <h2 className="text-2xl font-bold text-[#191970] dark:text-white mb-2">No orders yet</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-8">When you place an order, it will appear here.</p>
-                        <button onClick={() => onNavigate('shop')} className="bg-gradient-to-r from-[#D4AF37] to-[#B58B22] text-[#191970] px-10 py-4 rounded-full font-bold shadow-lg">Start Shopping</button>
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-2xl mx-auto px-6 lg:px-12">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-8 mb-12">
+                    <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-[#111] dark:text-white mb-2">Curated Collection</h1>
+                    <p className="text-xs tracking-[0.2em] uppercase text-gray-500">Your personal selection.</p>
+                </div>
+
+                {wishlistedItems.length === 0 ? (
+                    <div className="border border-gray-200 dark:border-gray-800 p-24 text-center mt-8 bg-white dark:bg-[#111] rounded-none">
+                        <HeartIcon className="w-8 h-8 mx-auto text-gray-300 mb-6" />
+                        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-4">Your collection is empty</h2>
+                        <button onClick={() => onNavigate('shop')} className="border-b border-[#111] dark:border-white text-xs tracking-widest uppercase pb-1 hover:opacity-50 transition-opacity text-[#111] dark:text-white">Explore Catalog</button>
                     </div>
                 ) : (
-                    <div className="space-y-8">
+                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
+                        {wishlistedItems.map(product => (
+                            <ProductCard key={product.id} product={product} onProductClick={onProductClick} onToggleWishlist={onToggleWishlist} isWishlisted={true} />
+                        ))}
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
+
+const OrdersPage = ({ orders, onNavigate }) => {
+    return (
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-xl mx-auto px-6 lg:px-12">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-8 mb-12">
+                    <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-[#111] dark:text-white">Order History</h1>
+                </div>
+                
+                {!orders || orders.length === 0 ? (
+                    <div className="border border-gray-200 dark:border-gray-800 p-24 text-center mt-8 bg-white dark:bg-[#111] rounded-none">
+                        <ReceiptIcon className="w-8 h-8 mx-auto text-gray-300 mb-6" />
+                        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#111] dark:text-white mb-4">No Previous Orders</h2>
+                        <button onClick={() => onNavigate('shop')} className="border-b border-[#111] dark:border-white text-xs tracking-widest uppercase pb-1 hover:opacity-50 transition-opacity text-[#111] dark:text-white">Begin Shopping</button>
+                    </div>
+                ) : (
+                    <div className="space-y-12">
                         {orders.map(order => (
-                            <div key={order._id || order.id} className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-100 dark:border-gray-800 pb-6 mb-6">
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Order #{(order._id || order.id || '').toString().slice(-8)}</p>
-                                        <p className="text-[#191970] dark:text-white font-semibold mt-1">Placed on {formatDate(order.createdAt || order.date)}</p>
+                            <div key={order._id || order.id} className="bg-white dark:bg-[#111] p-8 lg:p-12 border border-gray-200 dark:border-gray-800 rounded-none shadow-sm">
+                                <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center border-b border-gray-200 dark:border-gray-800 pb-8 mb-8">
+                                    <div className="mb-6 md:mb-0">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em] mb-2">Order / {(order._id || order.id || '').toString().slice(-8)}</p>
+                                        <p className="text-sm text-[#111] dark:text-white">{formatDate(order.createdAt || order.date)}</p>
                                     </div>
-                                    <div className="mt-4 sm:mt-0 text-left sm:text-right">
-                                        <p className="text-2xl font-black text-[#D4AF37]">{formatPrice(order.totalAmount || order.total)}</p>
-                                        <span className="inline-block mt-1 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full">
+                                    <div className="text-left md:text-right">
+                                        <p className="text-2xl font-medium text-[#111] dark:text-white mb-2">{formatPrice(order.totalAmount || order.total)}</p>
+                                        <span className="inline-block border border-[#111] dark:border-white text-[#111] dark:text-white px-3 py-1 text-[10px] tracking-widest uppercase">
                                             {order.status || 'Processing'}
                                         </span>
                                     </div>
                                 </div>
                                 
-                                <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {(order.cart || []).map((item, i) => {
                                         const imageUrl = item.image && item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}`;
                                         return (
-                                            <li key={i} className="py-4 flex items-center">
-                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-black border border-gray-100 dark:border-gray-800 flex-shrink-0">
+                                            <li key={i} className="py-6 flex flex-col sm:flex-row sm:items-center gap-6">
+                                                <div className="w-20 h-24 bg-[#F9F9F9] dark:bg-black border border-gray-200 dark:border-gray-800 overflow-hidden flex-shrink-0 rounded-none">
                                                     <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
                                                 </div>
-                                                <div className="ml-4 flex-1">
-                                                    <h4 className="text-[#191970] dark:text-white font-bold">{item.name}</h4>
-                                                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                                <div className="flex-1">
+                                                    <p className="text-[10px] text-gray-400 tracking-widest uppercase mb-1">QTY: {item.quantity}</p>
+                                                    <h4 className="text-base font-medium text-[#111] dark:text-white">{item.name}</h4>
                                                 </div>
-                                                <button 
-                                                    onClick={() => {
-                                                        onNavigate('product', { ...item, id: item.product || item.id || item._id });
-                                                    }}
-                                                    className="ml-4 text-sm font-bold text-[#D4AF37] hover:text-[#B58B22] border border-[#D4AF37] rounded-full px-4 py-2 transition-colors"
-                                                >
-                                                    Leave Review
+                                                <button onClick={() => onNavigate('product', { ...item, id: item.product || item.id || item._id })} className="sm:ml-auto self-start sm:self-auto text-[10px] font-bold text-[#111] dark:text-white uppercase tracking-[0.2em] border-b border-[#111] dark:border-white pb-0.5 hover:opacity-50 transition-opacity">
+                                                    Review Item
                                                 </button>
                                             </li>
                                         );
@@ -1548,14 +1359,15 @@ const OrdersPage = ({ orders, onNavigate }) => {
     );
 };
 
-
 const OrderConfirmationPage = ({ onNavigate }) => ( 
-    <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-gray-50 dark:bg-black min-h-[70vh] flex items-center justify-center py-12 px-4"> 
-        <div className="max-w-xl w-full mx-auto text-center p-12 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800"> 
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}><CheckCircleIcon /></motion.div>
-            <h1 className="mt-8 text-4xl font-black text-[#191970] dark:text-white">Order Confirmed!</h1> 
-            <p className="mt-4 text-lg text-gray-500 dark:text-gray-400 font-medium">Thank you for your purchase, You will receive an email confirmation shortly.</p> 
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => onNavigate('orders')} className="mt-10 px-10 py-4 font-bold text-[#191970] bg-gradient-to-r from-[#D4AF37] to-[#B58B22] rounded-full shadow-lg">View My Orders</motion.button> 
+    <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen flex items-center justify-center py-32 px-6"> 
+        <div className="max-w-xl w-full text-center border border-[#111] dark:border-gray-800 bg-white dark:bg-[#111] p-16 rounded-none"> 
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} className="mb-10"><CheckCircleIcon /></motion.div>
+            <h1 className="text-3xl font-black uppercase tracking-[0.1em] text-[#111] dark:text-white mb-4">Transaction Approved</h1> 
+            <p className="text-sm text-gray-500 leading-relaxed mb-12">Thank you for your purchase. Your digital receipt and shipping updates will be dispatched to your email.</p> 
+            <button onClick={() => onNavigate('orders')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs tracking-widest font-bold uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
+                Track Acquisition
+            </button> 
         </div> 
     </motion.div> 
 );
@@ -1572,25 +1384,21 @@ export default function App() {
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     
-    // Authenticated User State & Backend Fetched Orders
     const [currentUser, setCurrentUser] = useState(() => {
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [orders, setOrders] = useState([]);
 
-    // --- FIX: Cart Persistence initialized from LocalStorage ---
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // --- FIX: Cart automatically saves to LocalStorage on change ---
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
-    // Fetch products initially
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -1606,7 +1414,6 @@ export default function App() {
         fetchProducts();
     }, []);
 
-    // --- FIX: Fetch User's Real Orders safely checking object properties ---
     useEffect(() => {
         if (currentUser) {
             const fetchOrders = async () => {
@@ -1618,7 +1425,6 @@ export default function App() {
                     });
                     if (res.ok) {
                         const data = await res.json();
-                        // Safely extract the array so OrdersPage doesn't think it's empty
                         const fetchedOrders = Array.isArray(data) ? data : (data.orders || data.data || []);
                         setOrders(fetchedOrders);
                     }
@@ -1638,6 +1444,7 @@ export default function App() {
     };
 
     const showNotification = (message) => { setNotification({ message, show: true }); setTimeout(() => { setNotification({ message: '', show: false }); }, 3000); };
+    
     const handleNavigate = (page, data = null) => { 
         setCurrentPage(page); 
         if(page === 'product' && data) { setSelectedProduct(data); }
@@ -1646,76 +1453,52 @@ export default function App() {
     };
     
     const handleProductClick = (product) => { handleNavigate('product', product); };
-    const handleAddToCart = (product, quantity) => { setCart(prevCart => { const existingItem = prevCart.find(item => item.id === product.id); if (existingItem) { return prevCart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item); } return [...prevCart, { ...product, quantity }]; }); showNotification(`${product.name} added to bag!`); };
+    const handleAddToCart = (product, quantity) => { setCart(prevCart => { const existingItem = prevCart.find(item => item.id === product.id); if (existingItem) { return prevCart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item); } return [...prevCart, { ...product, quantity }]; }); showNotification(`Item Reserved`); };
     const handleUpdateCart = (productId, quantity) => { setCart(prevCart => prevCart.map(item => item.id === productId ? {...item, quantity: quantity} : item).filter(item => item.quantity > 0)); };
     const handleRemoveFromCart = (productId) => { setCart(prevCart => prevCart.filter(item => item.id !== productId)); };
     const cartCount = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
 
-    // --- FIX: Safely fallback to empty array if wishlist is missing ---
-    // Handle Local & Database Wishlist state update
     const handleToggleWishlist = async (id) => {
         if(!currentUser) { handleNavigate('auth'); return; }
-        
         const currentWishlist = currentUser.wishlist || []; 
         const isWishlisted = currentWishlist.includes(id);
-        
-        const newWishlist = isWishlisted 
-            ? currentWishlist.filter(wId => wId !== id) 
-            : [...currentWishlist, id];
+        const newWishlist = isWishlisted ? currentWishlist.filter(wId => wId !== id) : [...currentWishlist, id];
             
-        // 1. Instantly update the UI and Local Browser Storage
         const updatedUser = { ...currentUser, wishlist: newWishlist };
         setCurrentUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser)); 
-        
-        showNotification(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
+        showNotification(isWishlisted ? "Removed from collection" : "Saved to collection");
 
-        // 2. Secretly send the new wishlist to MongoDB in the background
         try {
             const token = localStorage.getItem('token');
             await fetch(`${API_URL}/users/wishlist`, {
                 method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ wishlist: newWishlist })
             });
-        } catch (error) {
-            console.error("Failed to sync wishlist with database:", error);
-        }
+        } catch (error) { console.error("Sync failed:", error); }
     }
     
-    // Handles securely posting the review directly to the backend
     const handleSubmitReview = async (productId, reviewData) => {
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`${API_URL}/products/${productId}/reviews`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ rating: reviewData.rating, text: reviewData.text })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
 
-            // Update local product state with the newly fetched reviews array
             setAllProducts(prev => prev.map(p => p.id === productId ? { ...p, reviews: data.reviews } : p));
-            setSelectedProduct(prev => prev ? { ...prev, reviews: data.reviews } : prev); // Refresh current UI
-            
-            showNotification("Review published successfully!");
-        } catch (e) {
-            alert(e.message);
-        }
+            setSelectedProduct(prev => prev ? { ...prev, reviews: data.reviews } : prev); 
+            showNotification("Feedback Recorded");
+        } catch (e) { alert(e.message); }
     };
 
-    // Submits the successful payment specifically to the backend to create the Order
     const handlePaymentSuccess = async (reference, customerDetails) => {
         const token = localStorage.getItem('token');
         try {
-            // Adjust cart prices before sending to backend so the email receipt and database totals are mathematically correct
             const adjustedCart = cart.map(item => ({
                 ...item,
                 price: item.discountPercentage > 0 ? item.price - (item.price * (item.discountPercentage / 100)) : item.price
@@ -1723,32 +1506,25 @@ export default function App() {
 
             const response = await fetch(`${API_URL}/payments/verify`, {
                 method: 'POST', 
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ reference: reference, cart: adjustedCart, customer: customerDetails }),
             });
             
             if (!response.ok) {
                 const errData = await response.json();
-                throw new Error(errData.message || 'Payment verification failed');
+                throw new Error(errData.message || 'Verification failed');
             }
 
             const data = await response.json();
-            
-            // Add the new order immediately to the UI
             setOrders(prev => [data.order, ...prev]);
-            
             setCart([]);
             handleNavigate('orderConfirmation');
         } catch (err) {
-            console.error("Payment sync failed:", err);
-            alert(`An error occurred processing the order: ${err.message}`);
+            console.error("Sync failed:", err);
+            alert(`Process interrupted: ${err.message}`);
         }
     };
 
-    // Remove tokens entirely
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -1783,7 +1559,7 @@ export default function App() {
 
     return (
         <ThemeProvider>
-            <div className="bg-white dark:bg-black font-sans text-gray-900 dark:text-gray-100 min-h-screen flex flex-col selection:bg-[#D4AF37] selection:text-[#191970]">
+            <div className="bg-[#FAFAFA] dark:bg-[#0A0A0A] font-sans text-[#111] dark:text-white min-h-screen flex flex-col selection:bg-[#111] selection:text-white dark:selection:bg-white dark:selection:text-[#111]">
                 <Notification message={notification.message} show={notification.show} />
                 <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} cartCount={cartCount} onSearch={handleSearch} currentUser={currentUser} onLogout={handleLogout} />
                 <MobileMenu mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} onNavigate={handleNavigate} />
