@@ -5,7 +5,6 @@ import heroImage1 from './images/hero.png';
 import heroImage2 from './images/image 3.png';
 import heroImage3 from './images/image1.png';
 import heroImage4 from './images/image2.png';
-import myLogo from './images/opvlogo.png';
 import ownerImage from './images/owner.jpg';
 
 // --- API Configuration ---
@@ -121,15 +120,15 @@ const Notification = ({ message, show }) => (
     </AnimatePresence>
 );
 
-const BrandLoader = () => (
-    <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
-        <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
-        </div>
-    </div>
-);
+// const BrandLoader = () => (
+//     <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
+//         <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
+//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
+//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
+//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
+//         </div>
+//     </div>
+// );
 
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
