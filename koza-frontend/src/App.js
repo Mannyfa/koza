@@ -120,16 +120,6 @@ const Notification = ({ message, show }) => (
     </AnimatePresence>
 );
 
-// const BrandLoader = () => (
-//     <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
-//         <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
-//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
-//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
-//             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
-//         </div>
-//     </div>
-// );
-
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
     return (
@@ -139,7 +129,6 @@ const ThemeToggle = () => {
     );
 };
 
-// --- Header: Editorial & Stark ---
 // --- Header: Editorial & Stark (Always White) ---
 const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUser, onLogout }) => {
     const [scrolled, setScrolled] = useState(false);
@@ -163,10 +152,15 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
         <header className={`fixed top-0 w-full z-40 transition-all duration-500 bg-white/95 backdrop-blur-md border-b border-gray-200 ${scrolled ? 'py-4 shadow-sm' : 'py-6'}`}>
             <nav className="max-w-screen-2xl mx-auto px-6 lg:px-12 flex items-center justify-between">
                 
-                <div className="flex items-center gap-6 w-1/3">
+                <div className="flex items-center gap-4 sm:gap-6 w-1/3">
                     <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity">
                         <MenuIcon />
                     </button>
+                    {/* Mobile Search Icon Restored */}
+                    <button onClick={() => { const q = prompt("Search for a fragrance:"); if(q) onSearch(q); }} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity">
+                        <SearchIcon />
+                    </button>
+
                     <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center border-b border-[#111] pb-1 opacity-50 hover:opacity-100 transition-opacity focus-within:opacity-100">
                         <SearchIcon />
                         <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="SEARCH..." className="bg-transparent border-none outline-none text-xs font-medium tracking-[0.15em] uppercase text-[#111] placeholder-gray-500 ml-2 w-32 focus:w-48 transition-all" />
@@ -447,7 +441,7 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
                         {whyUsData.map((feature) => {
                             const IconComponent = icons[feature.icon];
                             return (
-                                <div key={feature.title} className="flex flex-col items-center">
+                                <div className="flex flex-col items-center" key={feature.title}>
                                     <div className="h-16 w-16 text-[#111] dark:text-white flex items-center justify-center mb-6">
                                         <IconComponent />
                                     </div>
@@ -467,7 +461,11 @@ const AboutPage = () => {
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen">
             <div className="relative pt-32 pb-24 bg-[#111] overflow-hidden flex items-center justify-center min-h-[50vh]">
-                <img src="https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80" alt="Perfume background" className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale" />
+                {/* CSS Background Image to prevent broken icon boxes */}
+                <div 
+                    className="absolute inset-0 w-full h-full bg-cover bg-center opacity-30 grayscale" 
+                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80')" }} 
+                />
                 <div className="relative z-20 max-w-7xl mx-auto px-6 text-center">
                     <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl sm:text-6xl font-black text-white tracking-[0.1em] uppercase mb-6">
                         The Manifesto
@@ -590,15 +588,27 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
                         </motion.div>
 
                         {totalPages > 1 && (
-                            <div className="mt-24 w-full flex justify-center">
-                                <div className="flex items-center space-x-2">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon /></button>
-                                    <div className="flex space-x-2">
+                            <div className="mt-24 w-full flex flex-col items-center">
+                                {/* NEW: Mobile Pagination */}
+                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden border border-gray-200 dark:border-gray-800 p-1 bg-white dark:bg-[#111]">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
+                                        <ChevronLeftIcon className="w-5 h-5" />
+                                    </button>
+                                    <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white">Page {currentPage} of {totalPages}</span>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
+                                        <ChevronRightIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Desktop Pagination with Flex-Wrap Safe Layout */}
+                                <div className="hidden sm:flex items-center justify-center gap-2 flex-wrap max-w-full">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon className="w-5 h-5" /></button>
+                                    <div className="flex flex-wrap justify-center gap-2">
                                         {[...Array(totalPages)].map((_, i) => (
                                             <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 flex items-center justify-center border text-xs font-bold transition-colors rounded-none ${currentPage === i + 1 ? 'border-[#111] dark:border-white bg-[#111] dark:bg-white text-white dark:text-[#111]' : 'border-gray-300 dark:border-gray-700 text-gray-500 hover:border-[#111] dark:hover:border-white'}`}>{i + 1}</button>
                                         ))}
                                     </div>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon /></button>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon className="w-5 h-5" /></button>
                                 </div>
                             </div>
                         )}
@@ -644,15 +654,27 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                             ))}
                         </motion.div>
                         {totalPages > 1 && (
-                            <div className="mt-24 w-full flex justify-center">
-                                <div className="flex items-center space-x-2">
-                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon /></button>
-                                    <div className="flex space-x-2">
+                            <div className="mt-24 w-full flex flex-col items-center">
+                                {/* NEW: Mobile Pagination */}
+                                <div className="flex items-center justify-between w-full max-w-sm sm:hidden border border-gray-200 dark:border-gray-800 p-1 bg-white dark:bg-[#111]">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
+                                        <ChevronLeftIcon className="w-5 h-5" />
+                                    </button>
+                                    <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#111] dark:text-white">Page {currentPage} of {totalPages}</span>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
+                                        <ChevronRightIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Desktop Pagination with Flex-Wrap Safe Layout */}
+                                <div className="hidden sm:flex items-center justify-center gap-2 flex-wrap max-w-full">
+                                    <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon className="w-5 h-5" /></button>
+                                    <div className="flex flex-wrap justify-center gap-2">
                                         {[...Array(totalPages)].map((_, i) => (
                                             <button key={i + 1} onClick={() => paginate(i + 1)} className={`w-12 h-12 flex items-center justify-center border text-xs font-bold transition-colors rounded-none ${currentPage === i + 1 ? 'border-[#111] dark:border-white bg-[#111] dark:bg-white text-white dark:text-[#111]' : 'border-gray-300 dark:border-gray-700 text-gray-500 hover:border-[#111] dark:hover:border-white'}`}>{i + 1}</button>
                                         ))}
                                     </div>
-                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon /></button>
+                                    <button onClick={() => paginate(Math.min(currentPage + 1, totalPages))} disabled={currentPage === totalPages} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronRightIcon className="w-5 h-5" /></button>
                                 </div>
                             </div>
                         )}
