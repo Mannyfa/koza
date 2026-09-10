@@ -179,34 +179,98 @@ const sendEmailJS = (templateParams) => {
 
 const sendStatusEmail = async (order, status) => {
     const shortOrderId = (order._id || order.id || 'ORDER').toString().slice(-6).toUpperCase();
+    const orderDate = new Date(order.date || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
     const subjects = {
-        'Processing': `Your OpevickyScents Order #${shortOrderId} is being processed`,
-        'Shipped': `Great news! Your OpevickyScents Order #${shortOrderId} has been shipped`,
-        'Delivered': `Your OpevickyScents Order #${shortOrderId} has been delivered!`
+        'Processing': `Order Received! Receipt for Order #${shortOrderId}`,
+        'Shipped': `Update: Your Opevicky Order #${shortOrderId} has been shipped`,
+        'Delivered': `Delivered: Your Opevicky Order #${shortOrderId}`
     };
+    
     const messages = {
-        'Processing': `We have received your order and our team is currently preparing it.`,
-        'Shipped': `Your fragrance is on its way to ${order.customer.address}, ${order.customer.city}!`,
-        'Delivered': `Your order has been delivered. We hope you enjoy your new scent!`
+        'Processing': `Thanks for your order. It is currently being processed by our team. Here is your receipt.`,
+        'Shipped': `Great news! Your fragrance is on its way to your shipping address.`,
+        'Delivered': `Your order has been delivered. We hope you enjoy your new signature scent!`
     };
 
+    // Build the dynamic HTML table rows for the cart items
+    const cartHtmlRows = (order.cart || []).map(item => `
+        <tr>
+            <td style="padding: 15px 10px; border-bottom: 1px solid #333; color: #fff; font-size: 14px; text-align: left;">
+                ${item.name} ${item.bottleSize ? `<br><span style="color: #888; font-size: 12px;">(${item.bottleSize})</span>` : ''}
+            </td>
+            <td style="padding: 15px 10px; border-bottom: 1px solid #333; color: #fff; font-size: 14px; text-align: center;">
+                ${item.quantity}
+            </td>
+            <td style="padding: 15px 10px; border-bottom: 1px solid #333; color: #fff; font-size: 14px; text-align: right;">
+                ₦${(item.price * item.quantity).toLocaleString()}
+            </td>
+        </tr>
+    `).join('');
+
+    // The full HTML Receipt Template
     const fullHtml = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-            <h2 style="color: #191970;">OpevickyScents</h2>
-            <p>Hello ${order.customer.name},</p>
-            <p>${messages[status]}</p>
-            <div style="background: #f9f9f9; padding: 15px; margin: 20px 0;">
-                <p><strong>Order ID:</strong> #${shortOrderId}</p>
-                <p><strong>Status:</strong> ${status}</p>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; background-color: #111111; color: #ffffff; border: 1px solid #222;">
+            
+            <!-- Header Banner -->
+            <div style="background-color: #FAFAFA; padding: 30px 20px; text-align: center;">
+                <h1 style="color: #111; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 4px;">Opevicky</h1>
             </div>
-            <p>Thank you for shopping with us!</p>
-            <p style="font-size: 12px; color: #777;">OpevickyScents - Luxury in every drop.</p>
+            
+            <div style="padding: 40px 30px;">
+                <h2 style="font-size: 22px; font-weight: 300; margin-top: 0; margin-bottom: 10px; color: #fff;">Thank you for your order</h2>
+                <p style="color: #aaa; line-height: 1.6; margin-bottom: 30px; font-size: 15px;">
+                    Hi ${order.customer.name},<br>
+                    ${messages[status]}
+                </p>
+                
+                <!-- Order Details Header -->
+                <h3 style="color: #D4AF37; margin-top: 0; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                    [Order #${shortOrderId}] <span style="color: #888; font-weight: normal;">(${orderDate})</span>
+                </h3>
+                
+                <!-- Receipt Table -->
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-top: 15px; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px 10px; border-bottom: 2px solid #444; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Product</th>
+                            <th style="text-align: center; padding: 12px 10px; border-bottom: 2px solid #444; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Qty</th>
+                            <th style="text-align: right; padding: 12px 10px; border-bottom: 2px solid #444; color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cartHtmlRows}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" style="text-align: left; padding: 20px 10px 10px 10px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Total Paid:</td>
+                            <td style="text-align: right; padding: 20px 10px 10px 10px; font-weight: bold; color: #D4AF37; font-size: 18px;">₦${order.total.toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- Shipping Details Block -->
+                <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #333;">
+                    <h3 style="color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Shipping Details</h3>
+                    <p style="color: #aaa; line-height: 1.6; margin: 0; font-size: 14px;">
+                        <strong>${order.customer.name}</strong><br>
+                        ${order.customer.address}<br>
+                        ${order.customer.city}, ${order.customer.state}<br>
+                        ${order.customer.phone}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="text-align: center; padding: 20px; border-top: 1px solid #222; background-color: #0A0A0A;">
+                <p style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Opevicky Scents • Curated Luxury</p>
+            </div>
         </div>
     `;
 
     await sendEmailJS({
         to_email: order.customer.email,
-        subject: subjects[status] || `Update on your Order`,
+        subject: subjects[status],
         html_message: fullHtml
     });
 };
