@@ -52,7 +52,7 @@ const heroSlides = [
 ];
 
 const whyUsData = [
-    { title: '100% Quality Perfumes', description: 'We source only the highest quality, undiluted perfumes for all our products.', icon: 'SparklesIcon' },
+    { title: '100% Quality Perfumes', description: 'We source only the highest quality ingredients for all our products.', icon: 'SparklesIcon' },
     { title: 'No Stains Experts', description: 'Our high-definition sprays provides the most natural-looking, undetectable perfume stains.', icon: 'ScissorsIcon' },
     { title: 'Fast, Secure Delivery', description: 'Your order is processed quickly and shipped securely to your doorstep.', icon: 'TruckIcon' },
     { title: 'Exceptional Support', description: 'Our dedicated team is here to help you with any questions or concerns.', icon: 'ChatBubbleIcon' }
@@ -297,7 +297,7 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
             
             <div className="flex flex-col flex-grow">
                 <p className="text-[10px] text-gray-500 tracking-[0.2em] uppercase mb-1">
-                    {product.bottleSize || 'Signature'}
+                    {product.bottleSize ? `Size: ${product.bottleSize}` : 'Size'}
                 </p>
                 <div className="flex justify-between items-start gap-4">
                     <h3 className="text-sm font-medium text-[#111] dark:text-white leading-snug truncate">{product.name}</h3>
@@ -795,7 +795,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                     {/* Product Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-col justify-start pt-4">
                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">
-                            {product.bottleSize ? `Signature • ${product.bottleSize}` : 'Signature Collection'}
+                            {product.bottleSize ? `Size • ${product.bottleSize}` : 'Standard Size'}
                         </p>
                         <h1 className="text-3xl md:text-5xl font-medium text-[#111] dark:text-white tracking-tight mb-6">{product.name}</h1>
                         
@@ -1095,7 +1095,7 @@ const CartPage = ({ cart, onUpdateCart, onRemoveFromCart, onNavigate }) => {
                                                 <div className="ml-6 flex-1 flex flex-col">
                                                     <div className="flex justify-between items-start">
                                                         <div>
-                                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{item.bottleSize || 'Signature'}</p>
+                                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{item.bottleSize ? `Size: ${item.bottleSize}` : 'Standard Size'}</p>
                                                             <h3 className="text-lg font-medium text-[#111] dark:text-white">{item.name}</h3>
                                                         </div>
                                                         <button onClick={() => onRemoveFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors"><XIcon /></button>
@@ -1387,7 +1387,7 @@ const OrderConfirmationPage = ({ onNavigate }) => (
             <h1 className="text-3xl font-black uppercase tracking-[0.1em] text-[#111] dark:text-white mb-4">Transaction Approved</h1> 
             <p className="text-sm text-gray-500 leading-relaxed mb-12">Thank you for your purchase. Your digital receipt and shipping updates will be dispatched to your email.</p> 
             <button onClick={() => onNavigate('orders')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs tracking-widest font-bold uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
-                Track Acquisition
+                Back to Orders
             </button> 
         </div> 
     </motion.div> 
