@@ -1393,7 +1393,7 @@ const OrderConfirmationPage = ({ onNavigate }) => (
             <h1 className="text-3xl font-black uppercase tracking-[0.1em] text-[#111] dark:text-white mb-4">Transaction Approved</h1> 
             <p className="text-sm text-gray-500 leading-relaxed mb-12">Thank you for your purchase. Your digital receipt and shipping updates will be dispatched to your email.</p> 
             <button onClick={() => onNavigate('orders')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs tracking-widest font-bold uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
-                Track Acquisition
+                Back to order history
             </button> 
         </div> 
     </motion.div> 
