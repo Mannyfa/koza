@@ -52,7 +52,7 @@ const heroSlides = [
 ];
 
 const whyUsData = [
-    { title: '100% Quality Perfumes', description: 'We source only the highest quality ingredients for all our products.', icon: 'SparklesIcon' },
+    { title: '100% Quality Perfumes', description: 'We source only the highest quality, undiluted perfumes for all our products.', icon: 'SparklesIcon' },
     { title: 'No Stains Experts', description: 'Our high-definition sprays provides the most natural-looking, undetectable perfume stains.', icon: 'ScissorsIcon' },
     { title: 'Fast, Secure Delivery', description: 'Your order is processed quickly and shipped securely to your doorstep.', icon: 'TruckIcon' },
     { title: 'Exceptional Support', description: 'Our dedicated team is here to help you with any questions or concerns.', icon: 'ChatBubbleIcon' }
@@ -118,6 +118,16 @@ const Notification = ({ message, show }) => (
             </motion.div>
         )}
     </AnimatePresence>
+);
+
+const BrandLoader = () => (
+    <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
+        <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
+        </div>
+    </div>
 );
 
 const ThemeToggle = () => {
@@ -296,9 +306,16 @@ const ProductCard = ({ product, onProductClick, onToggleWishlist, isWishlisted }
             </div>
             
             <div className="flex flex-col flex-grow">
-                <p className="text-[10px] text-gray-500 tracking-[0.2em] uppercase mb-1">
-                    {product.bottleSize ? `Size: ${product.bottleSize}` : 'Size'}
-                </p>
+                <div className="flex justify-between items-end mb-2">
+                    <p className="text-[10px] text-gray-500 tracking-[0.2em] uppercase">
+                        {product.bottleSize ? `Size: ${product.bottleSize}` : 'Standard Size'}
+                    </p>
+                    {product.stockAmount !== undefined && (
+                        <span className={`text-[9px] tracking-[0.2em] uppercase font-bold ${product.stockAmount > 0 ? 'text-gray-400' : 'text-red-500'}`}>
+                            {product.stockAmount > 0 ? `${product.stockAmount} Available` : 'Sold Out'}
+                        </span>
+                    )}
+                </div>
                 <div className="flex justify-between items-start gap-4">
                     <h3 className="text-sm font-medium text-[#111] dark:text-white leading-snug truncate">{product.name}</h3>
                     <div className="text-right">
@@ -461,7 +478,6 @@ const AboutPage = () => {
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen">
             <div className="relative pt-32 pb-24 bg-[#111] overflow-hidden flex items-center justify-center min-h-[50vh]">
-                {/* CSS Background Image to prevent broken icon boxes */}
                 <div 
                     className="absolute inset-0 w-full h-full bg-cover bg-center opacity-30 grayscale" 
                     style={{ backgroundImage: "url('https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80')" }} 
@@ -589,7 +605,7 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
 
                         {totalPages > 1 && (
                             <div className="mt-24 w-full flex flex-col items-center">
-                                {/* NEW: Mobile Pagination */}
+                                {/* Mobile Pagination */}
                                 <div className="flex items-center justify-between w-full max-w-sm sm:hidden border border-gray-200 dark:border-gray-800 p-1 bg-white dark:bg-[#111]">
                                     <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
                                         <ChevronLeftIcon className="w-5 h-5" />
@@ -600,7 +616,7 @@ const ShopPage = ({ allProducts, onProductClick, loading, error, onToggleWishlis
                                     </button>
                                 </div>
 
-                                {/* Desktop Pagination with Flex-Wrap Safe Layout */}
+                                {/* Desktop Pagination */}
                                 <div className="hidden sm:flex items-center justify-center gap-2 flex-wrap max-w-full">
                                     <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon className="w-5 h-5" /></button>
                                     <div className="flex flex-wrap justify-center gap-2">
@@ -655,7 +671,7 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                         </motion.div>
                         {totalPages > 1 && (
                             <div className="mt-24 w-full flex flex-col items-center">
-                                {/* NEW: Mobile Pagination */}
+                                {/* Mobile Pagination */}
                                 <div className="flex items-center justify-between w-full max-w-sm sm:hidden border border-gray-200 dark:border-gray-800 p-1 bg-white dark:bg-[#111]">
                                     <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="p-3 text-[#111] dark:text-white disabled:opacity-30">
                                         <ChevronLeftIcon className="w-5 h-5" />
@@ -666,7 +682,7 @@ const SearchPage = ({ searchResults, onProductClick, loading, query, onToggleWis
                                     </button>
                                 </div>
 
-                                {/* Desktop Pagination with Flex-Wrap Safe Layout */}
+                                {/* Desktop Pagination */}
                                 <div className="hidden sm:flex items-center justify-center gap-2 flex-wrap max-w-full">
                                     <button onClick={() => paginate(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className="w-12 h-12 flex items-center justify-center border border-gray-300 dark:border-gray-700 text-[#111] dark:text-white disabled:opacity-30 hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111] transition-colors rounded-none"><ChevronLeftIcon className="w-5 h-5" /></button>
                                     <div className="flex flex-wrap justify-center gap-2">
@@ -815,7 +831,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
 
                         {product.stockAmount !== undefined && (
                             <p className={`text-xs uppercase tracking-widest font-bold mb-8 ${!isOutOfStock ? 'text-[#111] dark:text-white' : 'text-red-500'}`}>
-                                {!isOutOfStock ? 'In Stock' : 'Out of Stock'}
+                                {!isOutOfStock ? `${product.stockAmount} Units Available` : 'Out of Stock'}
                             </p>
                         )}
                         
@@ -1387,7 +1403,7 @@ const OrderConfirmationPage = ({ onNavigate }) => (
             <h1 className="text-3xl font-black uppercase tracking-[0.1em] text-[#111] dark:text-white mb-4">Transaction Approved</h1> 
             <p className="text-sm text-gray-500 leading-relaxed mb-12">Thank you for your purchase. Your digital receipt and shipping updates will be dispatched to your email.</p> 
             <button onClick={() => onNavigate('orders')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs tracking-widest font-bold uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
-                Back to Orders
+                Track Acquisition
             </button> 
         </div> 
     </motion.div> 
