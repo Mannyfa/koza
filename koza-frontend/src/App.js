@@ -40,6 +40,7 @@ const ThemeProvider = ({ children }) => {
 const navLinks = [
   { name: 'Home', page: 'home' },
   { name: 'Shop', page: 'shop' },
+  { name: 'Learn', page: 'learn' },
   { name: 'About', page: 'about' },
   { name: 'Contact', page: 'contact' },
 ];
@@ -118,6 +119,16 @@ const Notification = ({ message, show }) => (
             </motion.div>
         )}
     </AnimatePresence>
+);
+
+const BrandLoader = () => (
+    <div className="flex justify-center items-center w-full py-32 min-h-[50vh]">
+        <div className="flex space-x-2 text-2xl md:text-3xl font-black tracking-[0.3em] uppercase">
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0 }} className="text-[#111] dark:text-white">Ope</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }} className="text-gray-400">Vicky</motion.span>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }} className="text-[#111] dark:text-white">Scents</motion.span>
+        </div>
+    </div>
 );
 
 const ThemeToggle = () => {
@@ -256,7 +267,7 @@ const MobileMenu = ({ mobileMenuOpen, setMobileMenuOpen, onNavigate }) => (
     </AnimatePresence>
 );
 
-// --- NEW: Minimalist Skeleton Loader ---
+// --- Minimalist Skeleton Loader ---
 const ProductSkeleton = () => (
     <div className="flex flex-col animate-pulse">
         <div className="w-full aspect-[3/4] bg-gray-200 dark:bg-gray-800 mb-4 rounded-none"></div>
@@ -422,6 +433,22 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
                 )}
             </div>
 
+            {/* NEW: Learn With Opevicky Preview Section */}
+            <div className="border-t border-gray-200 dark:border-gray-900 bg-[#111] text-white py-32">
+                <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 text-center">
+                    <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-gray-400 mb-6">Learn With Opevicky</h3>
+                    <h2 className="text-3xl md:text-5xl font-medium leading-tight mb-8">
+                        Master the Art of Fragrance & Craft.
+                    </h2>
+                    <p className="text-sm text-gray-400 max-w-xl mx-auto leading-relaxed mb-12">
+                        Learn practical skills in fragrance creation and gypsum craft with step-by-step guidance designed for beginners and aspiring entrepreneurs.
+                    </p>
+                    <button onClick={() => onNavigate('learn')} className="border border-white text-white px-10 py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-colors duration-500 rounded-none">
+                        Explore Training
+                    </button>
+                </div>
+            </div>
+
             <div className="border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-[#0A0A0A]">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                     <div className="h-[60vh] lg:h-auto overflow-hidden">
@@ -464,10 +491,249 @@ const HomePage = ({ allProducts, onProductClick, onNavigate, loading, error, onT
     );
 };
 
+// --- NEW: Learn Page (Masterclass Layout) ---
+const LearnPage = () => {
+    return (
+        <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-[#FAFAFA] dark:bg-[#0A0A0A] min-h-screen pt-32 pb-24">
+            <div className="max-w-screen-lg mx-auto px-6 lg:px-12">
+                
+                <div className="text-center border-b border-gray-200 dark:border-gray-800 pb-16 mb-16">
+                    <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-gray-400 mb-6">Online & Physical Training</h3>
+                    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-[#111] dark:text-white mb-8">
+                        Learn With Opevicky
+                    </h1>
+                    <p className="text-sm md:text-base text-gray-500 leading-relaxed max-w-2xl mx-auto">
+                        Learn practical skills in fragrance creation and gypsum craft with step-by-step guidance designed for beginners, aspiring entrepreneurs, and anyone looking to turn a skill into a business.
+                    </p>
+                </div>
+
+                <div className="space-y-24">
+                    {/* Course 01 */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+                        <div className="md:col-span-4">
+                            <p className="text-[10px] font-bold text-gray-400 tracking-[0.3em] uppercase mb-4">01 // Foundation</p>
+                            <h2 className="text-2xl font-medium text-[#111] dark:text-white mb-2 leading-tight">Scented Candle Making</h2>
+                            <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-1">1 Month Training</p>
+                        </div>
+                        <div className="md:col-span-8">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                                Learn how to create quality scented candles from scratch, understand the materials and formulations, choose the right wax and wick, work with fragrances, troubleshoot common candle-making issues, and properly finish, package and brand your products.
+                            </p>
+                            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 p-6 sm:p-8 mb-8">
+                                <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Curriculum Includes</h4>
+                                <ul className="text-xs text-gray-500 space-y-3">
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Step-by-step training</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Materials & ingredients guide</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Formulation guidance</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Candle finishing & packaging</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Suppliers’ contacts</li>
+                                </ul>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 border-t border-gray-200 dark:border-gray-800 pt-6">
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Online Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦60,000</p>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Physical Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦85,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full h-px bg-gray-200 dark:bg-gray-800"></div>
+
+                    {/* Course 02 */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+                        <div className="md:col-span-4">
+                            <p className="text-[10px] font-bold text-gray-400 tracking-[0.3em] uppercase mb-4">02 // Ambient Scents</p>
+                            <h2 className="text-2xl font-medium text-[#111] dark:text-white mb-2 leading-tight">Home Diffuser, Car Diffuser & Room Spray</h2>
+                            <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-1">1 Month Training</p>
+                        </div>
+                        <div className="md:col-span-8">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                                Learn how to formulate and produce home diffusers, car diffusers and room sprays, including proper measurements, ingredient selection, fragrance blending, production techniques, troubleshooting, packaging and basic branding.
+                            </p>
+                            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 p-6 sm:p-8 mb-8">
+                                <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Curriculum Includes</h4>
+                                <ul className="text-xs text-gray-500 space-y-3">
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Step-by-step training</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Formulation guidance</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Ingredients & materials guide</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Packaging & branding guidance</li>
+                                    <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Suppliers’ contacts</li>
+                                </ul>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 border-t border-gray-200 dark:border-gray-800 pt-6">
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Online Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦50,000</p>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Physical Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦75,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full h-px bg-gray-200 dark:bg-gray-800"></div>
+
+                    {/* Course 03 */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+                        <div className="md:col-span-4">
+                            <p className="text-[10px] font-bold text-gray-400 tracking-[0.3em] uppercase mb-4">03 // Artistry</p>
+                            <h2 className="text-2xl font-medium text-[#111] dark:text-white mb-2 leading-tight">Gypsum Craft</h2>
+                            <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-1">1 Month Training</p>
+                        </div>
+                        <div className="md:col-span-8">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                                Learn the fundamentals of gypsum craft, from preparing and mixing gypsum to moulding, colouring, finishing, painting, sealing and creating beautifully finished pieces.
+                            </p>
+                            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 p-6 sm:p-8 mb-8">
+                                <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Curriculum Includes</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <ul className="text-xs text-gray-500 space-y-3">
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Step-by-step training</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Materials & tools guide</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Moulding techniques</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Colouring & finishing</li>
+                                    </ul>
+                                    <ul className="text-xs text-gray-500 space-y-3">
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Painting & detailing</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Sealing techniques</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Suppliers’ contacts</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 border-t border-gray-200 dark:border-gray-800 pt-6">
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Online Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦40,000</p>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Physical Class</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white">₦70,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full h-px bg-gray-200 dark:bg-gray-800"></div>
+
+                    {/* Course 04 (Bundle) */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+                        <div className="md:col-span-4">
+                            <p className="text-[10px] font-bold text-[#D4AF37] tracking-[0.3em] uppercase mb-4">04 // The Masterclass</p>
+                            <h2 className="text-2xl font-medium text-[#111] dark:text-white mb-2 leading-tight">Complete Fragrance & Gypsum Business Bundle</h2>
+                            <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-1">1 Month Training</p>
+                        </div>
+                        <div className="md:col-span-8">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                                A complete training package designed for anyone who wants to learn multiple profitable product-making skills and build a fragrance and home décor business from the ground up.
+                            </p>
+                            
+                            <div className="space-y-6 bg-white dark:bg-[#111] border border-[#D4AF37]/50 p-6 sm:p-8 mb-8">
+                                <div>
+                                    <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Courses Included</h4>
+                                    <ul className="text-xs text-gray-500 space-y-3">
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Scented Candle Making</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Home Diffuser Making</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Car Diffuser Making</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Room Spray Making</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Gypsum Craft</li>
+                                    </ul>
+                                </div>
+                                
+                                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                                    <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">What You'll Learn</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <ul className="text-xs text-gray-500 space-y-3">
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Complete introduction to each product</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Materials, tools and ingredients required</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Understanding ingredients and their functions</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Formulation and proper measurements</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Step-by-step production processes</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Fragrance selection and blending</li>
+                                        </ul>
+                                        <ul className="text-xs text-gray-500 space-y-3">
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Wick selection and candle-making techniques</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Moulding, colouring and finishing for gypsum</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Troubleshooting common production problems</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Product finishing, packaging and presentation</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Basic branding and labelling</li>
+                                            <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> How to prepare your products for sale</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                                    <h4 className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Bonus Inclusions</h4>
+                                    <ul className="text-xs text-gray-500 space-y-3">
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Suppliers’ contacts and numbers for ingredients and materials</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Materials & ingredients guide</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Formulation guidance</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Packaging & branding guidance</li>
+                                        <li className="flex items-start"><span className="mr-3 text-[#D4AF37]">•</span> Business guidance for starting and selling your products</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4 border-t border-[#D4AF37]/30 pt-6">
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-bold mb-1">Online Bundle</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white mb-2">₦155,000</p>
+                                    <p className="text-xs text-gray-500">Learn all five skills from the comfort of your home.</p>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-bold mb-1">Physical Bundle</p>
+                                    <p className="text-xl font-medium text-[#111] dark:text-white mb-2">₦195,000</p>
+                                    <p className="text-xs text-gray-500">Get the complete five-course training with hands-on practical sessions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Global CTA */}
+                <div className="mt-32 text-center p-12 sm:p-20 bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 rounded-none">
+                    <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-gray-400 mb-6">Choose Your Learning Experience</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-2xl mx-auto mb-12">
+                        <div>
+                            <p className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-2">Online Training</p>
+                            <p className="text-xs text-gray-500 leading-relaxed">Learn from wherever you are, at your own pace with full digital access.</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold tracking-widest uppercase text-[#111] dark:text-white mb-2">Physical Training</p>
+                            <p className="text-xs text-gray-500 leading-relaxed">Get hands-on guidance and practical experience in person. (Additional fee applies).</p>
+                        </div>
+                    </div>
+                    
+                    <p className="text-xl font-medium text-[#111] dark:text-white mb-10 leading-relaxed max-w-xl mx-auto italic">
+                        "Learn the skill. Create with confidence. Build your brand."
+                    </p>
+
+                    <a 
+                        href="https://wa.me/2348142600088?text=Hello,%20I'm%20interested%20in%20enrolling%20in%20the%20Opevicky%20Training%20Program." 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block bg-[#111] dark:bg-white text-white dark:text-[#111] px-12 py-5 text-xs font-bold tracking-[0.2em] uppercase hover:bg-black/80 dark:hover:bg-gray-200 transition-colors duration-300 rounded-none"
+                    >
+                        Enroll via WhatsApp
+                    </a>
+                </div>
+
+            </div>
+        </motion.div>
+    );
+};
+
 const AboutPage = () => {
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen">
             <div className="relative pt-32 pb-24 bg-[#111] overflow-hidden flex items-center justify-center min-h-[50vh]">
+                {/* CSS Background Image to prevent broken icon boxes */}
                 <div 
                     className="absolute inset-0 w-full h-full bg-cover bg-center opacity-30 grayscale" 
                     style={{ backgroundImage: "url('https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80')" }} 
@@ -800,9 +1066,17 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                     
                     {/* Product Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-col justify-start pt-4">
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">
-                            {product.bottleSize ? `Size • ${product.bottleSize}` : 'Standard Size'}
-                        </p>
+                        <div className="flex justify-between items-end mb-4">
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">
+                                {product.bottleSize ? `Size • ${product.bottleSize}` : 'Standard Size'}
+                            </p>
+                            {product.stockAmount !== undefined && (
+                                <p className={`text-[9px] uppercase tracking-[0.2em] font-bold ${!isOutOfStock ? 'text-gray-400' : 'text-red-500'}`}>
+                                    {!isOutOfStock ? `${product.stockAmount} Units Available` : 'Out of Stock'}
+                                </p>
+                            )}
+                        </div>
+                        
                         <h1 className="text-3xl md:text-5xl font-medium text-[#111] dark:text-white tracking-tight mb-6">{product.name}</h1>
                         
                         <div className="flex items-center gap-4 mb-8">
@@ -818,12 +1092,6 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                                 <p className="text-2xl font-medium text-[#111] dark:text-white">{formatPrice(product.price)}</p>
                             )}
                         </div>
-
-                        {product.stockAmount !== undefined && (
-                            <p className={`text-xs uppercase tracking-widest font-bold mb-8 ${!isOutOfStock ? 'text-[#111] dark:text-white' : 'text-red-500'}`}>
-                                {!isOutOfStock ? `${product.stockAmount} Units Available` : 'Out of Stock'}
-                            </p>
-                        )}
                         
                         <div className="flex items-center mb-10 pb-10 border-b border-gray-200 dark:border-gray-800">
                             <div className="flex text-[#111] dark:text-white">
@@ -1393,7 +1661,7 @@ const OrderConfirmationPage = ({ onNavigate }) => (
             <h1 className="text-3xl font-black uppercase tracking-[0.1em] text-[#111] dark:text-white mb-4">Transaction Approved</h1> 
             <p className="text-sm text-gray-500 leading-relaxed mb-12">Thank you for your purchase. Your digital receipt and shipping updates will be dispatched to your email.</p> 
             <button onClick={() => onNavigate('orders')} className="w-full bg-[#111] dark:bg-white text-white dark:text-[#111] text-xs tracking-widest font-bold uppercase py-4 rounded-none hover:bg-black/80 dark:hover:bg-gray-200 transition-colors">
-                Back to order history
+                Track Acquisition
             </button> 
         </div> 
     </motion.div> 
@@ -1569,6 +1837,7 @@ export default function App() {
                     {currentPage === 'product' && selectedProduct ? (
                         <ProductDetailPage product={selectedProduct} onAddToCart={handleAddToCart} onBack={() => handleNavigate('shop')} onToggleWishlist={handleToggleWishlist} isWishlisted={currentUser?.wishlist?.includes(selectedProduct.id)} currentUser={currentUser} orders={orders} onSubmitReview={handleSubmitReview} />
                     ) : currentPage === 'home' ? ( <HomePage {...pageProps} />
+                    ) : currentPage === 'learn' ? ( <LearnPage />
                     ) : currentPage === 'about' ? ( <AboutPage />
                     ) : currentPage === 'shop' ? ( <ShopPage {...pageProps} />
                     ) : currentPage === 'search' ? ( <SearchPage searchResults={searchResults} onProductClick={handleProductClick} loading={loading} query={searchQuery} onToggleWishlist={handleToggleWishlist} currentUser={currentUser} />
