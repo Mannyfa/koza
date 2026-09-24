@@ -121,7 +121,6 @@ const Notification = ({ message, show }) => (
     </AnimatePresence>
 );
 
-
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
     return (
@@ -724,7 +723,6 @@ const AboutPage = () => {
     return (
         <motion.div variants={pageVariants} initial="initial" animate="in" exit="out" className="bg-white dark:bg-[#0A0A0A] min-h-screen">
             <div className="relative pt-32 pb-24 bg-[#111] overflow-hidden flex items-center justify-center min-h-[50vh]">
-                {/* CSS Background Image to prevent broken icon boxes */}
                 <div 
                     className="absolute inset-0 w-full h-full bg-cover bg-center opacity-30 grayscale" 
                     style={{ backgroundImage: "url('https://images.unsplash.com/photo-1615397323812-7bfdf7b78ff3?auto=format&fit=crop&w=1920&q=80')" }} 
@@ -1658,13 +1656,21 @@ const OrderConfirmationPage = ({ onNavigate }) => (
     </motion.div> 
 );
 
+// --- App Routing Helper ---
+const getInitialPage = () => {
+    const path = window.location.pathname;
+    if (path === '/' || path === '') return 'home';
+    if (path.startsWith('/product/')) return 'product';
+    return path.substring(1); 
+};
+
 export default function App() {
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState('home');
+    const [currentPage, setCurrentPage] = useState(getInitialPage());
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [notification, setNotification] = useState({ message: '', show: false });
     const [searchResults, setSearchResults] = useState([]);
@@ -1700,6 +1706,48 @@ export default function App() {
         fetchProducts();
     }, []);
 
+    // NEW: Handle deep-linking so shared Product URLs work on load
+    useEffect(() => {
+        const path = window.location.pathname;
+        if (path.startsWith('/product/') && allProducts.length > 0 && !selectedProduct) {
+            const slug = path.split('/product/')[1];
+            const product = allProducts.find(p => 
+                p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === slug
+            );
+            
+            if (product) {
+                setSelectedProduct(product);
+            } else {
+                setCurrentPage('shop');
+                window.history.replaceState({}, '', '/shop');
+            }
+        }
+    }, [allProducts, selectedProduct]);
+
+    // NEW: Listen for Browser Back/Forward button clicks
+    useEffect(() => {
+        const handlePopState = () => {
+            const path = window.location.pathname;
+            if (path === '/') {
+                setCurrentPage('home');
+                setSelectedProduct(null);
+            } else if (path.startsWith('/product/')) {
+                setCurrentPage('product');
+                if (allProducts.length > 0) {
+                    const slug = path.split('/product/')[1];
+                    const product = allProducts.find(p => p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === slug);
+                    setSelectedProduct(product || null);
+                }
+            } else {
+                setCurrentPage(path.substring(1));
+                setSelectedProduct(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [allProducts]);
+
     useEffect(() => {
         if (currentUser) {
             const fetchOrders = async () => {
@@ -1731,10 +1779,19 @@ export default function App() {
 
     const showNotification = (message) => { setNotification({ message, show: true }); setTimeout(() => { setNotification({ message: '', show: false }); }, 3000); };
     
+    // UPDATED: Push the URL to the browser address bar dynamically
     const handleNavigate = (page, data = null) => { 
         setCurrentPage(page); 
-        if(page === 'product' && data) { setSelectedProduct(data); }
-        else if (page !== 'product') { setSelectedProduct(null); }
+        
+        if (page === 'product' && data) { 
+            setSelectedProduct(data); 
+            const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            window.history.pushState({}, '', `/product/${slug}`);
+        } else { 
+            setSelectedProduct(null); 
+            window.history.pushState({}, '', page === 'home' ? '/' : `/${page}`);
+        }
+        
         window.scrollTo({ top: 0, behavior: 'smooth' }); 
     };
     
