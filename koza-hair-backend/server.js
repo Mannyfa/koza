@@ -7,6 +7,8 @@ const https = require('https');
 const jwt = require('jsonwebtoken'); 
 const bcrypt = require('bcryptjs'); 
 require('dotenv').config();
+const { OrderError, buildOrderCart, toKobo, verifyPaystackTransaction } = require('./utils/orderPricing');
+const { escapeHtml, escapeRegex } = require('./utils/escapeHtml');
 
 // Cloudinary Imports
 const cloudinary = require('cloudinary').v2;
@@ -73,6 +75,7 @@ const productSchema = new mongoose.Schema({
     bottleSize: { type: String, default: '' },
     stockAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }, 
+    isOutOfStock: { type: Boolean, default: false }, // Manual "Out of Stock" switch from the admin panel
     reviews: { type: Array, default: [] },
     discountPercentage: { type: Number, default: 0 } 
 });
@@ -191,7 +194,7 @@ const sendStatusEmail = async (order, status) => {
         const cartHtmlRows = (order.cart || []).map(item => `
             <tr>
                 <td style="padding: 15px 10px; border-bottom: 1px solid #333; color: #fff; font-size: 14px; text-align: left;">
-                    ${item.name} ${item.bottleSize ? `<br><span style="color: #888; font-size: 12px;">(${item.bottleSize})</span>` : ''}
+                    ${escapeHtml(item.name)} ${item.bottleSize ? `<br><span style="color: #888; font-size: 12px;">(${escapeHtml(item.bottleSize)})</span>` : ''}
                 </td>
                 <td style="padding: 15px 10px; border-bottom: 1px solid #333; color: #fff; font-size: 14px; text-align: center;">
                     ${item.quantity}
@@ -205,7 +208,7 @@ const sendStatusEmail = async (order, status) => {
         bodyContent = `
             <p style="color: #aaa; font-size: 15px; margin-bottom: 25px;">Thank you for shopping with Opevicky Scents.</p>
             <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
-                Hi ${order.customer.name},<br><br>
+                Hi ${escapeHtml(order.customer.name)},<br><br>
                 We’ve received your order and we’re excited to prepare it for you. Your order is currently being processed by our team, and we’ll make sure everything is carefully checked and packaged before it leaves us.
             </p>
             
@@ -238,10 +241,10 @@ const sendStatusEmail = async (order, status) => {
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
                 <h3 style="color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Shipping Details</h3>
                 <p style="color: #aaa; line-height: 1.6; margin: 0; font-size: 14px;">
-                    <strong>${order.customer.name}</strong><br>
-                    ${order.customer.address}<br>
-                    ${order.customer.city}, ${order.customer.state}<br>
-                    ${order.customer.phone}
+                    <strong>${escapeHtml(order.customer.name)}</strong><br>
+                    ${escapeHtml(order.customer.address)}<br>
+                    ${escapeHtml(order.customer.city)}, ${escapeHtml(order.customer.state)}<br>
+                    ${escapeHtml(order.customer.phone)}
                 </p>
             </div>
 
@@ -254,7 +257,7 @@ const sendStatusEmail = async (order, status) => {
         subject = 'Your Opevicky Order Is On Its Way';
         bodyContent = `
             <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
-                Hi ${order.customer.name},<br><br>
+                Hi ${escapeHtml(order.customer.name)},<br><br>
                 Good news — your Opevicky order has officially left us and is now on its way to you.
             </p>
             <h3 style="color: #D4AF37; margin-top: 0; margin-bottom: 20px; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
@@ -270,7 +273,7 @@ const sendStatusEmail = async (order, status) => {
         subject = 'Your Opevicky Order Has Arrived';
         bodyContent = `
             <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
-                Hi ${order.customer.name},<br><br>
+                Hi ${escapeHtml(order.customer.name)},<br><br>
                 Your Opevicky order has officially been delivered.<br><br>
                 We hope your new fragrance brings you exactly the experience you were looking for and becomes a scent you genuinely enjoy.
             </p>
@@ -493,7 +496,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email: new RegExp('^' + email + '$', 'i') });
+        const user = await User.findOne({ email: new RegExp('^' + escapeRegex(String(email || '')) + '$', 'i') });
         if (!user) {
             return res.status(404).json({ message: "No account found with that email address." });
         }
@@ -531,7 +534,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
         const { email, code, newPassword } = req.body;
         
         const user = await User.findOne({ 
-            email: new RegExp('^' + email + '$', 'i'), 
+            email: new RegExp('^' + escapeRegex(String(email || '')) + '$', 'i'), 
             resetCode: code, 
             resetCodeExpires: { $gt: Date.now() } 
         });
@@ -585,7 +588,7 @@ app.get('/api/products', async (req, res) => {
 // UPDATED: Now accepts an array of up to 5 images
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage } = req.body;
         
         const imagePaths = req.files ? req.files.map(file => file.path) : [];
         const primaryImage = imagePaths.length > 0 ? imagePaths[0] : '';
@@ -597,7 +600,8 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
             discountPercentage: parseInt(discountPercentage) || 0,
             image: primaryImage, 
             images: imagePaths, 
-            isActive: isActive === 'false' || isActive === false ? false : true
+            isActive: isActive === 'false' || isActive === false ? false : true,
+            isOutOfStock: isOutOfStock === 'true' || isOutOfStock === true
         });
         
         await newProduct.save();
@@ -610,7 +614,7 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
 // UPDATED: Now accepts an array of up to 5 images
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive, discountPercentage } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage } = req.body;
         
         let updateData = { 
             name, price, description, bottleSize,
@@ -618,6 +622,10 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
             discountPercentage: parseInt(discountPercentage) || 0,
             isActive: isActive === 'false' || isActive === false ? false : true
         };
+        // Only change the switch when the admin panel sends it (older admin builds don't)
+        if (isOutOfStock !== undefined) {
+            updateData.isOutOfStock = isOutOfStock === 'true' || isOutOfStock === true;
+        }
         
         if (req.files && req.files.length > 0) {
             const imagePaths = req.files.map(file => file.path);
@@ -701,30 +709,96 @@ app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'm
     }
 });
 
-app.post('/api/payments/verify', async (req, res) => {
+const CUSTOMER_FIELDS = ['name', 'email', 'phone', 'address', 'city', 'state'];
+
+const cleanCustomer = (customer = {}) => {
+    const cleaned = {};
+    for (const field of CUSTOMER_FIELDS) {
+        const value = typeof customer[field] === 'string' ? customer[field].trim().slice(0, 200) : '';
+        if (!value) throw new OrderError(`Missing customer ${field}.`);
+        cleaned[field] = value;
+    }
+    return cleaned;
+};
+
+const sendAdminPaymentAlert = (subject, rows) => {
+    if (!process.env.ADMIN_EMAIL) return Promise.resolve();
+    const html = `
+        <div style="font-family: sans-serif; color: #191970;">
+            <h2 style="color: #b91c1c;">${escapeHtml(subject)}</h2>
+            ${rows.map(([label, value]) => `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`).join('')}
+            <p>Check this reference in the Paystack dashboard and follow up with the customer.</p>
+        </div>
+    `;
+    return sendEmailJS({ to_email: process.env.ADMIN_EMAIL, subject: `⚠️ ${subject}`, html_message: html });
+};
+
+const findProductsByIds = (ids) =>
+    Product.find({ _id: { $in: ids.filter((id) => mongoose.isValidObjectId(id)) } });
+
+// Checked by the storefront right before the Paystack popup opens, so customers are
+// never charged for items that are out of stock or no longer sold.
+app.post('/api/orders/validate-cart', async (req, res) => {
     try {
-        const { reference, cart, customer } = req.body;
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const newOrder = new Order({ reference, customer, cart, total, status: 'Processing' });
-        const savedOrder = await newOrder.save();
-        
+        const { cart, total } = await buildOrderCart((req.body || {}).cart, findProductsByIds);
+        res.status(200).json({ status: 'success', cart, total });
+    } catch (error) {
+        if (error instanceof OrderError) return res.status(error.status).json({ status: 'fail', message: error.message });
+        console.error('Cart validation failed:', error);
+        res.status(500).json({ status: 'fail', message: 'Could not check your cart. Please try again.' });
+    }
+});
+
+// Verifies a Paystack payment, re-prices the cart from the database and only
+// then creates the order. Browser-supplied prices and totals are ignored.
+app.post('/api/payments/verify', async (req, res) => {
+    const { reference, cart: clientCart, customer: rawCustomer } = req.body || {};
+    let payment = null; // set once Paystack confirms the customer was charged
+
+    try {
+        if (typeof reference !== 'string' || !reference.trim()) {
+            throw new OrderError('Transaction reference is required.');
+        }
+        if (await Order.exists({ reference })) {
+            return res.status(400).json({ status: 'fail', message: 'Order already processed.' });
+        }
+
+        const customer = cleanCustomer(rawCustomer);
+        payment = await verifyPaystackTransaction(reference, process.env.PAYSTACK_SECRET_KEY);
+        const { cart, total } = await buildOrderCart(clientCart, findProductsByIds);
+        const expectedKobo = toKobo(total);
+
+        if (payment.amount < expectedKobo) {
+            console.error(`Underpayment for ${reference}: paid ${payment.amount} kobo, expected ${expectedKobo} kobo`);
+            throw new OrderError(`The amount paid does not match your order total. Please contact support with reference ${reference}.`);
+        }
+
+        const savedOrder = await new Order({
+            reference,
+            customer,
+            cart,
+            total: payment.amount / 100,
+            status: 'Processing',
+        }).save();
+
         await sendStatusEmail(savedOrder, 'Processing');
-        
+
         if (process.env.ADMIN_EMAIL) {
             const adminHtml = `
                 <div style="font-family: sans-serif; color: #191970;">
                     <h2 style="color: #D4AF37;">New Order Received!</h2>
                     <p>You just received a new order on OpevickyScents.</p>
                     <h3>Customer Details:</h3>
-                    <p><strong>Name:</strong> ${customer.name}</p>
-                    <p><strong>Email:</strong> ${customer.email}</p>
-                    <p><strong>Phone:</strong> ${customer.phone}</p>
-                    <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.state}</p>
+                    <p><strong>Name:</strong> ${escapeHtml(customer.name)}</p>
+                    <p><strong>Email:</strong> ${escapeHtml(customer.email)}</p>
+                    <p><strong>Phone:</strong> ${escapeHtml(customer.phone)}</p>
+                    <p><strong>Address:</strong> ${escapeHtml(customer.address)}, ${escapeHtml(customer.city)}, ${escapeHtml(customer.state)}</p>
                     <h3>Order Items:</h3>
                     <ul>
-                        ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${item.name}</li>`).join('')}
+                        ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${escapeHtml(item.name)}</li>`).join('')}
                     </ul>
-                    <p><strong>Total:</strong> ${total}</p>
+                    <p><strong>Total:</strong> ₦${savedOrder.total.toLocaleString()}</p>
+                    <p><strong>Paystack reference:</strong> ${escapeHtml(reference)}</p>
                 </div>
             `;
 
@@ -734,10 +808,34 @@ app.post('/api/payments/verify', async (req, res) => {
                 html_message: adminHtml
             });
         }
-        
+
         res.status(200).json({ status: 'success', message: 'Order saved successfully!', order: savedOrder });
     } catch (error) {
         if (error.code === 11000) return res.status(400).json({ status: 'fail', message: 'Order already processed.' });
+
+        // The customer was charged (or we could not confirm either way), so the admin must follow up.
+        const charged = payment !== null;
+        const unconfirmed = error instanceof OrderError && error.status >= 500;
+        if ((charged || unconfirmed) && typeof reference === 'string') {
+            const items = Array.isArray(clientCart)
+                ? clientCart.map((item) => `${item.quantity}x ${item.name || item.id || item._id}`).join(', ')
+                : 'unknown';
+            await sendAdminPaymentAlert(charged ? 'Paid order could not be completed' : 'Payment could not be verified', [
+                ['Reference', reference],
+                ['Amount paid', charged ? `₦${(payment.amount / 100).toLocaleString()}` : 'unknown'],
+                ['Reason', error.message],
+                ['Customer', rawCustomer ? `${rawCustomer.name} (${rawCustomer.email}, ${rawCustomer.phone})` : 'unknown'],
+                ['Items', items],
+            ]);
+        }
+
+        if (error instanceof OrderError) {
+            const message = charged && !/contact support/i.test(error.message)
+                ? `${error.message} Your payment was received; our team will contact you to resolve this (reference ${reference}).`
+                : error.message;
+            return res.status(error.status).json({ status: 'fail', message });
+        }
+        console.error('Failed to save order:', error);
         res.status(500).json({ status: 'fail', message: 'Failed to save order.' });
     }
 });

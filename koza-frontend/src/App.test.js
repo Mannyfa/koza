@@ -1,8 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+beforeEach(() => {
+    global.fetch = jest.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { products: [] } }) })
+    );
+    window.scrollTo = jest.fn();
+});
+
+afterEach(() => {
+    jest.resetAllMocks();
+});
+
+test('renders the brand name in the header', () => {
+    render(<App />);
+    expect(screen.getAllByText(/opevicky/i).length).toBeGreaterThan(0);
 });

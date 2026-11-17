@@ -307,7 +307,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     const productsPerPage = 10;
     
     const [formData, setFormData] = useState({ 
-        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: ''
+        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: ''
     });
     
     // UPDATED: Now an array to handle multiple files
@@ -342,11 +342,12 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                 bottleSize: product.bottleSize || '',
                 stockAmount: product.stockAmount !== undefined ? product.stockAmount : '',
                 isActive: product.isActive !== undefined ? product.isActive : true,
+                isOutOfStock: product.isOutOfStock === true,
                 discountPercentage: product.discountPercentage !== undefined ? product.discountPercentage : ''
             });
         } else {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, discountPercentage: '' });
+            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: '' });
         }
         setImageFiles([]); // Reset image array
         setIsModalOpen(true);
@@ -365,6 +366,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             formDataToSend.append('bottleSize', formData.bottleSize);
             formDataToSend.append('stockAmount', formData.stockAmount);
             formDataToSend.append('isActive', formData.isActive);
+            formDataToSend.append('isOutOfStock', formData.isOutOfStock);
             formDataToSend.append('discountPercentage', formData.discountPercentage); 
             
             // UPDATED: Append each file inside the imageFiles array
@@ -475,9 +477,13 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                                             <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
                                             <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
                                             <td className="p-3 sm:p-4 text-sm sm:text-base">
-                                                <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                    {product.stockAmount !== undefined ? product.stockAmount : 0} left
-                                                </span>
+                                                {product.isOutOfStock ? (
+                                                    <span className="px-2 py-1 rounded-md text-xs font-bold bg-red-100 text-red-700">Out of stock</span>
+                                                ) : (
+                                                    <span className={`px-2 py-1 rounded-md text-xs font-bold ${product.stockAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {product.stockAmount !== undefined ? product.stockAmount : 0} left
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="p-3 sm:p-4 text-sm sm:text-base">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isActive !== false ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -592,6 +598,23 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                             aria-checked={formData.isActive}
                         >
                             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 border rounded-md bg-slate-50 mb-2">
+                        <div>
+                            <span className="block text-sm font-medium text-gray-900">Out of Stock</span>
+                            <span className="block text-xs text-gray-500">Toggle on to show an "Out of Stock" badge and stop sales. The product stays visible.</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setFormData({...formData, isOutOfStock: !formData.isOutOfStock})}
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 ${formData.isOutOfStock ? 'bg-red-600' : 'bg-gray-200'}`}
+                            role="switch"
+                            aria-checked={formData.isOutOfStock}
+                            aria-label="Out of stock"
+                        >
+                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.isOutOfStock ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                     </div>
 

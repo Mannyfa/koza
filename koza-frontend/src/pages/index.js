@@ -1,0 +1,12 @@
+export { default as HomePage } from './HomePage';
+export { default as ShopPage } from './ShopPage';
+export { default as SearchPage } from './SearchPage';
+export { default as ProductDetailPage } from './ProductDetailPage';
+export { default as LearnPage } from './LearnPage';
+export { default as AboutPage } from './AboutPage';
+export { default as AuthPage } from './AuthPage';
+export { default as CartPage } from './CartPage';
+export { default as CheckoutPage } from './CheckoutPage';
+export { default as OrderConfirmationPage } from './OrderConfirmationPage';
+export { default as OrdersPage } from './OrdersPage';
+export { default as WishlistPage } from './WishlistPage';
