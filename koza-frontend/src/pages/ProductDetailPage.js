@@ -53,7 +53,7 @@ const ProductDetailPage = ({ product, onAddToCart, onToggleWishlist, isWishliste
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-col justify-start pt-4">
                         <div className="flex justify-between items-end mb-4">
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">
-                                {product.bottleSize ? `Size • ${product.bottleSize}` : 'Standard Size'}
+                                {[product.category, product.bottleSize ? `Size • ${product.bottleSize}` : 'Standard Size'].filter(Boolean).join('  /  ')}
                             </p>
                             {isOutOfStock ? (
                                 <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-red-500">Out of Stock</p>

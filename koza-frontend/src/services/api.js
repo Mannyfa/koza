@@ -72,3 +72,10 @@ export const verifyPayment = (reference, cart, customer) =>
 /** Asks the server to price the cart and confirm every item is in stock, before paying. */
 export const validateCart = (cart) =>
     request('/orders/validate-cart', { method: 'POST', body: { cart } });
+
+// --- Guest order tracking & contact ---
+export const trackOrder = (email, orderNumber) =>
+    request('/orders/track', { method: 'POST', body: { email, orderNumber } });
+
+export const sendContactMessage = (message) =>
+    request('/contact', { method: 'POST', body: message });

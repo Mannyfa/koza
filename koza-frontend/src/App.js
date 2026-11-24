@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 import { ThemeProvider } from './context/ThemeContext';
@@ -7,8 +7,8 @@ import Header from './components/layout/Header';
 import MobileMenu from './components/layout/MobileMenu';
 import Footer from './components/layout/Footer';
 import {
-    AboutPage, AuthPage, CartPage, CheckoutPage, HomePage, LearnPage, OrderConfirmationPage,
-    OrdersPage, ProductDetailPage, SearchPage, ShopPage, WishlistPage,
+    AboutPage, AuthPage, CartPage, CheckoutPage, ContactPage, HomePage, LearnPage, OrderConfirmationPage,
+    OrdersPage, ProductDetailPage, SearchPage, ShopPage, TrackOrderPage, WishlistPage,
 } from './pages';
 
 import useAuth from './hooks/useAuth';
@@ -16,6 +16,11 @@ import useCart from './hooks/useCart';
 import useNotification from './hooks/useNotification';
 import useRouter from './hooks/useRouter';
 import * as api from './services/api';
+import { searchProducts } from './utils/search';
+
+// Lets a search results page survive a reload or be shared (e.g. /search?q=oud)
+const initialSearchQuery = () =>
+    window.location.pathname === '/search' ? new URLSearchParams(window.location.search).get('q') || '' : '';
 
 export default function App() {
     // --- Data ---
@@ -23,8 +28,8 @@ export default function App() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [orders, setOrders] = useState([]);
-    const [searchResults, setSearchResults] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+    const [lastOrder, setLastOrder] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // --- App state hooks ---
@@ -56,12 +61,17 @@ export default function App() {
             .catch((e) => console.error('Error fetching orders:', e));
     }, [currentUser]);
 
+    const searchResults = useMemo(() => searchProducts(allProducts, searchQuery), [allProducts, searchQuery]);
+
     // --- Handlers ---
     const handleSearch = (query) => {
         setSearchQuery(query);
-        const q = query.toLowerCase();
-        setSearchResults(allProducts.filter((p) => p.name.toLowerCase().includes(q)));
-        navigate('search');
+        if (currentPage === 'search') {
+            window.history.replaceState({}, '', `/search?q=${encodeURIComponent(query)}`);
+        } else {
+            navigate('search');
+            window.history.replaceState({}, '', `/search?q=${encodeURIComponent(query)}`);
+        }
     };
 
     const handleProductClick = (product) => navigate('product', product);
@@ -107,6 +117,7 @@ export default function App() {
             const orderLines = cart.map((item) => ({ id: item.id, quantity: item.quantity }));
             const data = await api.verifyPayment(reference, orderLines, customerDetails);
             setOrders((prev) => [data.order, ...prev]);
+            setLastOrder(data.order);
             clearCart();
             navigate('orderConfirmation');
         } catch (e) {
@@ -149,12 +160,15 @@ export default function App() {
             case 'about': return <AboutPage />;
             case 'shop': return <ShopPage {...productListProps} />;
             case 'search':
-                return <SearchPage searchResults={searchResults} query={searchQuery} loading={loading} currentUser={currentUser} onProductClick={handleProductClick} onToggleWishlist={handleToggleWishlist} />;
+                return <SearchPage searchResults={searchResults} query={searchQuery} onSearch={handleSearch} loading={loading} currentUser={currentUser} onProductClick={handleProductClick} onToggleWishlist={handleToggleWishlist} />;
             case 'cart':
                 return <CartPage cart={cart} onUpdateCart={updateQuantity} onRemoveFromCart={removeFromCart} onNavigate={navigate} />;
             case 'checkout':
                 return <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} currentUser={currentUser} onNavigate={navigate} />;
-            case 'orderConfirmation': return <OrderConfirmationPage onNavigate={navigate} />;
+            case 'orderConfirmation': return <OrderConfirmationPage onNavigate={navigate} order={lastOrder} isSignedIn={!!currentUser} />;
+            case 'contact': return <ContactPage onNavigate={navigate} />;
+            case 'track':
+                return <TrackOrderPage onNavigate={navigate} initialEmail={lastOrder?.customer?.email || currentUser?.email || ''} initialOrderNumber={lastOrder ? String(lastOrder._id || '').slice(-6).toUpperCase() : ''} />;
             case 'orders': return <OrdersPage orders={orders} onNavigate={navigate} />;
             case 'wishlist':
                 return <WishlistPage allProducts={allProducts} currentUser={currentUser} onNavigate={navigate} onProductClick={handleProductClick} onToggleWishlist={handleToggleWishlist} />;
@@ -169,7 +183,7 @@ export default function App() {
         <ThemeProvider>
             <div className="bg-[#FAFAFA] dark:bg-[#0A0A0A] font-sans text-[#111] dark:text-white min-h-screen flex flex-col selection:bg-[#111] selection:text-white dark:selection:bg-white dark:selection:text-[#111]">
                 <Notification message={notification.message} show={notification.show} />
-                <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={navigate} cartCount={cartCount} onSearch={handleSearch} currentUser={currentUser} onLogout={handleLogout} />
+                <Header setMobileMenuOpen={setMobileMenuOpen} onNavigate={navigate} cartCount={cartCount} onSearch={handleSearch} products={allProducts} onProductClick={handleProductClick} currentUser={currentUser} onLogout={handleLogout} />
                 <MobileMenu mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} onNavigate={navigate} />
                 <main className="flex-grow">
                     <AnimatePresence mode="wait">

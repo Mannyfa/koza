@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { navLinks } from '../../data/siteData';
-import { MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from '../icons';
+import { MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon, XIcon } from '../icons';
+import SearchBox from './SearchBox';
 import ThemeToggle from './ThemeToggle';
 
 const userMenuItem = 'w-full text-left block px-4 py-3 text-xs tracking-widest uppercase transition-colors';
 
 // --- Header: Editorial & Stark (Always White) ---
-const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUser, onLogout }) => {
+const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, products, onProductClick, currentUser, onLogout }) => {
     const [scrolled, setScrolled] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -17,16 +18,6 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) onSearch(searchQuery.trim());
-    };
-
-    const handleMobileSearch = () => {
-        const query = window.prompt('Search for a fragrance:');
-        if (query && query.trim()) onSearch(query.trim());
-    };
 
     const handleUserMenuAction = (action) => {
         action();
@@ -41,14 +32,17 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
                     <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity" aria-label="Open menu">
                         <MenuIcon />
                     </button>
-                    <button onClick={handleMobileSearch} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity" aria-label="Search">
-                        <SearchIcon />
+                    <button onClick={() => setMobileSearchOpen((open) => !open)} className="lg:hidden text-[#111] hover:opacity-50 transition-opacity" aria-label={mobileSearchOpen ? 'Close search' : 'Search'} aria-expanded={mobileSearchOpen}>
+                        {mobileSearchOpen ? <XIcon className="h-5 w-5" /> : <SearchIcon />}
                     </button>
 
-                    <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center border-b border-[#111] pb-1 opacity-50 hover:opacity-100 transition-opacity focus-within:opacity-100">
-                        <SearchIcon />
-                        <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="SEARCH..." className="bg-transparent border-none outline-none text-xs font-medium tracking-[0.15em] uppercase text-[#111] placeholder-gray-500 ml-2 w-32 focus:w-48 transition-all" />
-                    </form>
+                    <SearchBox
+                        products={products}
+                        onSearch={onSearch}
+                        onProductClick={onProductClick}
+                        className="hidden lg:block border-b border-[#111] pb-1 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                        inputClassName="w-32 focus:w-48 transition-all"
+                    />
                 </div>
 
                 <div className="flex-1 flex justify-center w-1/3">
@@ -101,6 +95,21 @@ const Header = ({ setMobileMenuOpen, onNavigate, cartCount, onSearch, currentUse
                     </button>
                 </div>
             </nav>
+
+            {/* Mobile search bar */}
+            {mobileSearchOpen && (
+                <div className="lg:hidden max-w-screen-2xl mx-auto px-6 pt-4">
+                    <SearchBox
+                        products={products}
+                        onSearch={onSearch}
+                        onProductClick={onProductClick}
+                        onDone={() => setMobileSearchOpen(false)}
+                        autoFocus
+                        className="border-b border-[#111] pb-2"
+                        inputClassName="flex-1 w-full"
+                    />
+                </div>
+            )}
         </header>
     );
 };

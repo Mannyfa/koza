@@ -10,3 +10,5 @@ export { default as CheckoutPage } from './CheckoutPage';
 export { default as OrderConfirmationPage } from './OrderConfirmationPage';
 export { default as OrdersPage } from './OrdersPage';
 export { default as WishlistPage } from './WishlistPage';
+export { default as ContactPage } from './ContactPage';
+export { default as TrackOrderPage } from './TrackOrderPage';

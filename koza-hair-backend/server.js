@@ -9,12 +9,16 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 const { OrderError, buildOrderCart, toKobo, verifyPaystackTransaction } = require('./utils/orderPricing');
 const { escapeHtml, escapeRegex } = require('./utils/escapeHtml');
+const { limits } = require('./utils/rateLimit');
+const { LOW_STOCK_THRESHOLD, deductStock, restoreStock } = require('./utils/stock');
+const { PRODUCT_CATEGORIES, cleanCategory } = require('./utils/categories');
 
 // Cloudinary Imports
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
+app.set('trust proxy', 1); // Render sits behind a proxy; needed for per-visitor rate limits
 const PORT = process.env.PORT || 5001;
 
 app.use(cors());
@@ -61,8 +65,9 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     wishlist: { type: Array, default: [] },
-    resetCode: { type: String }, 
-    resetCodeExpires: { type: Date } 
+    resetCode: { type: String },
+    resetCodeExpires: { type: Date },
+    resetAttempts: { type: Number, default: 0 } // wrong codes entered; code is wiped after 5
 }, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
@@ -76,6 +81,7 @@ const productSchema = new mongoose.Schema({
     stockAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }, 
     isOutOfStock: { type: Boolean, default: false }, // Manual "Out of Stock" switch from the admin panel
+    category: { type: String, default: '' },
     reviews: { type: Array, default: [] },
     discountPercentage: { type: Number, default: 0 } 
 });
@@ -88,8 +94,10 @@ const orderSchema = new mongoose.Schema({
     },
     cart: Array,
     total: Number,
-    status: { type: String, default: 'Processing' }, 
-    date: { type: Date, default: Date.now }
+    status: { type: String, default: 'Processing' },
+    date: { type: Date, default: Date.now },
+    stockDeducted: { type: Boolean, default: false }, // stock was taken off when the order was paid
+    stockRestored: { type: Boolean, default: false }  // stock was put back because the order was cancelled
 });
 const Order = mongoose.model('Order', orderSchema);
 
@@ -286,7 +294,24 @@ const sendStatusEmail = async (order, status) => {
                 Enjoy your new scent, and we look forward to welcoming you back soon.
             </p>
         `;
+    } else if (status === 'Cancelled') {
+        subject = 'Your Opevicky Order Has Been Cancelled';
+        bodyContent = `
+            <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+                Hi ${escapeHtml(order.customer.name)},<br><br>
+                Your Opevicky order has been cancelled.
+            </p>
+            <h3 style="color: #D4AF37; margin-top: 0; margin-bottom: 20px; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                ORDER #${shortOrderId}
+            </h3>
+            <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+                If you have already paid, our team will contact you about your refund. If you did not request this cancellation or have any questions, please reply to this email or reach us on WhatsApp.<br><br>
+                Thank you for choosing Opevicky Scents.
+            </p>
+        `;
     }
+
+    if (!subject) return; // no email for other statuses
 
     // The core HTML wrapper structure all emails will use
     const fullHtml = `
@@ -368,7 +393,7 @@ const authorizeRoles = (...allowedRoles) => {
 // ==========================================
 
 // --- Admin Auth & Management Routes ---
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', limits.adminLogin, async (req, res) => {
     try {
         const { email, password } = req.body;
         const admin = await Admin.findOne({ email });
@@ -428,35 +453,95 @@ app.delete('/api/admin/users/:id', verifyAdmin, authorizeRoles('superadmin'), as
 // --- Analytics Routes ---
 app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
-        const orders = await Order.find({ status: { $ne: 'Cancelled' } }).sort({ date: 1 });
-        const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-        
+        const allOrders = await Order.find({}).sort({ date: 1 });
+        const orders = allOrders.filter((order) => order.status !== 'Cancelled');
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+
         const salesData = orders.reduce((acc, order) => {
             const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            
+
             if (!acc[date]) {
                 acc[date] = { revenue: 0, ordersCount: 0 };
             }
-            
-            acc[date].revenue += order.total;
+
+            acc[date].revenue += order.total || 0;
             acc[date].ordersCount += 1;
             return acc;
         }, {});
 
-        const chartData = Object.keys(salesData).map(date => ({ 
-            date, 
+        const chartData = Object.keys(salesData).map(date => ({
+            date,
             revenue: salesData[date].revenue,
             ordersCount: salesData[date].ordersCount
         }));
-        
-        res.status(200).json({ totalRevenue, totalOrders: orders.length, chartData });
+
+        // Orders by status (all orders, including cancelled)
+        const statusCounts = allOrders.reduce((acc, order) => {
+            const status = order.status || 'Processing';
+            acc[status] = (acc[status] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Best sellers by revenue (cancelled orders excluded)
+        const productTotals = new Map();
+        for (const order of orders) {
+            for (const item of order.cart || []) {
+                const key = String(item.product || item.id || item._id || item.name);
+                const entry = productTotals.get(key) || { id: key, name: item.name, quantity: 0, revenue: 0 };
+                const quantity = Number(item.quantity) || 0;
+                entry.quantity += quantity;
+                entry.revenue += (Number(item.price) || 0) * quantity;
+                productTotals.set(key, entry);
+            }
+        }
+        const topProducts = [...productTotals.values()]
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 10);
+
+        // Products running low or switched to out of stock (active products only)
+        const products = await Product.find({ isActive: { $ne: false } }).select('name stockAmount isOutOfStock category image images');
+        const lowStock = products
+            .filter((p) => p.isOutOfStock || (p.stockAmount || 0) <= LOW_STOCK_THRESHOLD)
+            .map((p) => ({
+                id: p._id,
+                name: p.name,
+                stockAmount: p.stockAmount || 0,
+                isOutOfStock: !!p.isOutOfStock,
+                category: p.category || '',
+                image: p.image || (p.images && p.images[0]) || '',
+            }))
+            .sort((a, b) => a.stockAmount - b.stockAmount);
+
+        // Revenue per category, using each product's current category
+        const categoryById = new Map(products.map((p) => [String(p._id), p.category || 'Uncategorised']));
+        const categoryTotals = {};
+        for (const entry of productTotals.values()) {
+            const category = categoryById.get(entry.id) || 'Uncategorised';
+            categoryTotals[category] = (categoryTotals[category] || 0) + entry.revenue;
+        }
+        const categoryRevenue = Object.entries(categoryTotals)
+            .map(([category, revenue]) => ({ category, revenue }))
+            .sort((a, b) => b.revenue - a.revenue);
+
+        res.status(200).json({
+            totalRevenue,
+            totalOrders: orders.length,
+            averageOrderValue: orders.length ? Math.round(totalRevenue / orders.length) : 0,
+            chartData,
+            statusCounts,
+            topProducts,
+            lowStock,
+            lowStockThreshold: LOW_STOCK_THRESHOLD,
+            categoryRevenue,
+        });
     } catch (error) {
+        console.error('Analytics failed:', error);
         res.status(500).json({ message: "Failed to fetch analytics" });
     }
 });
 
 // --- Customer Auth Routes ---
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', limits.register, async (req, res) => {
     try {
         const { email, password } = req.body;
         const existingUser = await User.findOne({ email });
@@ -476,7 +561,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', limits.customerLogin, async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -493,7 +578,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-app.post('/api/auth/forgot-password', async (req, res) => {
+app.post('/api/auth/forgot-password', limits.forgotPassword, async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email: new RegExp('^' + escapeRegex(String(email || '')) + '$', 'i') });
@@ -503,7 +588,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
         const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         user.resetCode = resetCode;
-        user.resetCodeExpires = Date.now() + 15 * 60 * 1000; 
+        user.resetCodeExpires = Date.now() + 15 * 60 * 1000;
+        user.resetAttempts = 0; 
         await user.save();
 
         const htmlMessage = `
@@ -529,25 +615,43 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
 });
 
-app.post('/api/auth/reset-password', async (req, res) => {
+app.post('/api/auth/reset-password', limits.resetPassword, async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
-        
-        const user = await User.findOne({ 
-            email: new RegExp('^' + escapeRegex(String(email || '')) + '$', 'i'), 
-            resetCode: code, 
-            resetCodeExpires: { $gt: Date.now() } 
-        });
+        const MAX_RESET_ATTEMPTS = 5;
 
-        if (!user) {
+        if (typeof newPassword !== 'string' || newPassword.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters." });
+        }
+
+        const user = await User.findOne({ email: new RegExp('^' + escapeRegex(String(email || '')) + '$', 'i') });
+        const codeIsLive = user && user.resetCode && user.resetCodeExpires && user.resetCodeExpires > Date.now();
+
+        if (!codeIsLive) {
             return res.status(400).json({ message: "Invalid or expired reset code." });
+        }
+
+        if (String(code || '').trim() !== user.resetCode) {
+            user.resetAttempts = (user.resetAttempts || 0) + 1;
+            if (user.resetAttempts >= MAX_RESET_ATTEMPTS) {
+                // Too many wrong guesses: wipe the code so it cannot be brute-forced
+                user.resetCode = undefined;
+                user.resetCodeExpires = undefined;
+                user.resetAttempts = 0;
+                await user.save();
+                return res.status(400).json({ message: "Too many incorrect codes. Please request a new reset code." });
+            }
+            await user.save();
+            const left = MAX_RESET_ATTEMPTS - user.resetAttempts;
+            return res.status(400).json({ message: `Invalid reset code. ${left} attempt${left === 1 ? '' : 's'} left.` });
         }
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
-        
+
         user.resetCode = undefined;
         user.resetCodeExpires = undefined;
+        user.resetAttempts = 0;
         await user.save();
 
         res.status(200).json({ message: "Password updated successfully!" });
@@ -576,6 +680,10 @@ app.put('/api/users/wishlist', verifyUser, async (req, res) => {
 });
 
 // --- Product Routes ---
+app.get('/api/products/categories', (req, res) => {
+    res.status(200).json({ categories: PRODUCT_CATEGORIES });
+});
+
 app.get('/api/products', async (req, res) => { 
     try {
         const products = await Product.find({});
@@ -588,7 +696,7 @@ app.get('/api/products', async (req, res) => {
 // UPDATED: Now accepts an array of up to 5 images
 app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage, category } = req.body;
         
         const imagePaths = req.files ? req.files.map(file => file.path) : [];
         const primaryImage = imagePaths.length > 0 ? imagePaths[0] : '';
@@ -601,7 +709,8 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
             image: primaryImage, 
             images: imagePaths, 
             isActive: isActive === 'false' || isActive === false ? false : true,
-            isOutOfStock: isOutOfStock === 'true' || isOutOfStock === true
+            isOutOfStock: isOutOfStock === 'true' || isOutOfStock === true,
+            category: cleanCategory(category)
         });
         
         await newProduct.save();
@@ -614,7 +723,7 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
 // UPDATED: Now accepts an array of up to 5 images
 app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'), upload.array('images', 5), async (req, res) => {
     try {
-        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage } = req.body;
+        const { name, price, description, bottleSize, stockAmount, isActive, isOutOfStock, discountPercentage, category } = req.body;
         
         let updateData = { 
             name, price, description, bottleSize,
@@ -625,6 +734,9 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
         // Only change the switch when the admin panel sends it (older admin builds don't)
         if (isOutOfStock !== undefined) {
             updateData.isOutOfStock = isOutOfStock === 'true' || isOutOfStock === true;
+        }
+        if (category !== undefined) {
+            updateData.category = cleanCategory(category);
         }
         
         if (req.files && req.files.length > 0) {
@@ -694,18 +806,135 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
     }
 });
 
+const ORDER_STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
 app.patch('/api/orders/:id/status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const updatedOrder = await Order.findByIdAndUpdate(id, { status: status }, { returnDocument: 'after' });
-        if (!updatedOrder) return res.status(404).json({ message: "Order not found" });
-        
+        if (!ORDER_STATUSES.includes(status)) {
+            return res.status(400).json({ message: `Status must be one of: ${ORDER_STATUSES.join(', ')}` });
+        }
+
+        const order = await Order.findById(id);
+        if (!order) return res.status(404).json({ message: "Order not found" });
+        const previousStatus = order.status;
+        if (previousStatus === status) {
+            return res.json({ status: 'success', order: { ...order.toObject(), id: order._id } });
+        }
+
+        // Keep stock in step: cancelling puts items back, un-cancelling takes them off again.
+        // Only orders whose stock was deducted at checkout are touched (older orders were not).
+        if (order.stockDeducted) {
+            if (status === 'Cancelled' && !order.stockRestored) {
+                await restoreStock(Product, order.cart || []);
+                order.stockRestored = true;
+            } else if (previousStatus === 'Cancelled' && order.stockRestored) {
+                await deductStock(Product, order.cart || []);
+                order.stockRestored = false;
+            }
+        }
+
+        order.status = status;
+        const updatedOrder = await order.save();
+
         await sendStatusEmail(updatedOrder, status);
-        
+
         res.json({ status: 'success', order: { ...updatedOrder.toObject(), id: updatedOrder._id } });
-    } catch (error) { 
-        res.status(500).json({ message: "Failed to update order status", error: error.message }); 
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update order status", error: error.message });
+    }
+});
+
+// --- Guest order tracking ---
+// Customers enter the email used at checkout and the order number from their receipt
+// email (e.g. "A1B2C3"), or the full Paystack reference.
+app.post('/api/orders/track', limits.trackOrder, async (req, res) => {
+    try {
+        const email = String((req.body || {}).email || '').trim();
+        const orderNumber = String((req.body || {}).orderNumber || '').trim().replace(/^#/, '');
+        if (!email || orderNumber.length < 6) {
+            return res.status(400).json({ message: 'Enter your email and the 6-character order number from your receipt.' });
+        }
+
+        const orders = await Order.find({ 'customer.email': new RegExp('^' + escapeRegex(email) + '$', 'i') })
+            .sort({ date: -1 })
+            .limit(200);
+        const wanted = orderNumber.toLowerCase();
+        const order = orders.find((o) =>
+            String(o.reference).toLowerCase() === wanted || String(o._id).toLowerCase().endsWith(wanted)
+        );
+
+        if (!order) {
+            return res.status(404).json({ message: 'We could not find an order with those details. Please check and try again.' });
+        }
+
+        res.status(200).json({
+            order: {
+                orderNumber: String(order._id).slice(-6).toUpperCase(),
+                status: order.status,
+                date: order.date,
+                total: order.total,
+                city: order.customer?.city || '',
+                state: order.customer?.state || '',
+                items: (order.cart || []).map((item) => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    bottleSize: item.bottleSize || '',
+                    image: item.image || (item.images && item.images[0]) || '',
+                })),
+            },
+        });
+    } catch (error) {
+        console.error('Order tracking failed:', error);
+        res.status(500).json({ message: 'Could not look up your order right now. Please try again.' });
+    }
+});
+
+// --- Contact form ---
+app.post('/api/contact', limits.contact, async (req, res) => {
+    try {
+        const body = req.body || {};
+        const clean = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+        const name = clean(body.name, 100);
+        const email = clean(body.email, 200);
+        const phone = clean(body.phone, 40);
+        const subject = clean(body.subject, 150) || 'General enquiry';
+        const message = clean(body.message, 3000);
+
+        if (!name || !email || !message) {
+            return res.status(400).json({ message: 'Please fill in your name, email and message.' });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ message: 'Please enter a valid email address.' });
+        }
+        if (!process.env.ADMIN_EMAIL) {
+            console.error('Contact form received but ADMIN_EMAIL is not set.');
+            return res.status(500).json({ message: 'Messages cannot be delivered right now. Please reach us on WhatsApp.' });
+        }
+
+        const html = `
+            <div style="font-family: sans-serif; color: #191970;">
+                <h2 style="color: #D4AF37;">New message from the website</h2>
+                <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+                ${phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ''}
+                <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
+                <p style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 6px;">${escapeHtml(message)}</p>
+            </div>
+        `;
+
+        await sendEmailJS({
+            to_email: process.env.ADMIN_EMAIL,
+            subject: `Website enquiry: ${subject}`.slice(0, 200),
+            html_message: html
+        });
+
+        res.status(200).json({ message: 'Thank you! We will get back to you shortly.' });
+    } catch (error) {
+        console.error('Contact form failed:', error);
+        res.status(500).json({ message: 'Could not send your message. Please try again or reach us on WhatsApp.' });
     }
 });
 
@@ -781,6 +1010,16 @@ app.post('/api/payments/verify', async (req, res) => {
             status: 'Processing',
         }).save();
 
+        // Take the sold quantities off stock
+        let lowStock = [];
+        try {
+            lowStock = await deductStock(Product, cart);
+            savedOrder.stockDeducted = true;
+            await savedOrder.save();
+        } catch (stockError) {
+            console.error(`Stock update failed for order ${savedOrder._id}:`, stockError);
+        }
+
         await sendStatusEmail(savedOrder, 'Processing');
 
         if (process.env.ADMIN_EMAIL) {
@@ -799,6 +1038,9 @@ app.post('/api/payments/verify', async (req, res) => {
                     </ul>
                     <p><strong>Total:</strong> ₦${savedOrder.total.toLocaleString()}</p>
                     <p><strong>Paystack reference:</strong> ${escapeHtml(reference)}</p>
+                    ${lowStock.length ? `
+                    <h3 style="color: #b91c1c;">Low stock (${LOW_STOCK_THRESHOLD} or fewer left):</h3>
+                    <ul>${lowStock.map(p => `<li>${escapeHtml(p.name)}: <strong>${p.stockAmount}</strong> left</li>`).join('')}</ul>` : ''}
                 </div>
             `;
 

@@ -54,6 +54,9 @@ const buildOrderCart = async (clientCart, findProductsByIds) => {
         if (isOutOfStock(product)) {
             throw new OrderError(`${product.name} is out of stock.`);
         }
+        if (typeof product.stockAmount === 'number' && quantity > product.stockAmount) {
+            throw new OrderError(`Only ${product.stockAmount} of ${product.name} left. Please reduce the quantity in your bag.`);
+        }
         return {
             id,
             product: id,

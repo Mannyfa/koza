@@ -14,6 +14,7 @@ const footerColumns = [
         heading: 'Client Services',
         links: [
             { label: 'Contact Us', page: 'contact' },
+            { label: 'Track Your Order', page: 'track' },
             { label: 'Our Story', page: 'about' },
         ],
     },

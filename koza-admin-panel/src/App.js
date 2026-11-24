@@ -15,6 +15,28 @@ const getImageUrl = (imagePath) => {
     return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`;
 };
 
+const PRODUCT_CATEGORIES = ['Perfume', 'Perfume Oil', 'Body Mist', 'Scented Candle', 'Diffuser', 'Room Spray', 'Gift Set', 'Other'];
+const ORDER_STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+// Builds a CSV file from rows (arrays of values) and downloads it
+const downloadCsv = (filename, rows) => {
+    const escapeCell = (value) => {
+        const text = value === null || value === undefined ? '' : String(value);
+        const safe = /^[=+\-@]/.test(text) ? `'${text}` : text; // stop spreadsheet formula injection
+        return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+    };
+    const csv = rows.map((row) => row.map(escapeCell).join(',')).join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+};
+
 // --- Icons ---
 const OrdersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
 const ProductsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
@@ -152,18 +174,44 @@ const LoginPage = ({ onLoginSuccess }) => {
 };
 
 // --- Analytics Page ---
-const AnalyticsPage = ({ onLogout }) => {
-    const [data, setData] = useState({ totalRevenue: 0, totalOrders: 0, chartData: [] });
+const STATUS_STYLES = {
+    Processing: 'bg-amber-100 text-amber-700',
+    Shipped: 'bg-blue-100 text-blue-700',
+    Delivered: 'bg-green-100 text-green-700',
+    Cancelled: 'bg-red-100 text-red-700',
+};
+
+const StatCard = ({ label, value, tone = 'text-slate-900', hint }) => (
+    <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+        <p className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+        <p className={`text-2xl sm:text-3xl font-black mt-2 ${tone}`}>{value}</p>
+        {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+    </div>
+);
+
+const AnalyticsPage = ({ onLogout, setPage }) => {
+    const [data, setData] = useState({
+        totalRevenue: 0, totalOrders: 0, averageOrderValue: 0, chartData: [],
+        statusCounts: {}, topProducts: [], lowStock: [], lowStockThreshold: 3, categoryRevenue: [],
+    });
     const [selectedMonth, setSelectedMonth] = useState('All Time');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
                 const res = await fetch(`${API_URL}/analytics`, { headers: getAuthHeaders() });
                 if (res.status === 401) return onLogout();
+                if (res.status === 403) return setError('Your role does not have access to analytics.');
                 const json = await res.json();
-                setData(json);
-            } catch (err) { console.error(err); }
+                setData((prev) => ({ ...prev, ...json }));
+            } catch (err) {
+                console.error(err);
+                setError('Could not load analytics.');
+            } finally {
+                setLoading(false);
+            }
         };
         fetchAnalytics();
     }, [onLogout]);
@@ -176,12 +224,18 @@ const AnalyticsPage = ({ onLogout }) => {
         displayRevenue = monthData ? monthData.revenue : 0;
         displayOrders = monthData ? monthData.ordersCount : 0;
     }
+    const displayAverage = displayOrders ? Math.round(displayRevenue / displayOrders) : 0;
+    const openOrders = (data.statusCounts.Processing || 0) + (data.statusCounts.Shipped || 0);
+    const maxTopRevenue = Math.max(1, ...data.topProducts.map((p) => p.revenue));
+    const totalCategoryRevenue = data.categoryRevenue.reduce((sum, c) => sum + c.revenue, 0) || 1;
+
+    if (loading) return <div className="p-4 sm:p-8 text-center mt-10">Loading Analytics...</div>;
+    if (error) return <div className="p-4 sm:p-8"><div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div></div>;
 
     return (
-        <div className="p-4 sm:p-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="p-4 sm:p-8 space-y-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-2xl font-bold">Store Analytics</h1>
-                
                 <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
@@ -193,22 +247,26 @@ const AnalyticsPage = ({ onLogout }) => {
                     ))}
                 </select>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all">
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                        {selectedMonth === 'All Time' ? 'Total Revenue' : `Revenue (${selectedMonth})`}
-                    </p>
-                    <p className="text-3xl font-black text-green-600 mt-2">₦{displayRevenue.toLocaleString()}</p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all">
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                        {selectedMonth === 'All Time' ? 'Total Orders' : `Orders (${selectedMonth})`}
-                    </p>
-                    <p className="text-3xl font-black text-blue-600 mt-2">{displayOrders}</p>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <StatCard label={selectedMonth === 'All Time' ? 'Total Revenue' : `Revenue (${selectedMonth})`} value={`₦${displayRevenue.toLocaleString()}`} tone="text-green-600" />
+                <StatCard label={selectedMonth === 'All Time' ? 'Total Orders' : `Orders (${selectedMonth})`} value={displayOrders} tone="text-blue-600" hint="Cancelled orders excluded" />
+                <StatCard label="Average Order" value={`₦${displayAverage.toLocaleString()}`} />
+                <StatCard label="Open Orders" value={openOrders} tone={openOrders ? 'text-amber-600' : 'text-slate-900'} hint="Processing + shipped" />
+            </div>
+
+            {/* Orders by status */}
+            <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="font-bold text-gray-700 mb-4">Orders by Status</h3>
+                <div className="flex flex-wrap gap-3">
+                    {['Processing', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
+                        <button key={status} onClick={() => setPage && setPage('orders')} className={`px-3 py-2 rounded-lg text-sm font-bold ${STATUS_STYLES[status]}`}>
+                            {status}: {data.statusCounts[status] || 0}
+                        </button>
+                    ))}
                 </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-96">
                 <h3 className="font-bold text-gray-700 mb-4">Revenue Over Time</h3>
                 <ResponsiveContainer width="100%" height="100%">
@@ -221,6 +279,80 @@ const AnalyticsPage = ({ onLogout }) => {
                     </LineChart>
                 </ResponsiveContainer>
             </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Best sellers */}
+                <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-1">Best Sellers</h3>
+                    <p className="text-xs text-gray-400 mb-4">All time, by revenue. Cancelled orders excluded.</p>
+                    {data.topProducts.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No sales yet.</p>
+                    ) : (
+                        <ol className="space-y-3">
+                            {data.topProducts.map((p, i) => (
+                                <li key={p.id}>
+                                    <div className="flex justify-between text-sm mb-1 gap-3">
+                                        <span className="font-medium text-slate-700 truncate">{i + 1}. {p.name}</span>
+                                        <span className="text-slate-500 whitespace-nowrap">{p.quantity} sold · <strong className="text-slate-800">₦{Math.round(p.revenue).toLocaleString()}</strong></span>
+                                    </div>
+                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(p.revenue / maxTopRevenue) * 100}%` }} />
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                </div>
+
+                {/* Low stock */}
+                <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex justify-between items-start mb-4 gap-3">
+                        <div>
+                            <h3 className="font-bold text-gray-700 mb-1">Low Stock</h3>
+                            <p className="text-xs text-gray-400">Active products with {data.lowStockThreshold} or fewer left, or switched to out of stock.</p>
+                        </div>
+                        {setPage && <button onClick={() => setPage('products')} className="text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap">Manage →</button>}
+                    </div>
+                    {data.lowStock.length === 0 ? (
+                        <p className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">Everything is well stocked.</p>
+                    ) : (
+                        <ul className="divide-y max-h-80 overflow-y-auto">
+                            {data.lowStock.map((p) => (
+                                <li key={p.id} className="py-2 flex items-center gap-3 text-sm">
+                                    <img src={getImageUrl(p.image)} alt="" className="w-9 h-9 object-cover rounded-md border shrink-0" />
+                                    <span className="flex-1 font-medium text-slate-700 truncate">{p.name}</span>
+                                    <span className={`px-2 py-1 rounded-md text-xs font-bold whitespace-nowrap ${p.isOutOfStock || p.stockAmount === 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {p.isOutOfStock ? 'Switched off' : p.stockAmount === 0 ? 'Sold out' : `${p.stockAmount} left`}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
+
+            {/* Revenue by category */}
+            {data.categoryRevenue.length > 0 && (
+                <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-4">Revenue by Category</h3>
+                    <ul className="space-y-3">
+                        {data.categoryRevenue.map((c) => {
+                            const share = Math.round((c.revenue / totalCategoryRevenue) * 100);
+                            return (
+                                <li key={c.category}>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium text-slate-700">{c.category}</span>
+                                        <span className="text-slate-500">₦{Math.round(c.revenue).toLocaleString()} · {share}%</span>
+                                    </div>
+                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#D4AF37] rounded-full" style={{ width: `${share}%` }} />
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 };
@@ -307,7 +439,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
     const productsPerPage = 10;
     
     const [formData, setFormData] = useState({ 
-        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: ''
+        name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: '', category: ''
     });
     
     // UPDATED: Now an array to handle multiple files
@@ -343,11 +475,12 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                 stockAmount: product.stockAmount !== undefined ? product.stockAmount : '',
                 isActive: product.isActive !== undefined ? product.isActive : true,
                 isOutOfStock: product.isOutOfStock === true,
+                category: product.category || '',
                 discountPercentage: product.discountPercentage !== undefined ? product.discountPercentage : ''
             });
         } else {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: '' });
+            setFormData({ name: '', price: '', description: '', bottleSize: '', stockAmount: '', isActive: true, isOutOfStock: false, discountPercentage: '', category: '' });
         }
         setImageFiles([]); // Reset image array
         setIsModalOpen(true);
@@ -367,6 +500,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
             formDataToSend.append('stockAmount', formData.stockAmount);
             formDataToSend.append('isActive', formData.isActive);
             formDataToSend.append('isOutOfStock', formData.isOutOfStock);
+            formDataToSend.append('category', formData.category);
             formDataToSend.append('discountPercentage', formData.discountPercentage); 
             
             // UPDATED: Append each file inside the imageFiles array
@@ -473,6 +607,7 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                                             <td className="p-3 sm:p-4 font-medium text-sm sm:text-base">
                                                 {product.name} 
                                                 {product.discountPercentage > 0 && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">-{product.discountPercentage}%</span>}
+                                                <div className={`text-xs font-normal mt-0.5 ${product.category ? 'text-slate-500' : 'text-amber-600'}`}>{product.category || 'No category'}</div>
                                             </td>
                                             <td className="p-3 sm:p-4 text-sm sm:text-base text-gray-600">{product.bottleSize || 'N/A'}</td>
                                             <td className="p-3 sm:p-4 text-sm sm:text-base">₦{product.price.toLocaleString()}</td>
@@ -623,6 +758,15 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                         <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded-md" required />
                     </div>
                     
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full p-2 border rounded-md bg-white" required>
+                            <option value="" disabled>Choose a category</option>
+                            {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <span className="block text-xs text-gray-500 mt-1">Used for the shop filters on the website.</span>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Bottle Size</label>
@@ -704,6 +848,9 @@ const OrdersPage = ({ onLogout, adminRole }) => {
     };
 
     const updateStatus = async (id, status) => {
+        if (status === 'Cancelled' && !window.confirm('Cancel this order? The customer will be emailed and the items will be added back to stock.')) {
+            return;
+        }
         try {
             const res = await fetch(`${API_URL}/orders/${id}/status`, {
                 method: 'PATCH',
@@ -716,18 +863,42 @@ const OrdersPage = ({ onLogout, adminRole }) => {
             }
             if (res.ok) {
                 fetchOrders();
-                alert(`Status updated to ${status}. Email sent to customer.`);
+                const stockNote = status === 'Cancelled' ? ' Stock has been returned to the shelf.' : '';
+                alert(`Status updated to ${status}. Email sent to customer.${stockNote}`);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.message || 'Failed to update status.');
             }
         } catch (err) { alert("Failed to update status."); }
     };
 
     useEffect(() => { fetchOrders(); }, []);
 
+    const exportOrders = () => {
+        const header = ['Order #', 'Date', 'Status', 'Customer', 'Email', 'Phone', 'Address', 'City', 'State', 'Items', 'Total (NGN)', 'Paystack reference'];
+        const rows = orders.map((o) => [
+            o.id ? String(o.id).slice(-6).toUpperCase() : '',
+            o.date ? new Date(o.date).toLocaleString('en-NG') : '',
+            o.status,
+            o.customer?.name, o.customer?.email, o.customer?.phone,
+            o.customer?.address, o.customer?.city, o.customer?.state,
+            (o.cart || []).map((item) => `${item.quantity}x ${item.name}`).join('; '),
+            o.total,
+            o.reference,
+        ]);
+        downloadCsv(`opevicky-orders-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows]);
+    };
+
     if (loading) return <div className="p-4 sm:p-8 text-center mt-10">Loading Orders...</div>;
 
     return (
         <div className="p-4 sm:p-8">
-            <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Manage Orders</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold">Manage Orders</h1>
+                <button onClick={exportOrders} disabled={orders.length === 0} className="bg-white border border-gray-300 text-slate-700 px-4 py-2 rounded-md hover:bg-slate-50 disabled:opacity-50 text-sm font-medium transition">
+                    Export to spreadsheet (CSV)
+                </button>
+            </div>
             
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
@@ -752,7 +923,7 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                     </td>
                                     <td className="p-3 sm:p-4 text-sm sm:text-base font-medium">₦{order.total.toLocaleString()}</td>
                                     <td className="p-3 sm:p-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${STATUS_STYLES[order.status] || STATUS_STYLES.Processing}`}>
                                             {order.status}
                                         </span>
                                     </td>
@@ -767,9 +938,7 @@ const OrdersPage = ({ onLogout, adminRole }) => {
                                     <td className="p-3 sm:p-4">
                                         {(adminRole === 'superadmin' || adminRole === 'manager') ? (
                                             <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="border rounded p-1 sm:p-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
-                                                <option value="Processing">Processing</option>
-                                                <option value="Shipped">Shipped</option>
-                                                <option value="Delivered">Delivered</option>
+                                                {ORDER_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
                                             </select>
                                         ) : (
                                             <span className="text-gray-400 text-sm italic">View Only</span>
@@ -913,7 +1082,7 @@ export default function App() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-x-hidden">
-                    {page === 'analytics' ? <AnalyticsPage onLogout={handleLogout} /> : null}
+                    {page === 'analytics' ? <AnalyticsPage onLogout={handleLogout} setPage={setPage} /> : null}
                     {page === 'orders' ? <OrdersPage onLogout={handleLogout} adminRole={adminRole} /> : null}
                     {page === 'products' ? <ProductsPage onLogout={handleLogout} adminRole={adminRole} /> : null}
                     {page === 'settings' && adminRole === 'superadmin' ? <SettingsPage /> : null}
