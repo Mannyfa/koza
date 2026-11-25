@@ -12,6 +12,7 @@ const { escapeHtml, escapeRegex } = require('./utils/escapeHtml');
 const { limits } = require('./utils/rateLimit');
 const { LOW_STOCK_THRESHOLD, deductStock, restoreStock } = require('./utils/stock');
 const { PRODUCT_CATEGORIES, cleanCategory } = require('./utils/categories');
+const { scheduleStorefrontRebuild } = require('./utils/deployHook');
 
 // Cloudinary Imports
 const cloudinary = require('cloudinary').v2;
@@ -392,6 +393,12 @@ const authorizeRoles = (...allowedRoles) => {
 // 6. API ROUTES
 // ==========================================
 
+// --- Health check (pinged every few minutes so Render's free server stays awake) ---
+app.get('/api/health', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.status(200).json({ status: 'ok', db: mongoose.connection.readyState === 1 ? 'connected' : 'connecting' });
+});
+
 // --- Admin Auth & Management Routes ---
 app.post('/api/admin/login', limits.adminLogin, async (req, res) => {
     try {
@@ -714,6 +721,7 @@ app.post('/api/products', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
         });
         
         await newProduct.save();
+        scheduleStorefrontRebuild();
         res.status(201).json({ status: 'success', data: { product: newProduct } });
     } catch (error) { 
         res.status(400).json({ message: "Failed to create product", error: error.message }); 
@@ -746,6 +754,7 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
         }
         
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
+        scheduleStorefrontRebuild();
         res.status(200).json({ status: 'success', data: { product: updatedProduct } });
     } catch (error) { 
         res.status(400).json({ message: "Failed to update product", error: error.message }); 
@@ -755,6 +764,7 @@ app.put('/api/products/:id', verifyAdmin, authorizeRoles('superadmin', 'manager'
 app.delete('/api/products/:id', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
+        scheduleStorefrontRebuild();
         res.status(204).json({ status: 'success', data: null });
     } catch (error) { 
         res.status(400).json({ message: "Failed to delete product", error: error.message }); 

@@ -32,11 +32,51 @@ const request = async (endpoint, { method = 'GET', body, auth = false } = {}) =>
 };
 
 // --- Products ---
-export const fetchProducts = async () => {
-    const data = await request('/products');
-    return data.data.products
+const normaliseProducts = (products) =>
+    products
         .filter((product) => product.isActive !== false)
         .map((product) => ({ ...product, id: product._id || product.id }));
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Live catalogue from the API. Retries with growing pauses because the free
+ * Render server can take up to a minute to wake up.
+ */
+export const fetchProducts = async ({ attempts = 4, timeoutMs = 45000 } = {}) => {
+    let lastError;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(`${API_URL}/products`, { signal: controller.signal });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            return normaliseProducts(data.data.products);
+        } catch (error) {
+            lastError = error.name === 'AbortError' ? new Error('The product server took too long to respond.') : error;
+            if (attempt < attempts) await wait(2000 * attempt);
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+    throw lastError;
+};
+
+/**
+ * Catalogue snapshot written at build time (public/products-snapshot.json) and
+ * served from Vercel's CDN. Loads instantly even while the API is waking up.
+ * Returns [] when there is no snapshot (e.g. local development).
+ */
+export const fetchProductSnapshot = async () => {
+    try {
+        const response = await fetch('/products-snapshot.json', { cache: 'no-cache' });
+        if (!response.ok || !(response.headers.get('content-type') || '').includes('json')) return [];
+        const data = await response.json();
+        return Array.isArray(data.products) ? normaliseProducts(data.products) : [];
+    } catch {
+        return [];
+    }
 };
 
 export const submitReview = (productId, { rating, text }) =>

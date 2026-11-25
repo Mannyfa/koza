@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { slugify } from '../utils/formatters';
+import { productSlug, slugify } from '../utils/formatters';
 
 const PRODUCT_PREFIX = '/product/';
 
@@ -9,9 +9,17 @@ const pageFromPath = (path) => {
     return path.substring(1);
 };
 
+// Matches the current address (name-size-idsuffix), then the id suffix alone,
+// then older name-only links shared before addresses became unique.
 const findProductBySlug = (products, path) => {
-    const slug = path.split(PRODUCT_PREFIX)[1];
-    return products.find((p) => slugify(p.name) === slug);
+    let slug = path.split(PRODUCT_PREFIX)[1] || '';
+    try { slug = decodeURIComponent(slug); } catch { /* keep the raw value */ }
+    slug = slug.replace(/\/$/, '').toLowerCase();
+    if (!slug) return undefined;
+    const idSuffix = slug.split('-').pop();
+    return products.find((p) => productSlug(p) === slug)
+        || (/^[0-9a-f]{6}$/.test(idSuffix) && products.find((p) => String(p._id || p.id).toLowerCase().endsWith(idSuffix)))
+        || products.find((p) => slugify(p.name) === slug);
 };
 
 /**
@@ -19,7 +27,7 @@ const findProductBySlug = (products, path) => {
  * Keeps `currentPage` / `selectedProduct` in sync with the address bar,
  * supports product deep links (/product/:slug) and browser back/forward.
  */
-const useRouter = (allProducts) => {
+const useRouter = (allProducts, catalogueComplete = true) => {
     const [currentPage, setCurrentPage] = useState(() => pageFromPath(window.location.pathname));
     const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -31,11 +39,12 @@ const useRouter = (allProducts) => {
         const product = findProductBySlug(allProducts, path);
         if (product) {
             setSelectedProduct(product);
-        } else {
+        } else if (catalogueComplete) {
+            // Only give up once the live catalogue has loaded (the snapshot may be older)
             setCurrentPage('shop');
             window.history.replaceState({}, '', '/shop');
         }
-    }, [allProducts, selectedProduct]);
+    }, [allProducts, selectedProduct, catalogueComplete]);
 
     // Browser back/forward buttons
     useEffect(() => {
@@ -59,7 +68,7 @@ const useRouter = (allProducts) => {
 
         if (page === 'product' && data) {
             setSelectedProduct(data);
-            window.history.pushState({}, '', `${PRODUCT_PREFIX}${slugify(data.name)}`);
+            window.history.pushState({}, '', `${PRODUCT_PREFIX}${productSlug(data)}`);
         } else {
             setSelectedProduct(null);
             window.history.pushState({}, '', page === 'home' ? '/' : `/${page}`);

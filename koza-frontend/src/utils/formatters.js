@@ -28,3 +28,14 @@ export const slugify = (text = '') =>
 
 /** True when the admin "Out of Stock" switch is on or the stock count has reached 0. */
 export const isOutOfStock = (product) => product.isOutOfStock === true || product.stockAmount === 0;
+
+/**
+ * Unique, readable URL slug for a product page, e.g. "storm-100ml-a1b2c3".
+ * Several products share a name, so the size and the end of the id keep each address unique.
+ * Keep in step with scripts/prerender.js.
+ */
+export const productSlug = (product) => {
+    const id = String(product._id || product.id || '');
+    const base = slugify(`${product.name || ''} ${product.bottleSize || ''}`);
+    return id ? `${base}-${id.slice(-6).toLowerCase()}` : base;
+};

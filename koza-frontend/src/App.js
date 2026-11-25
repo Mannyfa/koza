@@ -17,6 +17,7 @@ import useNotification from './hooks/useNotification';
 import useRouter from './hooks/useRouter';
 import * as api from './services/api';
 import { searchProducts } from './utils/search';
+import { applyPageMeta } from './utils/seo';
 
 // Lets a search results page survive a reload or be shared (e.g. /search?q=oud)
 const initialSearchQuery = () =>
@@ -27,29 +28,64 @@ export default function App() {
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [productsAreLive, setProductsAreLive] = useState(false);
+    const [liveFetchDone, setLiveFetchDone] = useState(false);
     const [orders, setOrders] = useState([]);
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
     const [lastOrder, setLastOrder] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // --- App state hooks ---
-    const { currentPage, selectedProduct, setSelectedProduct, navigate } = useRouter(allProducts);
+    const { currentPage, selectedProduct, setSelectedProduct, navigate } = useRouter(allProducts, liveFetchDone);
     const { currentUser, login, logout, updateUser } = useAuth();
     const { cart, cartCount, addToCart, updateQuantity, removeFromCart, clearCart, syncWithProducts } = useCart();
     const { notification, showNotification } = useNotification();
 
+    // Show the build-time snapshot immediately, then swap in live data from the API.
+    // If the API is unreachable, visitors keep browsing the snapshot instead of seeing an error.
     useEffect(() => {
+        let cancelled = false;
+        let haveSnapshot = false;
+
+        api.fetchProductSnapshot().then((snapshot) => {
+            if (cancelled || snapshot.length === 0) return;
+            haveSnapshot = true;
+            setAllProducts((current) => (current.length ? current : snapshot));
+            setLoading(false);
+        });
+
         api.fetchProducts()
-            .then(setAllProducts)
-            .catch((e) => setError(e.message))
-            .finally(() => setLoading(false));
+            .then((live) => { if (!cancelled) { setAllProducts(live); setProductsAreLive(true); setError(null); } })
+            .catch((e) => {
+                console.error('Live product feed failed:', e);
+                if (!cancelled && !haveSnapshot) setError('We could not load the collection right now. Please refresh in a moment.');
+            })
+            .finally(() => { if (!cancelled) { setLoading(false); setLiveFetchDone(true); } });
+
+        return () => { cancelled = true; };
     }, []);
 
-    // Keep saved bag prices/stock in line with the live catalogue
+    // Keep saved bag prices/stock in line with the live catalogue (never the snapshot,
+    // which may be out of date)
     useEffect(() => {
+        if (!productsAreLive) return;
         const removed = syncWithProducts(allProducts);
         if (removed > 0) showNotification(`${removed} unavailable item${removed > 1 ? 's' : ''} removed from your bag`);
-    }, [allProducts, syncWithProducts, showNotification]);
+    }, [allProducts, productsAreLive, syncWithProducts, showNotification]);
+
+    // When live data replaces the snapshot, refresh the product being viewed
+    useEffect(() => {
+        if (!productsAreLive) return;
+        setSelectedProduct((current) => {
+            if (!current) return current;
+            return allProducts.find((p) => p.id === current.id) || current;
+        });
+    }, [allProducts, productsAreLive, setSelectedProduct]);
+
+    // Page title, description, canonical link and share tags
+    useEffect(() => {
+        applyPageMeta({ page: currentPage, product: selectedProduct, searchQuery });
+    }, [currentPage, selectedProduct, searchQuery]);
 
     useEffect(() => {
         if (!currentUser) {
