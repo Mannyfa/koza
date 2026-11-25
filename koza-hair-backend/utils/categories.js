@@ -7,6 +7,7 @@ const PRODUCT_CATEGORIES = [
     'Roll On',
     'Scented Candle',
     'Diffuser',
+    'Car Diffuser',
     'Room Spray',
     'Home Decor & Accessories',
     'Gift Set',

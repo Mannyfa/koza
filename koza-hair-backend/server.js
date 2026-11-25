@@ -20,6 +20,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 app.set('trust proxy', 1); // Render sits behind a proxy; needed for per-visitor rate limits
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 5001;
 
 app.use(cors());
@@ -86,6 +87,7 @@ const productSchema = new mongoose.Schema({
     reviews: { type: Array, default: [] },
     discountPercentage: { type: Number, default: 0 } 
 });
+productSchema.index({ isActive: 1 });
 const Product = mongoose.model('Product', productSchema);
 
 const orderSchema = new mongoose.Schema({
@@ -100,6 +102,8 @@ const orderSchema = new mongoose.Schema({
     stockDeducted: { type: Boolean, default: false }, // stock was taken off when the order was paid
     stockRestored: { type: Boolean, default: false }  // stock was put back because the order was cancelled
 });
+orderSchema.index({ 'customer.email': 1, date: -1 }); // my-orders and guest tracking
+orderSchema.index({ date: -1 });                       // admin order list and analytics
 const Order = mongoose.model('Order', orderSchema);
 
 // ==========================================
@@ -440,7 +444,7 @@ app.post('/api/admin/register', verifyAdmin, authorizeRoles('superadmin'), async
 
 app.get('/api/admin/users', verifyAdmin, authorizeRoles('superadmin'), async (req, res) => {
     try {
-        const admins = await Admin.find({}).select('-password'); 
+        const admins = await Admin.find({}).select('-password -__v').lean(); 
         res.status(200).json(admins);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch admins" });
@@ -460,7 +464,10 @@ app.delete('/api/admin/users/:id', verifyAdmin, authorizeRoles('superadmin'), as
 // --- Analytics Routes ---
 app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
     try {
-        const allOrders = await Order.find({}).sort({ date: 1 });
+        const allOrders = await Order.find({})
+            .select('date status total cart.product cart.id cart._id cart.name cart.price cart.quantity')
+            .sort({ date: 1 })
+            .lean();
         const orders = allOrders.filter((order) => order.status !== 'Cancelled');
         const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
 
@@ -506,7 +513,7 @@ app.get('/api/analytics', verifyAdmin, authorizeRoles('superadmin', 'manager'), 
             .slice(0, 10);
 
         // Products running low or switched to out of stock (active products only)
-        const products = await Product.find({ isActive: { $ne: false } }).select('name stockAmount isOutOfStock category image images');
+        const products = await Product.find({ isActive: { $ne: false } }).select('name stockAmount isOutOfStock category image images').lean();
         const lowStock = products
             .filter((p) => p.isOutOfStock || (p.stockAmount || 0) <= LOW_STOCK_THRESHOLD)
             .map((p) => ({
@@ -693,7 +700,8 @@ app.get('/api/products/categories', (req, res) => {
 
 app.get('/api/products', async (req, res) => { 
     try {
-        const products = await Product.find({});
+        const products = await Product.find({}).select('-__v').lean();
+        res.set('Cache-Control', 'no-cache');
         res.status(200).json({ status: 'success', data: { products } });
     } catch (error) { 
         res.status(500).json({ message: "Failed to fetch products" }); 
@@ -796,7 +804,7 @@ app.post('/api/products/:id/reviews', verifyUser, async (req, res) => {
 // --- Order Routes ---
 app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
     try {
-        const orders = await Order.find({ "customer.email": req.user.email }).sort({ date: -1 });
+        const orders = await Order.find({ "customer.email": req.user.email }).select('-__v').sort({ date: -1 }).lean();
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch your orders" });
@@ -805,7 +813,7 @@ app.get('/api/orders/my-orders', verifyUser, async (req, res) => {
 
 app.get('/api/orders', verifyAdmin, async (req, res) => {
     try {
-        const orders = await Order.find({}).sort({ date: -1 });
+        const orders = await Order.find({}).select('reference customer cart total status date').sort({ date: -1 }).lean();
         const formattedOrders = orders.map(o => ({
             id: o._id, reference: o.reference, customer: o.customer, cart: o.cart,
             total: o.total, status: o.status, date: o.date
@@ -868,8 +876,10 @@ app.post('/api/orders/track', limits.trackOrder, async (req, res) => {
         }
 
         const orders = await Order.find({ 'customer.email': new RegExp('^' + escapeRegex(email) + '$', 'i') })
+            .select('reference customer.city customer.state cart total status date')
             .sort({ date: -1 })
-            .limit(200);
+            .limit(200)
+            .lean();
         const wanted = orderNumber.toLowerCase();
         const order = orders.find((o) =>
             String(o.reference).toLowerCase() === wanted || String(o._id).toLowerCase().endsWith(wanted)
@@ -973,7 +983,9 @@ const sendAdminPaymentAlert = (subject, rows) => {
 };
 
 const findProductsByIds = (ids) =>
-    Product.find({ _id: { $in: ids.filter((id) => mongoose.isValidObjectId(id)) } });
+    Product.find({ _id: { $in: ids.filter((id) => mongoose.isValidObjectId(id)) } })
+        .select('name price discountPercentage image images bottleSize isActive isOutOfStock stockAmount')
+        .lean();
 
 // Checked by the storefront right before the Paystack popup opens, so customers are
 // never charged for items that are out of stock or no longer sold.
