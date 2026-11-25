@@ -15,7 +15,9 @@ const getImageUrl = (imagePath) => {
     return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`;
 };
 
-const PRODUCT_CATEGORIES = ['Perfume', 'Perfume Oil', 'Body Mist', 'Scented Candle', 'Diffuser', 'Room Spray', 'Gift Set', 'Other'];
+// Fallback only: the live list comes from the backend (GET /api/products/categories),
+// so new categories are added in one place (koza-hair-backend/utils/categories.js).
+const PRODUCT_CATEGORIES = ['Perfume', 'Perfume Oil', 'Body Mist', 'Body Spray', 'Roll On', 'Scented Candle', 'Diffuser', 'Room Spray', 'Home Decor & Accessories', 'Gift Set', 'Other'];
 const ORDER_STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 // Builds a CSV file from rows (arrays of values) and downloads it
@@ -430,6 +432,14 @@ const SettingsPage = () => {
 // --- Pages ---
 const ProductsPage = ({ onLogout, adminRole }) => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState(PRODUCT_CATEGORIES);
+
+    useEffect(() => {
+        fetch(`${API_URL}/products/categories`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => { if (data && Array.isArray(data.categories) && data.categories.length) setCategories(data.categories); })
+            .catch(() => { /* keep the built-in list */ });
+    }, []);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -762,7 +772,8 @@ const ProductsPage = ({ onLogout, adminRole }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full p-2 border rounded-md bg-white" required>
                             <option value="" disabled>Choose a category</option>
-                            {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                            {formData.category && !categories.includes(formData.category) && <option value={formData.category}>{formData.category}</option>}
                         </select>
                         <span className="block text-xs text-gray-500 mt-1">Used for the shop filters on the website.</span>
                     </div>

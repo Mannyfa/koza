@@ -3,9 +3,12 @@ const PRODUCT_CATEGORIES = [
     'Perfume',
     'Perfume Oil',
     'Body Mist',
+    'Body Spray',
+    'Roll On',
     'Scented Candle',
     'Diffuser',
     'Room Spray',
+    'Home Decor & Accessories',
     'Gift Set',
     'Other',
 ];
