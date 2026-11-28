@@ -33,6 +33,7 @@ export default function App() {
     const [orders, setOrders] = useState([]);
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
     const [lastOrder, setLastOrder] = useState(null);
+    const [pendingPayment, setPendingPayment] = useState(null); // paid, but the order could not be confirmed
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // --- App state hooks ---
@@ -152,13 +153,24 @@ export default function App() {
             // The server re-prices every item from the database; only ids and quantities matter.
             const orderLines = cart.map((item) => ({ id: item.id, quantity: item.quantity }));
             const data = await api.verifyPayment(reference, orderLines, customerDetails);
-            setOrders((prev) => [data.order, ...prev]);
-            setLastOrder(data.order);
+            if (data.order) setOrders((prev) => [data.order, ...prev.filter((o) => o._id !== data.order._id)]);
+            setLastOrder(data.order || null);
+            setPendingPayment(null);
             clearCart();
             navigate('orderConfirmation');
         } catch (e) {
+            // Paystack has already taken the money (this only runs after a successful payment),
+            // so never suggest paying again. The backend has alerted the admin, and Paystack's
+            // webhook will create the order once the payment is confirmed.
             console.error('Payment verification failed:', e);
-            alert(`Process interrupted: ${e.message}`);
+            setPendingPayment({
+                reference,
+                message: (e.data && e.data.paymentReceived && e.data.message)
+                    || `Your payment was received (reference ${reference}). We could not confirm your order automatically, but our team has been notified and will email you shortly. Please do not pay again.`,
+            });
+            setLastOrder(null);
+            clearCart();
+            navigate('orderConfirmation');
         }
     };
 
@@ -192,7 +204,7 @@ export default function App() {
         }
 
         switch (currentPage) {
-            case 'learn': return <LearnPage />;
+            case 'learn': return <LearnPage currentUser={currentUser} />;
             case 'about': return <AboutPage />;
             case 'shop': return <ShopPage {...productListProps} />;
             case 'search':
@@ -201,7 +213,7 @@ export default function App() {
                 return <CartPage cart={cart} onUpdateCart={updateQuantity} onRemoveFromCart={removeFromCart} onNavigate={navigate} />;
             case 'checkout':
                 return <CheckoutPage cart={cart} onPaymentSuccess={handlePaymentSuccess} currentUser={currentUser} onNavigate={navigate} />;
-            case 'orderConfirmation': return <OrderConfirmationPage onNavigate={navigate} order={lastOrder} isSignedIn={!!currentUser} />;
+            case 'orderConfirmation': return <OrderConfirmationPage onNavigate={navigate} order={lastOrder} pending={pendingPayment} isSignedIn={!!currentUser} />;
             case 'contact': return <ContactPage onNavigate={navigate} />;
             case 'track':
                 return <TrackOrderPage onNavigate={navigate} initialEmail={lastOrder?.customer?.email || currentUser?.email || ''} initialOrderNumber={lastOrder ? String(lastOrder._id || '').slice(-6).toUpperCase() : ''} />;

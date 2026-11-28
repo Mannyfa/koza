@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { pageMotionProps } from '../animations/variants';
 import CourseCard from '../components/learn/CourseCard';
+import EnrollModal from '../components/learn/EnrollModal';
 import { courses, ENROLL_WHATSAPP_URL, learningFormats } from '../data/courses';
 import { btnPrimary, card, pageShell } from '../styles/classNames';
 
 // --- Learn Page (Masterclass Layout) ---
-const LearnPage = () => (
+const LearnPage = ({ currentUser }) => {
+    const [selection, setSelection] = useState(null); // { course, format } while the enroll dialog is open
+    const closeEnroll = useCallback(() => setSelection(null), []);
+
+    return (
     <motion.div {...pageMotionProps} className={pageShell}>
         <div className="max-w-screen-lg mx-auto px-6 lg:px-12">
 
@@ -22,7 +27,7 @@ const LearnPage = () => (
                 {courses.map((course, i) => (
                     <React.Fragment key={course.number}>
                         {i > 0 && <div className="w-full h-px bg-gray-200 dark:bg-gray-800"></div>}
-                        <CourseCard course={course} />
+                        <CourseCard course={course} onEnroll={(c, format) => setSelection({ course: c, format })} />
                     </React.Fragment>
                 ))}
             </div>
@@ -44,11 +49,15 @@ const LearnPage = () => (
                 </p>
 
                 <a href={ENROLL_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={`inline-block px-12 py-5 duration-300 ${btnPrimary}`}>
-                    Enroll via WhatsApp
+                    Ask a Question on WhatsApp
                 </a>
+                <p className="text-xs text-gray-500 mt-6">Ready to start? Choose a class above and tap <strong>Enroll &amp; Pay</strong> to pay securely with Paystack.</p>
             </div>
         </div>
+
+        <EnrollModal selection={selection} defaultEmail={currentUser?.email || ''} onClose={closeEnroll} />
     </motion.div>
-);
+    );
+};
 
 export default LearnPage;

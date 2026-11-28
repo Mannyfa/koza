@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatPrice } from '../../utils/formatters';
 
 const GOLD = 'text-[#D4AF37]';
 
@@ -24,7 +25,7 @@ const CourseSection = ({ heading, columns, withDivider }) => (
 );
 
 /** One course row on the Learn page. `featured` applies the gold bundle styling. */
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onEnroll }) => {
     const { number, tag, title, duration, description, sections, prices, featured } = course;
 
     return (
@@ -47,8 +48,17 @@ const CourseCard = ({ course }) => {
                     {prices.map((price) => (
                         <div className="flex-1" key={price.label}>
                             <p className={`text-[10px] uppercase tracking-widest mb-1 ${featured ? `${GOLD} font-bold` : 'text-gray-400'}`}>{price.label}</p>
-                            <p className={`text-xl font-medium text-[#111] dark:text-white ${price.note ? 'mb-2' : ''}`}>{price.amount}</p>
+                            <p className={`text-xl font-medium text-[#111] dark:text-white ${price.note ? 'mb-2' : ''}`}>{formatPrice(price.amount)}</p>
                             {price.note && <p className="text-xs text-gray-500">{price.note}</p>}
+                            {onEnroll && (
+                                <button type="button" onClick={() => onEnroll(course, price.format)}
+                                    aria-label={`Enroll in ${title}, ${price.label}`}
+                                    className={`mt-4 px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase border transition-colors rounded-none ${featured
+                                        ? 'border-[#D4AF37] text-[#111] dark:text-white hover:bg-[#D4AF37] hover:text-[#111]'
+                                        : 'border-[#111] dark:border-white text-[#111] dark:text-white hover:bg-[#111] hover:text-white dark:hover:bg-white dark:hover:text-[#111]'}`}>
+                                    Enroll &amp; Pay
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

@@ -17,4 +17,13 @@ export const STATUS_STYLES = {
     Cancelled: 'bg-red-100 text-red-700',
 };
 
+// Course enrollments ("Learn with Opevicky"); must match the backend's utils/courses.js
+export const ENROLLMENT_STATUSES = ['Paid', 'Contacted', 'Completed', 'Refunded'];
+export const ENROLLMENT_STATUS_STYLES = {
+    Paid: 'bg-amber-100 text-amber-700',
+    Contacted: 'bg-blue-100 text-blue-700',
+    Completed: 'bg-green-100 text-green-700',
+    Refunded: 'bg-red-100 text-red-700',
+};
+
 export const canManage = (role) => role === 'superadmin' || role === 'manager';

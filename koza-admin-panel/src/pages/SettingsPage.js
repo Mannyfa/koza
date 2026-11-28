@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { useFeedback } from '../components/Feedback';
+import PaymentsStatus from '../components/PaymentsStatus';
 import useCachedResource from '../hooks/useCachedResource';
 
 const EMPTY_FORM = { name: '', email: '', password: '', role: 'editor' };
@@ -53,6 +54,7 @@ const SettingsPage = () => {
     return (
         <div className="p-4 sm:p-8">
             <h1 className="text-2xl font-bold mb-6">System Settings & Permissions</h1>
+            <div className="mb-8"><PaymentsStatus /></div>
             <div className="grid lg:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border">
                     <h3 className="font-bold text-lg mb-4">Create New Admin</h3>

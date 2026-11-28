@@ -1,9 +1,12 @@
 import { WHATSAPP_NUMBER } from '../config/constants';
 
 // Each course renders as one block on the Learn page.
+// `id` and `prices[].amount` (Naira) must match koza-hair-backend/utils/courses.js,
+// which holds the prices customers are actually charged.
 // `sections[].columns` is an array of bullet lists; two lists render side by side.
 export const courses = [
     {
+        id: 'candle-making',
         number: '01',
         tag: 'Foundation',
         title: 'Scented Candle Making',
@@ -22,11 +25,12 @@ export const courses = [
             },
         ],
         prices: [
-            { label: 'Online Class', amount: '₦60,000' },
-            { label: 'Physical Class', amount: '₦85,000' },
+            { label: 'Online Class', format: 'online', amount: 60000 },
+            { label: 'Physical Class', format: 'physical', amount: 85000 },
         ],
     },
     {
+        id: 'diffuser-room-spray',
         number: '02',
         tag: 'Ambient Scents',
         title: 'Home Diffuser, Car Diffuser & Room Spray',
@@ -45,11 +49,12 @@ export const courses = [
             },
         ],
         prices: [
-            { label: 'Online Class', amount: '₦50,000' },
-            { label: 'Physical Class', amount: '₦75,000' },
+            { label: 'Online Class', format: 'online', amount: 50000 },
+            { label: 'Physical Class', format: 'physical', amount: 75000 },
         ],
     },
     {
+        id: 'gypsum-craft',
         number: '03',
         tag: 'Artistry',
         title: 'Gypsum Craft',
@@ -65,11 +70,12 @@ export const courses = [
             },
         ],
         prices: [
-            { label: 'Online Class', amount: '₦40,000' },
-            { label: 'Physical Class', amount: '₦70,000' },
+            { label: 'Online Class', format: 'online', amount: 40000 },
+            { label: 'Physical Class', format: 'physical', amount: 70000 },
         ],
     },
     {
+        id: 'business-bundle',
         number: '04',
         tag: 'The Masterclass',
         title: 'Complete Fragrance & Gypsum Business Bundle',
@@ -120,8 +126,8 @@ export const courses = [
             },
         ],
         prices: [
-            { label: 'Online Bundle', amount: '₦155,000', note: 'Learn all five skills from the comfort of your home.' },
-            { label: 'Physical Bundle', amount: '₦195,000', note: 'Get the complete five-course training with hands-on practical sessions.' },
+            { label: 'Online Bundle', format: 'online', amount: 155000, note: 'Learn all five skills from the comfort of your home.' },
+            { label: 'Physical Bundle', format: 'physical', amount: 195000, note: 'Get the complete five-course training with hands-on practical sessions.' },
         ],
     },
 ];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChartIcon, OrdersIcon, ProductsIcon, SettingsIcon, XIcon } from './Icons';
+import { ChartIcon, LearnIcon, OrdersIcon, ProductsIcon, SettingsIcon, XIcon } from './Icons';
 
 const Sidebar = ({ current, setPage, isOpen, setIsOpen, adminRole }) => (
     <>
@@ -35,6 +35,12 @@ const Sidebar = ({ current, setPage, isOpen, setIsOpen, adminRole }) => (
                     className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${current === 'products' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
                 >
                     <ProductsIcon /><span>Products</span>
+                </button>
+                <button 
+                    onClick={() => { setPage('enrollments'); setIsOpen(false); }} 
+                    className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${current === 'enrollments' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
+                >
+                    <LearnIcon /><span>Enrollments</span>
                 </button>
                 {adminRole === 'superadmin' && (
                     <button 

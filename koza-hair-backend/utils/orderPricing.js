@@ -78,24 +78,69 @@ const buildOrderCart = async (clientCart, findProductsByIds) => {
 /** Same rounding the storefront uses when it opens the Paystack popup. */
 const toKobo = (naira) => Math.round(naira * 100);
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const PAYSTACK_API = 'https://api.paystack.co';
+
+/** Removes spaces, quotes and line breaks that often sneak in when a key is pasted. */
+const cleanSecretKey = (key) => String(key || '').trim().replace(/^["']|["']$/g, '').trim();
+
+/** 'live' | 'test' | 'public-key' | 'missing' | 'unknown' — safe to show, never reveals the key. */
+const paystackKeyMode = (key) => {
+    const k = cleanSecretKey(key);
+    if (!k) return 'missing';
+    if (k.startsWith('sk_live_')) return 'live';
+    if (k.startsWith('sk_test_')) return 'test';
+    if (k.startsWith('pk_')) return 'public-key';
+    return 'unknown';
+};
+
+const withDetail = (error, detail) => Object.assign(error, { detail });
+
 /**
  * Asks Paystack whether `reference` is a successful NGN payment.
+ * Retries network errors and Paystack outages; key problems fail straight away
+ * with a `detail` explaining what to fix (used in logs and admin alerts).
  * @returns the Paystack transaction `data` object
  */
-const verifyPaystackTransaction = async (reference, secretKey, httpGet = axios.get) => {
-    if (!secretKey) {
-        throw new OrderError('Payment verification is not configured on the server.', 500);
+const verifyPaystackTransaction = async (reference, secretKey, httpGet = axios.get, { attempts = 3, pauseMs = 1500 } = {}) => {
+    const key = cleanSecretKey(secretKey);
+    if (!key) {
+        throw withDetail(new OrderError('Payment verification is not configured on the server.', 500),
+            'PAYSTACK_SECRET_KEY is not set on Render.');
     }
+
     let response;
-    try {
-        response = await httpGet(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-            headers: { Authorization: `Bearer ${secretKey}` },
-            timeout: 15000,
-        });
-    } catch (error) {
-        const detail = error.response ? JSON.stringify(error.response.data) : error.message;
-        console.error('Paystack verification request failed:', detail);
-        throw new OrderError('We could not confirm your payment with Paystack.', 502);
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+            response = await httpGet(`${PAYSTACK_API}/transaction/verify/${encodeURIComponent(reference)}`, {
+                headers: { Authorization: `Bearer ${key}` },
+                timeout: 20000,
+            });
+            break;
+        } catch (error) {
+            const status = error.response && error.response.status;
+            const paystackMessage = error.response && error.response.data && error.response.data.message;
+            console.error(`Paystack verify failed for ${reference} (attempt ${attempt}/${attempts}, key mode ${paystackKeyMode(key)}): `
+                + `${status ? `HTTP ${status}` : 'no response'} ${paystackMessage || error.message}`);
+
+            if (status === 401 || status === 403) {
+                throw withDetail(new OrderError('Payment verification is not set up correctly on the server.', 500),
+                    `Paystack rejected the secret key (HTTP ${status}: ${paystackMessage || 'unauthorised'}). `
+                    + 'Copy the live secret key from Paystack → Settings → API Keys and paste it into PAYSTACK_SECRET_KEY on Render.');
+            }
+            if (status === 400 || status === 404) {
+                throw withDetail(new OrderError('We could not find this payment on Paystack.', 502),
+                    `Paystack says: "${paystackMessage || 'transaction not found'}" (HTTP ${status}). `
+                    + (paystackKeyMode(key) === 'test'
+                        ? 'The key on Render is a TEST key (sk_test_) but the website takes live payments: use the sk_live_ key.'
+                        : 'Make sure the secret key on Render belongs to the same Paystack account as the website public key.'));
+            }
+            if (attempt === attempts) {
+                throw withDetail(new OrderError('We could not reach Paystack to confirm your payment.', 502),
+                    `${status ? `Paystack returned HTTP ${status}` : 'No response from Paystack'}: ${paystackMessage || error.message}`);
+            }
+            await wait(pauseMs * attempt);
+        }
     }
 
     const { status, data } = response.data || {};
@@ -111,4 +156,32 @@ const verifyPaystackTransaction = async (reference, secretKey, httpGet = axios.g
     return data;
 };
 
-module.exports = { OrderError, buildOrderCart, effectivePrice, isOutOfStock, toKobo, verifyPaystackTransaction };
+/** Checks the secret key against Paystack without touching any payment. */
+const checkPaystackKey = async (secretKey, httpGet = axios.get) => {
+    const key = cleanSecretKey(secretKey);
+    const mode = paystackKeyMode(key);
+    if (mode === 'missing') return { ok: false, mode, message: 'PAYSTACK_SECRET_KEY is not set on Render.' };
+    if (mode === 'public-key') return { ok: false, mode, message: 'PAYSTACK_SECRET_KEY holds a public key (pk_...). It needs the secret key (sk_live_...).' };
+    try {
+        await httpGet(`${PAYSTACK_API}/transaction?perPage=1`, { headers: { Authorization: `Bearer ${key}` }, timeout: 15000 });
+        return {
+            ok: mode === 'live',
+            mode,
+            message: mode === 'live'
+                ? 'Connected to Paystack with a live secret key.'
+                : 'Paystack accepted the key, but it is not a live key (sk_live_...). Live payments cannot be confirmed with it.',
+        };
+    } catch (error) {
+        const status = error.response && error.response.status;
+        const paystackMessage = error.response && error.response.data && error.response.data.message;
+        if (status === 401 || status === 403) {
+            return { ok: false, mode, message: `Paystack rejected the secret key (${paystackMessage || 'invalid key'}). Paste the current live secret key into PAYSTACK_SECRET_KEY on Render.` };
+        }
+        return { ok: false, mode, message: `Could not reach Paystack to check the key (${status ? `HTTP ${status}` : error.message}). Try again shortly.` };
+    }
+};
+
+module.exports = {
+    OrderError, buildOrderCart, effectivePrice, isOutOfStock, toKobo,
+    cleanSecretKey, paystackKeyMode, verifyPaystackTransaction, checkPaystackKey,
+};

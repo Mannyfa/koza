@@ -3,16 +3,20 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const https = require('https'); 
+const https = require('https');
+const crypto = require('crypto'); 
 const jwt = require('jsonwebtoken'); 
 const bcrypt = require('bcryptjs'); 
 require('dotenv').config();
-const { OrderError, buildOrderCart, toKobo, verifyPaystackTransaction } = require('./utils/orderPricing');
+const {
+    OrderError, buildOrderCart, toKobo, cleanSecretKey, paystackKeyMode, verifyPaystackTransaction, checkPaystackKey,
+} = require('./utils/orderPricing');
 const { escapeHtml, escapeRegex } = require('./utils/escapeHtml');
 const { limits } = require('./utils/rateLimit');
 const { LOW_STOCK_THRESHOLD, deductStock, restoreStock } = require('./utils/stock');
 const { PRODUCT_CATEGORIES, cleanCategory } = require('./utils/categories');
 const { scheduleStorefrontRebuild } = require('./utils/deployHook');
+const { COURSES, priceCourse, cleanStudent, ENROLLMENT_STATUSES } = require('./utils/courses');
 
 // Cloudinary Imports
 const cloudinary = require('cloudinary').v2;
@@ -24,7 +28,11 @@ app.disable('x-powered-by');
 const PORT = process.env.PORT || 5001;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        if (req.originalUrl === '/api/payments/webhook') req.rawBody = buf;
+    },
+}));
 
 // ==========================================
 // 1. FILE UPLOAD CONFIGURATION (CLOUDINARY)
@@ -105,6 +113,20 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ 'customer.email': 1, date: -1 }); // my-orders and guest tracking
 orderSchema.index({ date: -1 });                       // admin order list and analytics
 const Order = mongoose.model('Order', orderSchema);
+
+// Paid places on the "Learn with Opevicky" training courses
+const enrollmentSchema = new mongoose.Schema({
+    reference: { type: String, required: true, unique: true },
+    courseId: { type: String, required: true },
+    courseTitle: String,
+    format: { type: String, enum: ['online', 'physical'] },
+    amount: Number, // Naira actually paid
+    student: { name: String, email: String, phone: String },
+    status: { type: String, enum: ENROLLMENT_STATUSES, default: 'Paid' },
+    date: { type: Date, default: Date.now },
+});
+enrollmentSchema.index({ date: -1 });
+const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
 
 // ==========================================
 // 3. MONGODB CONNECTION & INITIALIZATION
@@ -1000,6 +1022,91 @@ app.post('/api/orders/validate-cart', async (req, res) => {
     }
 });
 
+/** The metadata the storefront attached to a Paystack payment (Paystack may return it as a JSON string). */
+const paymentMetadata = (payment) => {
+    let meta = payment && payment.metadata;
+    if (typeof meta === 'string') {
+        try { meta = JSON.parse(meta); } catch { meta = null; }
+    }
+    return meta && typeof meta === 'object' ? meta : {};
+};
+
+/**
+ * Turns a payment Paystack has confirmed into an order: re-prices the cart from the
+ * database, checks the amount, saves the order, takes stock off and sends the emails.
+ * Shared by the storefront's verify call and the Paystack webhook.
+ * Throws OrderError when the order cannot be created; a duplicate reference throws code 11000.
+ */
+const createPaidOrder = async ({ reference, payment, customer, clientCart, source }) => {
+    // A course payment can never be reused to pay for shop items
+    if (paymentMetadata(payment).type === 'enrollment') {
+        throw new OrderError(`This payment was for a training course, not a shop order. Please contact support with reference ${reference}.`);
+    }
+    const { cart, total } = await buildOrderCart(clientCart, findProductsByIds);
+    const expectedKobo = toKobo(total);
+    if (payment.amount < expectedKobo) {
+        console.error(`Underpayment for ${reference}: paid ${payment.amount} kobo, expected ${expectedKobo} kobo`);
+        throw new OrderError(`The amount paid does not match your order total. Please contact support with reference ${reference}.`);
+    }
+
+    const savedOrder = await new Order({
+        reference,
+        customer,
+        cart,
+        total: payment.amount / 100,
+        status: 'Processing',
+    }).save();
+    console.log(`✅ Order ${savedOrder._id} created for ${reference} (via ${source})`);
+
+    // Take the sold quantities off stock
+    let lowStock = [];
+    try {
+        lowStock = await deductStock(Product, cart);
+        savedOrder.stockDeducted = true;
+        await savedOrder.save();
+    } catch (stockError) {
+        console.error(`Stock update failed for order ${savedOrder._id}:`, stockError);
+    }
+
+    await sendStatusEmail(savedOrder, 'Processing');
+
+    if (process.env.ADMIN_EMAIL) {
+        const adminHtml = `
+            <div style="font-family: sans-serif; color: #191970;">
+                <h2 style="color: #D4AF37;">New Order Received!</h2>
+                <p>You just received a new order on OpevickyScents.</p>
+                <h3>Customer Details:</h3>
+                <p><strong>Name:</strong> ${escapeHtml(customer.name)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(customer.email)}</p>
+                <p><strong>Phone:</strong> ${escapeHtml(customer.phone)}</p>
+                <p><strong>Address:</strong> ${escapeHtml(customer.address)}, ${escapeHtml(customer.city)}, ${escapeHtml(customer.state)}</p>
+                <h3>Order Items:</h3>
+                <ul>
+                    ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${escapeHtml(item.name)}</li>`).join('')}
+                </ul>
+                <p><strong>Total:</strong> ₦${savedOrder.total.toLocaleString()}</p>
+                <p><strong>Paystack reference:</strong> ${escapeHtml(reference)}</p>
+                ${source === 'webhook' ? '<p style="color:#b45309;"><em>Created from Paystack\'s webhook because the website could not confirm this payment itself.</em></p>' : ''}
+                ${lowStock.length ? `
+                <h3 style="color: #b91c1c;">Low stock (${LOW_STOCK_THRESHOLD} or fewer left):</h3>
+                <ul>${lowStock.map(p => `<li>${escapeHtml(p.name)}: <strong>${p.stockAmount}</strong> left</li>`).join('')}</ul>` : ''}
+            </div>
+        `;
+
+        await sendEmailJS({
+            to_email: process.env.ADMIN_EMAIL,
+            subject: `🚨 New Order Alert! from ${customer.name}`,
+            html_message: adminHtml
+        });
+    }
+
+    return savedOrder;
+};
+
+const describeItems = (clientCart) => (Array.isArray(clientCart)
+    ? clientCart.map((item) => `${item.quantity}x ${item.name || item.id || item._id}`).join(', ')
+    : 'unknown');
+
 // Verifies a Paystack payment, re-prices the cart from the database and only
 // then creates the order. Browser-supplied prices and totals are ignored.
 app.post('/api/payments/verify', async (req, res) => {
@@ -1010,101 +1117,293 @@ app.post('/api/payments/verify', async (req, res) => {
         if (typeof reference !== 'string' || !reference.trim()) {
             throw new OrderError('Transaction reference is required.');
         }
-        if (await Order.exists({ reference })) {
-            return res.status(400).json({ status: 'fail', message: 'Order already processed.' });
+        const existing = await Order.findOne({ reference }).lean();
+        if (existing) {
+            // e.g. the webhook got there first: treat as success so the customer sees their order
+            return res.status(200).json({ status: 'success', message: 'Order already recorded.', order: existing });
         }
 
         const customer = cleanCustomer(rawCustomer);
         payment = await verifyPaystackTransaction(reference, process.env.PAYSTACK_SECRET_KEY);
-        const { cart, total } = await buildOrderCart(clientCart, findProductsByIds);
-        const expectedKobo = toKobo(total);
-
-        if (payment.amount < expectedKobo) {
-            console.error(`Underpayment for ${reference}: paid ${payment.amount} kobo, expected ${expectedKobo} kobo`);
-            throw new OrderError(`The amount paid does not match your order total. Please contact support with reference ${reference}.`);
-        }
-
-        const savedOrder = await new Order({
-            reference,
-            customer,
-            cart,
-            total: payment.amount / 100,
-            status: 'Processing',
-        }).save();
-
-        // Take the sold quantities off stock
-        let lowStock = [];
-        try {
-            lowStock = await deductStock(Product, cart);
-            savedOrder.stockDeducted = true;
-            await savedOrder.save();
-        } catch (stockError) {
-            console.error(`Stock update failed for order ${savedOrder._id}:`, stockError);
-        }
-
-        await sendStatusEmail(savedOrder, 'Processing');
-
-        if (process.env.ADMIN_EMAIL) {
-            const adminHtml = `
-                <div style="font-family: sans-serif; color: #191970;">
-                    <h2 style="color: #D4AF37;">New Order Received!</h2>
-                    <p>You just received a new order on OpevickyScents.</p>
-                    <h3>Customer Details:</h3>
-                    <p><strong>Name:</strong> ${escapeHtml(customer.name)}</p>
-                    <p><strong>Email:</strong> ${escapeHtml(customer.email)}</p>
-                    <p><strong>Phone:</strong> ${escapeHtml(customer.phone)}</p>
-                    <p><strong>Address:</strong> ${escapeHtml(customer.address)}, ${escapeHtml(customer.city)}, ${escapeHtml(customer.state)}</p>
-                    <h3>Order Items:</h3>
-                    <ul>
-                        ${cart.map(item => `<li><strong>${item.quantity}x</strong> ${escapeHtml(item.name)}</li>`).join('')}
-                    </ul>
-                    <p><strong>Total:</strong> ₦${savedOrder.total.toLocaleString()}</p>
-                    <p><strong>Paystack reference:</strong> ${escapeHtml(reference)}</p>
-                    ${lowStock.length ? `
-                    <h3 style="color: #b91c1c;">Low stock (${LOW_STOCK_THRESHOLD} or fewer left):</h3>
-                    <ul>${lowStock.map(p => `<li>${escapeHtml(p.name)}: <strong>${p.stockAmount}</strong> left</li>`).join('')}</ul>` : ''}
-                </div>
-            `;
-
-            await sendEmailJS({
-                to_email: process.env.ADMIN_EMAIL,
-                subject: `🚨 New Order Alert! from ${customer.name}`,
-                html_message: adminHtml
-            });
-        }
+        const savedOrder = await createPaidOrder({ reference, payment, customer, clientCart, source: 'website' });
 
         res.status(200).json({ status: 'success', message: 'Order saved successfully!', order: savedOrder });
     } catch (error) {
-        if (error.code === 11000) return res.status(400).json({ status: 'fail', message: 'Order already processed.' });
+        if (error.code === 11000) {
+            const existing = await Order.findOne({ reference }).lean().catch(() => null);
+            return res.status(200).json({ status: 'success', message: 'Order already recorded.', order: existing });
+        }
 
         // The customer was charged (or we could not confirm either way), so the admin must follow up.
         const charged = payment !== null;
         const unconfirmed = error instanceof OrderError && error.status >= 500;
         if ((charged || unconfirmed) && typeof reference === 'string') {
-            const items = Array.isArray(clientCart)
-                ? clientCart.map((item) => `${item.quantity}x ${item.name || item.id || item._id}`).join(', ')
-                : 'unknown';
             await sendAdminPaymentAlert(charged ? 'Paid order could not be completed' : 'Payment could not be verified', [
                 ['Reference', reference],
-                ['Amount paid', charged ? `₦${(payment.amount / 100).toLocaleString()}` : 'unknown'],
+                ['Amount paid', charged ? `₦${(payment.amount / 100).toLocaleString()}` : 'unknown (check Paystack)'],
                 ['Reason', error.message],
+                ['What went wrong', error.detail || 'See the Render logs for this reference.'],
                 ['Customer', rawCustomer ? `${rawCustomer.name} (${rawCustomer.email}, ${rawCustomer.phone})` : 'unknown'],
-                ['Items', items],
+                ['Items', describeItems(clientCart)],
+                ['Next step', 'If the Paystack webhook is set up, the order will be created automatically once Paystack confirms the payment. Otherwise check the Paystack dashboard and contact the customer.'],
             ]);
         }
 
         if (error instanceof OrderError) {
-            const message = charged && !/contact support/i.test(error.message)
-                ? `${error.message} Your payment was received; our team will contact you to resolve this (reference ${reference}).`
-                : error.message;
-            return res.status(error.status).json({ status: 'fail', message });
+            // The customer has (very likely) paid, so never tell them to try again
+            const paidMessage = `Your payment was received (reference ${reference}). We could not confirm your order automatically, `
+                + 'but our team has been notified and will email you shortly. Please do not pay again.';
+            const message = (charged || unconfirmed) && !/contact support/i.test(error.message) ? paidMessage : error.message;
+            return res.status(error.status).json({ status: 'fail', paymentReceived: charged || unconfirmed, reference, message });
         }
         console.error('Failed to save order:', error);
-        res.status(500).json({ status: 'fail', message: 'Failed to save order.' });
+        res.status(500).json({ status: 'fail', paymentReceived: true, reference, message: `Your payment was received (reference ${reference}). Our team has been notified and will email you shortly. Please do not pay again.` });
     }
+});
+
+// --- Paystack webhook: safety net that creates the order even if the website could not ---
+// Set in Paystack → Settings → API Keys & Webhooks → Live Webhook URL:
+//   https://<this backend>/api/payments/webhook
+app.post('/api/payments/webhook', async (req, res) => {
+    const secret = cleanSecretKey(process.env.PAYSTACK_SECRET_KEY);
+    const signature = String(req.headers['x-paystack-signature'] || '');
+    const expected = secret && req.rawBody
+        ? crypto.createHmac('sha512', secret).update(req.rawBody).digest('hex')
+        : '';
+    const valid = expected && signature.length === expected.length
+        && crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    if (!valid) {
+        console.warn('⚠️ Rejected Paystack webhook with an invalid signature (check PAYSTACK_SECRET_KEY).');
+        return res.sendStatus(401);
+    }
+
+    const { event, data } = req.body || {};
+    if (event !== 'charge.success' || !data || !data.reference) return res.sendStatus(200);
+
+    const reference = String(data.reference);
+    const metadata = paymentMetadata(data);
+    if (metadata.type === 'enrollment') return handleEnrollmentWebhook(res, reference, data, metadata);
+    try {
+        if (await Order.exists({ reference })) return res.sendStatus(200); // the website already created it
+        if (data.currency && data.currency !== 'NGN') throw new OrderError('Payment was made in an unexpected currency.');
+
+        const rawCustomer = {
+            ...(metadata.customer || {}),
+            email: (metadata.customer && metadata.customer.email) || (data.customer && data.customer.email),
+        };
+        const customer = cleanCustomer(rawCustomer);
+        await createPaidOrder({ reference, payment: data, customer, clientCart: metadata.cart, source: 'webhook' });
+        return res.sendStatus(200);
+    } catch (error) {
+        if (error.code === 11000) return res.sendStatus(200);
+        if (error instanceof OrderError) {
+            await sendAdminPaymentAlert('Paid on Paystack but no order was created', [
+                ['Reference', reference],
+                ['Amount paid', `₦${((data.amount || 0) / 100).toLocaleString()}`],
+                ['Reason', error.message],
+                ['Customer', `${(metadata.customer && metadata.customer.name) || metadata.name || ''} (${(data.customer && data.customer.email) || ''}, ${(metadata.customer && metadata.customer.phone) || metadata.phone || ''})`],
+                ['Items', describeItems(metadata.cart)],
+            ]);
+            return res.sendStatus(200); // retrying will not fix this, so stop Paystack resending
+        }
+        console.error(`Webhook failed for ${reference}:`, error);
+        return res.sendStatus(500); // temporary problem (e.g. database): Paystack will retry
+    }
+});
+
+// ==========================================
+// TRAINING ENROLLMENTS ("Learn with Opevicky")
+// ==========================================
+const naira = (amount) => `₦${Number(amount || 0).toLocaleString()}`;
+
+/**
+ * Turns a payment Paystack has confirmed into a course enrollment: checks the amount
+ * against the server's price, saves it and emails the student and the admin.
+ * A duplicate reference throws code 11000.
+ */
+const createPaidEnrollment = async ({ reference, payment, courseId, format, student, source }) => {
+    // Only payments started on the Learn page, for this same course and class, count
+    const meta = paymentMetadata(payment);
+    if (meta.type !== 'enrollment' || meta.courseId !== courseId || meta.format !== format) {
+        throw new OrderError(`This payment does not match the course selected. Please contact support with reference ${reference}.`);
+    }
+    const { course, formatLabel, amount } = priceCourse(courseId, format);
+    if (payment.amount < toKobo(amount)) {
+        console.error(`Underpayment for enrollment ${reference}: paid ${payment.amount} kobo, expected ${toKobo(amount)} kobo`);
+        throw new OrderError(`The amount paid does not match the course fee. Please contact support with reference ${reference}.`);
+    }
+
+    const enrollment = await new Enrollment({
+        reference,
+        courseId: course.id,
+        courseTitle: course.title,
+        format,
+        amount: payment.amount / 100,
+        student,
+    }).save();
+    console.log(`✅ Enrollment ${enrollment._id} created for ${reference} (via ${source})`);
+
+    const studentHtml = `
+        <div style="font-family: sans-serif; color: #191970;">
+            <h2 style="color: #D4AF37;">Welcome to Learn with Opevicky!</h2>
+            <p>Hi ${escapeHtml(student.name)},</p>
+            <p>Thank you for enrolling. Your payment has been received and your place is reserved.</p>
+            <p><strong>Course:</strong> ${escapeHtml(course.title)}</p>
+            <p><strong>Class:</strong> ${escapeHtml(formatLabel)}</p>
+            <p><strong>Amount paid:</strong> ${naira(enrollment.amount)}</p>
+            <p><strong>Payment reference:</strong> ${escapeHtml(reference)}</p>
+            <p>Our team will contact you on ${escapeHtml(student.phone)} or by email with your class schedule and next steps.</p>
+        </div>
+    `;
+    await sendEmailJS({ to_email: student.email, subject: `You're enrolled: ${course.title}`, html_message: studentHtml });
+
+    if (process.env.ADMIN_EMAIL) {
+        const adminHtml = `
+            <div style="font-family: sans-serif; color: #191970;">
+                <h2 style="color: #D4AF37;">New Course Enrollment!</h2>
+                <p><strong>Course:</strong> ${escapeHtml(course.title)} (${escapeHtml(formatLabel)})</p>
+                <p><strong>Amount paid:</strong> ${naira(enrollment.amount)}</p>
+                <p><strong>Student:</strong> ${escapeHtml(student.name)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(student.email)}</p>
+                <p><strong>Phone:</strong> ${escapeHtml(student.phone)}</p>
+                <p><strong>Paystack reference:</strong> ${escapeHtml(reference)}</p>
+                ${source === 'webhook' ? '<p style="color:#b45309;"><em>Created from Paystack\'s webhook because the website could not confirm this payment itself.</em></p>' : ''}
+                <p>Contact the student with their class schedule, then mark them as Contacted in the admin panel.</p>
+            </div>
+        `;
+        await sendEmailJS({ to_email: process.env.ADMIN_EMAIL, subject: `🎓 New enrollment: ${course.title} from ${student.name}`, html_message: adminHtml });
+    }
+
+    return enrollment;
+};
+
+const describeCourse = (courseId, format) => {
+    try {
+        const { course, formatLabel } = priceCourse(courseId, format);
+        return `${course.title} (${formatLabel})`;
+    } catch {
+        return `${courseId || 'unknown'} (${format || 'unknown'})`;
+    }
+};
+
+// Course list with server prices, so the Learn page always charges the right amount
+app.get('/api/courses', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=300');
+    res.status(200).json({ courses: COURSES });
+});
+
+// Verifies a course payment with Paystack, then records the enrollment
+app.post('/api/enrollments/verify', async (req, res) => {
+    const { reference, courseId, format, student: rawStudent } = req.body || {};
+    let payment = null;
+
+    try {
+        if (typeof reference !== 'string' || !reference.trim()) throw new OrderError('Transaction reference is required.');
+        const existing = await Enrollment.findOne({ reference }).lean();
+        if (existing) return res.status(200).json({ status: 'success', enrollment: existing });
+
+        const student = cleanStudent(rawStudent);
+        priceCourse(courseId, format); // reject unknown courses before calling Paystack
+        payment = await verifyPaystackTransaction(reference, process.env.PAYSTACK_SECRET_KEY);
+        const enrollment = await createPaidEnrollment({ reference, payment, courseId, format, student, source: 'website' });
+        res.status(200).json({ status: 'success', enrollment });
+    } catch (error) {
+        if (error.code === 11000) {
+            const existing = await Enrollment.findOne({ reference }).lean().catch(() => null);
+            return res.status(200).json({ status: 'success', enrollment: existing });
+        }
+
+        const charged = payment !== null;
+        const unconfirmed = error instanceof OrderError && error.status >= 500;
+        if ((charged || unconfirmed) && typeof reference === 'string') {
+            await sendAdminPaymentAlert(charged ? 'Paid enrollment could not be completed' : 'Course payment could not be verified', [
+                ['Reference', reference],
+                ['Amount paid', charged ? naira(payment.amount / 100) : 'unknown (check Paystack)'],
+                ['Course', describeCourse(courseId, format)],
+                ['Reason', error.message],
+                ['What went wrong', error.detail || 'See the Render logs for this reference.'],
+                ['Student', rawStudent ? `${rawStudent.name} (${rawStudent.email}, ${rawStudent.phone})` : 'unknown'],
+                ['Next step', 'If the Paystack webhook is set up, the enrollment will be recorded automatically. Otherwise check the Paystack dashboard and contact the student.'],
+            ]);
+        }
+
+        if (error instanceof OrderError) {
+            const paidMessage = `Your payment was received (reference ${reference}). We could not confirm your enrollment automatically, `
+                + 'but our team has been notified and will contact you shortly. Please do not pay again.';
+            const message = (charged || unconfirmed) && !/contact support/i.test(error.message) ? paidMessage : error.message;
+            return res.status(error.status).json({ status: 'fail', paymentReceived: charged || unconfirmed, reference, message });
+        }
+        console.error('Failed to save enrollment:', error);
+        res.status(500).json({ status: 'fail', paymentReceived: true, reference, message: `Your payment was received (reference ${reference}). Our team has been notified and will contact you shortly. Please do not pay again.` });
+    }
+});
+
+// Called by the Paystack webhook for payments made on the Learn page
+const handleEnrollmentWebhook = async (res, reference, data, metadata) => {
+    try {
+        if (await Enrollment.exists({ reference })) return res.sendStatus(200);
+        if (data.currency && data.currency !== 'NGN') throw new OrderError('Payment was made in an unexpected currency.');
+        const student = cleanStudent({
+            ...(metadata.student || {}),
+            email: (metadata.student && metadata.student.email) || (data.customer && data.customer.email),
+        });
+        await createPaidEnrollment({ reference, payment: data, courseId: metadata.courseId, format: metadata.format, student, source: 'webhook' });
+        return res.sendStatus(200);
+    } catch (error) {
+        if (error.code === 11000) return res.sendStatus(200);
+        if (error instanceof OrderError) {
+            await sendAdminPaymentAlert('Paid on Paystack but no enrollment was recorded', [
+                ['Reference', reference],
+                ['Amount paid', naira((data.amount || 0) / 100)],
+                ['Course', describeCourse(metadata.courseId, metadata.format)],
+                ['Reason', error.message],
+                ['Student', `${(metadata.student && metadata.student.name) || ''} (${(data.customer && data.customer.email) || ''}, ${(metadata.student && metadata.student.phone) || ''})`],
+            ]);
+            return res.sendStatus(200);
+        }
+        console.error(`Enrollment webhook failed for ${reference}:`, error);
+        return res.sendStatus(500);
+    }
+};
+
+app.get('/api/admin/enrollments', verifyAdmin, async (req, res) => {
+    try {
+        const enrollments = await Enrollment.find().sort({ date: -1 }).limit(500).lean();
+        res.status(200).json({ enrollments });
+    } catch (error) {
+        console.error('Could not load enrollments:', error);
+        res.status(500).json({ message: 'Could not load enrollments.' });
+    }
+});
+
+app.patch('/api/admin/enrollments/:id/status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
+    const { status } = req.body || {};
+    if (!ENROLLMENT_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid status.' });
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Enrollment not found.' });
+    try {
+        const enrollment = await Enrollment.findByIdAndUpdate(req.params.id, { status }, { returnDocument: 'after' }).lean();
+        if (!enrollment) return res.status(404).json({ message: 'Enrollment not found.' });
+        res.status(200).json({ enrollment });
+    } catch (error) {
+        console.error('Could not update enrollment:', error);
+        res.status(500).json({ message: 'Could not update enrollment.' });
+    }
+});
+
+// --- Payments health check (admin panel → Settings) ---
+app.get('/api/admin/payments-status', verifyAdmin, authorizeRoles('superadmin', 'manager'), async (req, res) => {
+    const result = await checkPaystackKey(process.env.PAYSTACK_SECRET_KEY);
+    res.set('Cache-Control', 'no-store');
+    res.status(200).json({
+        ...result,
+        webhookUrl: `${req.protocol}://${req.get('host')}/api/payments/webhook`,
+    });
 });
 
 app.listen(PORT, async () => {
     console.log(`\n--- OpevickyScents Backend ---`);
     console.log(`Server running on http://localhost:${PORT}`);
+    const mode = paystackKeyMode(process.env.PAYSTACK_SECRET_KEY);
+    if (mode !== 'live') console.warn(`⚠️ PAYSTACK_SECRET_KEY looks wrong (${mode}). Live payments cannot be confirmed until it is an sk_live_ key.`);
+    else console.log('Paystack secret key: live');
 });

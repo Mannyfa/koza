@@ -26,7 +26,10 @@ const request = async (endpoint, { method = 'GET', body, auth = false } = {}) =>
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(data.message || `HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        error.data = data;
+        throw error;
     }
     return data;
 };
@@ -112,6 +115,19 @@ export const verifyPayment = (reference, cart, customer) =>
 /** Asks the server to price the cart and confirm every item is in stock, before paying. */
 export const validateCart = (cart) =>
     request('/orders/validate-cart', { method: 'POST', body: { cart } });
+
+// --- Training courses ("Learn with Opevicky") ---
+/** The fee the server will charge (in Naira) for a course and class format. */
+export const fetchCoursePrice = async (courseId, format) => {
+    const { courses } = await request('/courses');
+    const course = (courses || []).find((c) => c.id === courseId);
+    const amount = course && course.prices && course.prices[format];
+    if (!amount) throw new Error('This course is not available right now. Please refresh the page or enroll via WhatsApp.');
+    return amount;
+};
+
+export const verifyEnrollment = (reference, courseId, format, student) =>
+    request('/enrollments/verify', { method: 'POST', body: { reference, courseId, format, student } });
 
 // --- Guest order tracking & contact ---
 export const trackOrder = (email, orderNumber) =>

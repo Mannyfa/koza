@@ -131,3 +131,19 @@ test('cancelling an order needs confirmation in the app', async () => {
     expect(select).toHaveValue('Processing');
     expect(callsTo('PATCH /orders/bbbbbbbbbbbb222222/status')).toHaveLength(0);
 });
+
+test('settings shows whether payments can be confirmed and the webhook address', async () => {
+    const SettingsPage = require('./pages/SettingsPage').default;
+    mockServer({
+        'GET /admin/users': () => json(200, [{ _id: 'a1', name: 'Ope', email: 'ope@x.com', role: 'superadmin' }]),
+        'GET /admin/payments-status': () => json(200, {
+            ok: false, mode: 'live',
+            message: 'Paystack rejected the secret key (Invalid key). Paste the current live secret key into PAYSTACK_SECRET_KEY on Render.',
+            webhookUrl: 'https://koza-2fkh.onrender.com/api/payments/webhook',
+        }),
+    });
+    renderWithFeedback(<SettingsPage />);
+    expect(await screen.findByText(/payments cannot be confirmed/i)).toBeInTheDocument();
+    expect(screen.getByText(/rejected the secret key/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Webhook address')).toHaveValue('https://koza-2fkh.onrender.com/api/payments/webhook');
+});

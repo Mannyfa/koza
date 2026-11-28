@@ -45,10 +45,14 @@ const CheckoutPage = ({ cart, onPaymentSuccess, currentUser, onNavigate }) => {
             await openPaystackPopup({
                 email: customerInfo.email,
                 amount: total,
+                // Paystack sends this back to the backend's webhook, which uses it to create
+                // the order even if this page closes before the order is confirmed.
                 metadata: {
                     name: customerInfo.name,
                     phone: customerInfo.phone,
                     address: `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state}`,
+                    customer: customerInfo,
+                    cart: cart.map((item) => ({ id: item.id, quantity: item.quantity, name: item.name })),
                 },
                 onClose: () => setIsPaying(false),
                 onSuccess: (reference) => onPaymentSuccess(reference, customerInfo),

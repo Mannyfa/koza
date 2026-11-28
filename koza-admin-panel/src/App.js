@@ -6,12 +6,13 @@ import { LogoutIcon, MenuIcon } from './components/Icons';
 import Sidebar from './components/Sidebar';
 import { clearResourceCache } from './hooks/useCachedResource';
 import AnalyticsPage from './pages/AnalyticsPage';
+import EnrollmentsPage from './pages/EnrollmentsPage';
 import LoginPage from './pages/LoginPage';
 import OrdersPage from './pages/OrdersPage';
 import ProductsPage from './pages/ProductsPage';
 import SettingsPage from './pages/SettingsPage';
 
-const PAGES = ['analytics', 'orders', 'products', 'settings'];
+const PAGES = ['analytics', 'orders', 'products', 'enrollments', 'settings'];
 
 // Remember the open page in the address (#orders) so a refresh stays put
 const pageFromHash = () => {
@@ -93,6 +94,7 @@ export default function App() {
                         {page === 'analytics' && <AnalyticsPage setPage={setPage} />}
                         {page === 'orders' && <OrdersPage adminRole={adminRole} />}
                         {page === 'products' && <ProductsPage adminRole={adminRole} />}
+                        {page === 'enrollments' && <EnrollmentsPage adminRole={adminRole} />}
                         {page === 'settings' && (adminRole === 'superadmin' ? <SettingsPage /> : <AnalyticsPage setPage={setPage} />)}
                     </main>
                 </div>
