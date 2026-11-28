@@ -51,7 +51,7 @@ const LearnPage = ({ currentUser }) => {
                 <a href={ENROLL_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={`inline-block px-12 py-5 duration-300 ${btnPrimary}`}>
                     Ask a Question on WhatsApp
                 </a>
-                <p className="text-xs text-gray-500 mt-6">Ready to start? Choose a class above and tap <strong>Enroll &amp; Pay</strong> to pay securely with Paystack.</p>
+                <p className="text-xs text-gray-500 mt-6">Ready to start? Choose a class above and tap <strong>Enroll &amp; Pay</strong> to pay securely with Paystack.Then click inside the WhatsApp chat to send your message and payment confirmation.</p>
             </div>
         </div>
 
